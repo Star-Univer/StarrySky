@@ -15,6 +15,7 @@
     --paper:#ffffff;
     --muted:#8a857d;
     --faint:#e6e4e0;
+    --phi:1.618;          /* 黄金比例 */
   }
 
   *{ box-sizing:border-box; }
@@ -170,27 +171,24 @@
     to  { opacity:1; transform:none; }
   }
 
-  /* 工具卡片容器：可容纳多个按钮 */
+  /* 工具卡片容器：2 列网格 */
   .tool-grid{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    align-items:stretch;
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
     gap:18px;
     width:100%;
-    max-width:520px;
+    max-width:458px;   /* 220 + 18 + 220 */
   }
 
+  /* 每个按钮 = 黄金比例长方形（宽 : 高 = 1.618 : 1） */
   .tool-box{
     display:flex;
     align-items:center;
     justify-content:center;
-    flex:1 1 150px;
-    min-width:140px;
-    max-width:220px;
-    aspect-ratio:1 / 1;
+    width:100%;
+    aspect-ratio:var(--phi) / 1;
     border:1px solid var(--faint);
-    border-radius:16px;
+    border-radius:14px;
     text-decoration:none;
     color:var(--ink);
     background:transparent;
@@ -201,6 +199,7 @@
 
   .tool-box:nth-child(1){ animation-delay:.42s; }
   .tool-box:nth-child(2){ animation-delay:.52s; }
+  .tool-box:nth-child(3){ animation-delay:.62s; }
 
   .tool-box:hover{
     border-color:var(--ink);
@@ -214,7 +213,7 @@
   }
 
   .tool-box-name{
-    font-size:1.2rem;
+    font-size:1.15rem;
     font-weight:600;
     letter-spacing:.2em;
     padding-left:.2em;
@@ -234,8 +233,8 @@
   @media (max-width:520px){
     .title-wrap{ padding:28px 26px; }
     .tool-grid{ gap:14px; }
-    .tool-box{ border-radius:14px; flex:1 1 130px; min-width:125px; }
-    .tool-box-name{ font-size:1.05rem; }
+    .tool-box{ border-radius:12px; }
+    .tool-box-name{ font-size:1rem; }
   }
 </style>
 </head>
@@ -282,12 +281,16 @@
 
       <div class="tool-grid">
 
-        <a class="tool-box" href="计数.html" aria-label="进入计数工具">
-          <span class="tool-box-name">计数</span>
+        <a class="tool-box" href="计数.html" aria-label="进入比分计数工具">
+          <span class="tool-box-name">比分计数</span>
         </a>
 
         <a class="tool-box" href="八字排盘.html" aria-label="进入八字排盘工具">
           <span class="tool-box-name">八字排盘</span>
+        </a>
+
+        <a class="tool-box" href="数独推理.html" aria-label="进入数独推理工具">
+          <span class="tool-box-name">数独推理</span>
         </a>
 
       </div>
