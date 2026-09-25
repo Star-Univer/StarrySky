@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>甲乙计分表</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    padding: 68px 12px 32px;   /* 顶部留出返回按钮的空间 */
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #eef1f6;
+    color: #1e293b;
+    -webkit-text-size-adjust: 100%;
+  }
+  .app { max-width: 520px; margin: 0 auto; }
+
+  /* ===== 左上角返回按钮 ===== */
+  .back-btn {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+    text-decoration: none;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, .10);
+    z-index: 99;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .back-btn:hover {
+    transform: translateX(-2px);
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .16);
+  }
+  .back-btn:active { transform: scale(.94); }
+  .back-btn svg { width: 22px; height: 22px; display: block; }
+
+  .board {
+    background: #fff; border-radius: 16px;
+    padding: 18px 14px 12px;
+    box-shadow: 0 2px 10px rgba(15,23,42,.07);
+    margin-bottom: 14px;
+  }
+  .score-line {
+    display: flex; align-items: baseline; justify-content: center;
+  }
+  .tname {
+    font-size: 15px; font-weight: 600; color: #64748b; letter-spacing: 3px;
+  }
+  .wins {
+    font-size: 44px; font-weight: 800; line-height: 1;
+    min-width: 48px; text-align: center; margin: 0 4px;
+  }
+  .wins.a { color: #2563eb; }
+  .wins.b { color: #ea580c; }
+  .vs {
+    font-size: 26px; font-weight: 700; color: #cbd5e1;
+    margin: 0 6px; position: relative; top: -4px;
+  }
+  .totals {
+    text-align: center; font-size: 12px; color: #94a3b8; margin-top: 10px;
+  }
+  .totals b { color: #475569; font-size: 13px; margin: 0 2px; }
+  .totals .sep { margin: 0 7px; color: #dbe1e8; }
+
+  table {
+    width: 100%; border-collapse: collapse; border-spacing: 0;
+    background: #fff; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(15,23,42,.06);
+    table-layout: fixed;
+  }
+  thead th {
+    background: #f1f5f9; font-size: 12px; font-weight: 600;
+    color: #64748b; padding: 9px 4px; letter-spacing: 1px; text-align: center;
+  }
+  tbody td {
+    padding: 5px 4px; text-align: center;
+    border-top: 1px solid #f1f5f9; vertical-align: middle;
+  }
+  td.idx { font-size: 13px; color: #94a3b8; font-weight: 600; }
+
+  select.score {
+    display: block; width: 100%; min-width: 0;
+    height: 44px; font-size: 20px; font-weight: 700; text-align: center;
+    border: 2px solid #e2e8f0; border-radius: 10px;
+    background: #f8fafc; color: #1e293b; outline: none; padding: 0 4px;
+    font-family: inherit; margin: 0;
+    -webkit-box-sizing: border-box; box-sizing: border-box;
+    cursor: pointer;
+    -webkit-appearance: menulist-button;
+    appearance: menulist-button;
+  }
+  select.score:focus { border-color: #93c5fd; background: #fff; }
+  select.score.b:focus { border-color: #fdba74; }
+  select.score.auto {
+    background: #eef2ff;
+    border-color: #c7d2fe;
+    color: #4338ca;
+  }
+
+  td.res { font-size: 13px; font-weight: 700; }
+  .res.winA { color: #2563eb; }
+  .res.winB { color: #ea580c; }
+  .res.pending { color: #cbd5e1; font-weight: 400; }
+  .res.errTxt { color: #dc2626; font-size: 11px; font-weight: 600; }
+
+  .tip {
+    font-size: 12px; color: #94a3b8; text-align: center;
+    margin: 12px 0 0; line-height: 1.7;
+  }
+  .actions { display: flex; gap: 10px; margin-top: 14px; }
+  .btn {
+    flex: 1; height: 44px; border: none; border-radius: 12px;
+    font-size: 15px; font-weight: 600; font-family: inherit;
+    background: #fff; color: #dc2626;
+    box-shadow: 0 2px 8px rgba(15,23,42,.06); cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- 左上角返回箭头：跳到 index.html -->
+<a class="back-btn" href="index.html" aria-label="返回主页">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M15 5L8 12l7 7" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</a>
+
+<div class="app">
+
+  <div class="board">
+    <div class="score-line">
+      <span class="tname">甲</span>
+      <span class="wins a" id="winsA">0</span>
+      <span class="vs">:</span>
+      <span class="wins b" id="winsB">0</span>
+      <span class="tname">乙</span>
+    </div>
+    <div class="totals">
+      总得分
+      <span class="sep">·</span>甲 <b id="totalA">0</b>
+      <span class="sep">·</span>乙 <b id="totalB">0</b>
+    </div>
+  </div>
+
+  <table>
+    <colgroup>
+      <col style="width:56px">
+      <col><col>
+      <col style="width:62px">
+    </colgroup>
+    <thead>
+      <tr><th>场次</th><th>甲</th><th>乙</th><th>结果</th></tr>
+    </thead>
+    <tbody id="tbody">
+      <tr>
+        <td class="idx">1</td>
+        <td><select class="score a">
+          <option value="">—</option>
+          <option value="0">0</option><option value="1">1</option>
+          <option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option>
+          <option value="6">6</option><option value="7">7</option>
+          <option value="8">8</option><option value="9">9</option>
+          <option value="10">10</option><option value="11">11</option>
+          <option value="12">12</option><option value="13">13</option>
+          <option value="14">14</option>
+          <option value="15">15</option>
+        </select></td>
+        <td><select class="score b">
+          <option value="">—</option>
+          <option value="0">0</option><option value="1">1</option>
+          <option value="2">2</option><option value="3">3</option>
+          <option value="4">4</option><option value="5">5</option>
+          <option value="6">6</option><option value="7">7</option>
+          <option value="8">8</option><option value="9">9</option>
+          <option value="10">10</option><option value="11">11</option>
+          <option value="12">12</option><option value="13">13</option>
+          <option value="14">14</option>
+          <option value="15">15</option>
+        </select></td>
+        <td class="res"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="tip">每场先到 <b>15</b> 分者胜，填完自动出现下一场</div>
+
+  <div class="actions">
+    <button id="resetBtn" class="btn" type="button">清空重来</button>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  var MAX = 15;
+  var tbody = document.getElementById('tbody');
+  var winsAEl = document.getElementById('winsA');
+  var winsBEl = document.getElementById('winsB');
+  var totalAEl = document.getElementById('totalA');
+  var totalBEl = document.getElementById('totalB');
+
+  var updating = false;
+
+  function optionsHTML() {
+    var s = '<option value="">—</option>';
+    for (var i = 0; i <= MAX; i++) {
+      s += '<option value="' + i + '">' + i + '</option>';
+    }
+    return s;
+  }
+
+  function createRow() {
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="idx"></td>' +
+      '<td><select class="score a">' + optionsHTML() + '</select></td>' +
+      '<td><select class="score b">' + optionsHTML() + '</select></td>' +
+      '<td class="res"></td>';
+    return tr;
+  }
+
+  function getRow(el) {
+    var n = el;
+    while (n) {
+      if (n.tagName === 'TR') return n;
+      n = n.parentNode;
+    }
+    return null;
+  }
+
+  function renumber() {
+    var trs = tbody.getElementsByTagName('tr');
+    for (var i = 0; i < trs.length; i++) {
+      var tds = trs[i].getElementsByTagName('td');
+      if (tds.length > 0) tds[0].textContent = i + 1;
+    }
+  }
+
+  function updateScores() {
+    try {
+      var tA = 0, tB = 0, wA = 0, wB = 0;
+      var trs = tbody.getElementsByTagName('tr');
+
+      for (var i = 0; i < trs.length; i++) {
+        var tr = trs[i];
+        var tds = tr.getElementsByTagName('td');
+        var sels = tr.getElementsByTagName('select');
+        if (tds.length < 4 || sels.length < 2) continue;
+
+        if (tds[0]) tds[0].textContent = i + 1;
+
+        var av = sels[0].value === '' ? null : parseInt(sels[0].value, 10);
+        var bv = sels[1].value === '' ? null : parseInt(sels[1].value, 10);
+
+        if (av !== null) tA += av;
+        if (bv !== null) tB += bv;
+
+        var rTxt = '';
+        var rCls = 'res';
+
+        if (av === null && bv === null) {
+          /* 空行 */
+        } else if (av === null || bv === null) {
+          rTxt = '···';
+          rCls = 'res pending';
+        } else if (av === MAX && bv < MAX) {
+          rTxt = '甲胜';
+          rCls = 'res winA';
+          wA++;
+        } else if (bv === MAX && av < MAX) {
+          rTxt = '乙胜';
+          rCls = 'res winB';
+          wB++;
+        } else {
+          rTxt = (av === MAX && bv === MAX) ? '无效' : '未满15';
+          rCls = 'res errTxt';
+        }
+
+        tds[3].setAttribute('class', rCls);
+        if (tds[3].textContent !== rTxt) tds[3].textContent = rTxt;
+      }
+
+      winsAEl.textContent = wA;
+      winsBEl.textContent = wB;
+      totalAEl.textContent = tA;
+      totalBEl.textContent = tB;
+
+      var last = trs[trs.length - 1];
+      if (last) {
+        var ls = last.getElementsByTagName('select');
+        if (ls.length >= 2 && ls[0].value !== '' && ls[1].value !== '') {
+          tbody.appendChild(createRow());
+          renumber();
+        }
+      }
+    } catch (e) {}
+  }
+
+  /* 用户改哪个格子，另一个自动填 15 */
+  function handleChange(target) {
+    if (updating) return;
+    if (!target || target.tagName !== 'SELECT') return;
+
+    var tr = getRow(target);
+    if (!tr) return;
+    var sels = tr.getElementsByTagName('select');
+    if (sels.length < 2) return;
+    var aSel = sels[0];
+    var bSel = sels[1];
+
+    updating = true;
+
+    var val = target.value;
+
+    if (target === aSel) {
+      if (val !== '') {
+        /* 用户填了甲，甲是最低分 → 乙自动 15 */
+        if (bSel.value !== '15') bSel.value = '15';
+        bSel.setAttribute('class', 'score b auto');
+      } else {
+        /* 清空甲，乙也清空（回到初始） */
+        if (bSel.value === '15') bSel.value = '';
+        bSel.setAttribute('class', 'score b');
+      }
+    } else if (target === bSel) {
+      if (val !== '') {
+        /* 用户填了乙，乙是最低分 → 甲自动 15 */
+        if (aSel.value !== '15') aSel.value = '15';
+        aSel.setAttribute('class', 'score a auto');
+      } else {
+        if (aSel.value === '15') aSel.value = '';
+        aSel.setAttribute('class', 'score a');
+      }
+    }
+
+    updating = false;
+    updateScores();
+  }
+
+  function onChange(e) {
+    var t = e.target || e.srcElement;
+    if (t && t.tagName === 'SELECT') {
+      handleChange(t);
+    }
+  }
+
+  if (tbody.addEventListener) {
+    tbody.addEventListener('change', onChange, false);
+    tbody.addEventListener('input', onChange, false);
+  } else if (tbody.attachEvent) {
+    tbody.attachEvent('onchange', onChange);
+  }
+
+  /* 轮询兜底 */
+  var lastSnap = '';
+  function snap() {
+    var sels = tbody.getElementsByTagName('select');
+    var s = '';
+    for (var i = 0; i < sels.length; i++) {
+      s += sels[i].value + '|';
+    }
+    return s;
+  }
+
+  setInterval(function () {
+    try {
+      var s = snap();
+      if (s !== lastSnap) {
+        lastSnap = s;
+        updateScores();
+        lastSnap = snap();
+      }
+    } catch (e) {}
+  }, 150);
+
+  function doReset() {
+    tbody.innerHTML = '';
+    tbody.appendChild(createRow());
+    updateScores();
+    lastSnap = snap();
+  }
+
+  var resetBtn = document.getElementById('resetBtn');
+  if (resetBtn.addEventListener) {
+    resetBtn.addEventListener('click', doReset, false);
+  }
+  resetBtn.onclick = doReset;
+
+  updateScores();
+  lastSnap = snap();
+
+})();
+</script>
+</body>
+</html>
