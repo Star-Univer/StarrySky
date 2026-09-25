@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>数独 · 九宫格</title>
+<style>
+  :root{
+    --ink:#121110;
+    --paper:#ffffff;
+    --muted:#8a857d;
+    --faint:#e2dfda;
+    --rel:#f7f6f4;
+    --same:#eceae6;
+    --sel:#e2ded7;
+    --user:#31506b;
+    --err:#c1442e;
+    --err-bg:#fdecec;
+    --err-bd:#e8b4b4;
+    --ok:#2b8a4e;
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system, BlinkMacSystemFont, "PingFang SC",
+                "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:60px 0 56px;
+  }
+
+  /* ===== 返回箭头 ===== */
+  .back-btn{
+    position:fixed;
+    top:14px; left:14px;
+    z-index:100;
+    width:40px; height:40px;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:50%;
+    color:var(--ink);
+    background:rgba(255,255,255,.88);
+    border:1px solid var(--faint);
+    -webkit-backdrop-filter:blur(8px);
+    backdrop-filter:blur(8px);
+    text-decoration:none;
+    transition:background .25s, transform .25s, border-color .25s;
+  }
+  .back-btn svg{ width:22px; height:22px; display:block; }
+  .back-btn:hover{ background:#f7f6f4; border-color:#c9c4bc; transform:translateY(-1px); }
+  .back-btn:active{ transform:scale(.94); }
+
+  /* ===== 标题 ===== */
+  header{ text-align:center; margin-bottom:26px; }
+
+  h1{
+    margin:0;
+    font-size:2rem;
+    font-weight:900;
+    letter-spacing:.34em;
+    text-indent:.34em;
+    line-height:1;
+  }
+
+  .sub{
+    margin-top:12px;
+    font-size:.7rem;
+    font-weight:600;
+    letter-spacing:.3em;
+    text-indent:.3em;
+    color:var(--muted);
+  }
+
+  /* ===== 难度按钮组 ===== */
+  .diff-group{
+    display:flex;
+    gap:8px;
+    width:min(92vw, 420px);
+    margin:0 auto 10px;
+  }
+
+  .diff-btn{
+    flex:1;
+    padding:11px 0;
+    border:1px solid var(--faint);
+    border-radius:9px;
+    background:#fff;
+    color:var(--muted);
+    font-family:inherit;
+    font-size:.88rem;
+    font-weight:600;
+    letter-spacing:.16em;
+    text-indent:.16em;
+    cursor:pointer;
+    transition:background .25s, color .25s, border-color .25s, transform .15s;
+  }
+  .diff-btn:active{ transform:scale(.97); }
+  .diff-btn.on{
+    background:var(--ink);
+    border-color:var(--ink);
+    color:#fff;
+  }
+
+  /* ===== 错误次数显示：整行居中、数字固定宽度 ===== */
+  .error-display{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:0;
+    width:min(92vw, 420px);
+    margin:0 auto 12px;
+    font-size:.82rem;
+    font-weight:600;
+    letter-spacing:.1em;
+    color:#b0aaa2;
+    line-height:1;
+  }
+  .error-display .err-label{
+    line-height:1;
+    white-space:nowrap;
+  }
+  .error-display .err-num{
+    display:inline-block;
+    min-width:2.2em;
+    text-align:center;
+    color:var(--err);
+    font-weight:700;
+    font-size:1rem;
+    letter-spacing:0;
+    line-height:1;
+    padding:0 4px;
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum";
+  }
+
+  /* ===== 状态行 ===== */
+  .status{
+    width:min(92vw, 420px);
+    margin:0 auto 12px;
+    font-size:.72rem;
+    letter-spacing:.16em;
+    color:var(--muted);
+    text-align:center;
+    height:1.2em;
+    transition:color .3s;
+  }
+  .status.done{ color:var(--ok); font-weight:700; }
+  .status.loading{ color:#b08d57; }
+
+  /* ===== 棋盘 ===== */
+  .board{
+    display:grid;
+    grid-template-columns:repeat(9, 1fr);
+    width:min(92vw, 420px);
+    aspect-ratio:1 / 1;
+    margin:0 auto;
+    border:2px solid var(--ink);
+    border-radius:3px;
+    overflow:hidden;
+    background:#fff;
+  }
+
+  .cell{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-right:1px solid var(--faint);
+    border-bottom:1px solid var(--faint);
+    font-size:clamp(1.05rem, 5.2vw, 1.55rem);
+    line-height:1;
+    cursor:pointer;
+    user-select:none;
+    -webkit-user-select:none;
+    touch-action:manipulation;
+    transition:background .15s ease, color .15s ease;
+  }
+
+  .cell:nth-child(n+73){ border-bottom:none; }
+  .cell:nth-child(9n){ border-right:none; }
+
+  .cell:nth-child(3n){ border-right:2px solid var(--ink); }
+  .cell:nth-child(9n){ border-right:none; }
+
+  .cell:nth-child(n+19):nth-child(-n+27),
+  .cell:nth-child(n+46):nth-child(-n+54){
+    border-bottom:2px solid var(--ink);
+  }
+
+  .cell.rel{ background:var(--rel); }
+  .cell.same{ background:var(--same); }
+  .cell.sel{ background:var(--sel); }
+
+  .cell.given{ color:var(--ink); font-weight:700; }
+  .cell.user{ color:var(--user); font-weight:500; }
+  /* 填错 → 数字持续红色（无论是否选中），直到清除或数字填满 9 个 */
+  .cell.err{ color:var(--err); font-weight:700; }
+
+  /* ===== 数字键盘 ===== */
+  .numpad{
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:8px;
+    width:min(92vw, 420px);
+    margin:16px auto 0;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  .numpad.show{ opacity:1; pointer-events:auto; }
+
+  .num-btn{
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:14px 0 16px;
+    border:1px solid var(--faint);
+    border-radius:9px;
+    background:#fff;
+    color:var(--ink);
+    font-family:inherit;
+    font-size:1.02rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .18s, transform .12s, opacity .25s, border-color .25s, color .25s;
+  }
+  .num-btn:active{ background:#f2f0ec; transform:scale(.96); }
+
+  .num-count{
+    position:absolute;
+    right:5px;
+    bottom:3px;
+    font-size:.54rem;
+    font-weight:500;
+    letter-spacing:0;
+    line-height:1;
+    color:#bdb8b0;
+    pointer-events:none;
+    transition:color .25s;
+  }
+
+  .num-btn.complete{
+    opacity:.35;
+    cursor:not-allowed;
+    pointer-events:none;
+    background:#f7f6f4;
+    border-color:#eceae6;
+  }
+  .num-btn.complete .num-count{
+    color:#c9c4bc;
+  }
+
+  .num-btn.wrong{
+    background:var(--err-bg);
+    border-color:var(--err-bd);
+    pointer-events:auto;
+    opacity:1;
+  }
+  .num-btn.wrong .num-main{
+    color:var(--err);
+  }
+  .num-btn.wrong .num-count{
+    color:#d89090;
+  }
+
+  @keyframes numShake{
+    0%   { transform:translateX(0); }
+    20%  { transform:translateX(-5px); }
+    40%  { transform:translateX(5px); }
+    60%  { transform:translateX(-3px); }
+    80%  { transform:translateX(3px); }
+    100% { transform:translateX(0); }
+  }
+  .num-btn.shake{
+    animation:numShake .42s cubic-bezier(.36,.07,.19,.97);
+  }
+
+  .num-btn.clear{
+    font-size:.78rem;
+    font-weight:500;
+    letter-spacing:.12em;
+    color:var(--muted);
+    padding:14px 0;
+  }
+
+  /* ===== 开始按钮 ===== */
+  .btn-start{
+    display:block;
+    width:min(92vw, 420px);
+    margin:20px auto 0;
+    padding:16px 0;
+    border:none;
+    border-radius:10px;
+    background:var(--ink);
+    color:#fff;
+    font-family:inherit;
+    font-size:1rem;
+    font-weight:600;
+    letter-spacing:.42em;
+    text-indent:.42em;
+    cursor:pointer;
+    transition:opacity .25s, transform .15s;
+  }
+  .btn-start:active{ transform:translateY(1px); }
+  .btn-start:disabled{ opacity:.38; cursor:default; }
+
+  /* ===== 结束遮罩 ===== */
+  .overlay{
+    position:fixed;
+    inset:0;
+    z-index:200;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(18,17,16,.62);
+    -webkit-backdrop-filter:blur(3px);
+    backdrop-filter:blur(3px);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .35s ease;
+  }
+  .overlay.show{
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  .overlay-panel{
+    width:min(84vw, 360px);
+    min-height:min(50vh, 360px);
+    background:#fff;
+    border-radius:20px;
+    box-shadow:0 30px 70px -25px rgba(0,0,0,.5);
+    padding:34px 26px 30px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:16px;
+    transform:scale(.94);
+    transition:transform .35s cubic-bezier(.2,.7,.3,1);
+  }
+  .overlay.show .overlay-panel{
+    transform:scale(1);
+  }
+
+  .ov-title{
+    font-size:.7rem;
+    font-weight:700;
+    letter-spacing:.34em;
+    text-indent:.34em;
+    color:var(--ok);
+    margin-bottom:4px;
+  }
+
+  .ov-row{
+    width:100%;
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:10px 14px;
+    background:#faf9f7;
+    border-radius:10px;
+  }
+  .ov-label{
+    font-size:.74rem;
+    letter-spacing:.18em;
+    color:var(--muted);
+    font-weight:600;
+  }
+  .ov-value{
+    font-size:1.05rem;
+    font-weight:700;
+    letter-spacing:.06em;
+    color:var(--ink);
+  }
+  .ov-value.err{
+    color:var(--err);
+  }
+
+  .ov-btn{
+    width:100%;
+    margin-top:10px;
+    padding:14px 0;
+    border:none;
+    border-radius:10px;
+    background:var(--ink);
+    color:#fff;
+    font-family:inherit;
+    font-size:.9rem;
+    font-weight:600;
+    letter-spacing:.3em;
+    text-indent:.3em;
+    cursor:pointer;
+    transition:opacity .2s, transform .15s;
+  }
+  .ov-btn:active{ transform:translateY(1px); }
+  .ov-btn:hover{ opacity:.9; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+
+  @media (max-width:400px){
+    body{ padding-top:56px; }
+    h1{ font-size:1.7rem; }
+    .diff-btn{ font-size:.8rem; padding:10px 0; }
+    .num-btn{ padding:12px 0 14px; font-size:.95rem; }
+    .num-count{ font-size:.5rem; right:4px; bottom:2px; }
+    .overlay-panel{ padding:28px 20px 24px; gap:12px; }
+  }
+</style>
+</head>
+<body>
+
+<a class="back-btn" href="index.html" aria-label="返回主页">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M15 5L8 12l7 7" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</a>
+
+<header>
+  <h1>数独</h1>
+  <div class="sub">九 宫 格 · 逻 辑 推 理</div>
+</header>
+
+<!-- 上方：难度选择 -->
+<div class="diff-group" id="diffGroup">
+  <button class="diff-btn on" data-level="easy">易</button>
+  <button class="diff-btn" data-level="simple">简</button>
+  <button class="diff-btn" data-level="hard">难</button>
+  <button class="diff-btn" data-level="nightmare">噩梦</button>
+</div>
+
+<!-- 错误次数 -->
+<div class="error-display">
+  <span class="err-label">错误：</span><span class="err-num" id="errorNum">--</span><span class="err-label">次</span>
+</div>
+
+<!-- 状态行 -->
+<div class="status" id="status">选择难度 · 点击开始</div>
+
+<!-- 数独棋盘 -->
+<div class="board" id="board"></div>
+
+<!-- 数字键盘 -->
+<div class="numpad" id="numpad">
+  <button class="num-btn" data-n="1"><span class="num-main">1</span><span class="num-count">0/9</span></button>
+  <button class="num-btn" data-n="2"><span class="num-main">2</span><span class="num-count">0/9</span></button>
+  <button class="num-btn" data-n="3"><span class="num-main">3</span><span class="num-count">0/9</span></button>
+  <button class="num-btn" data-n="4"><span class="num-main">4</span><span class="num-count">0/9</span></button>
+  <button class="num-btn" data-n="5"><span class="num-main">5</span><span class="num-count">0/9</span></button>
+  <button class="num-btn" data-n="6"><span class="num-main">6</span><span class="num-count">0/9</span></button>
+  <button class="num-btn" data-n="7"><span class="num-main">7</span><span class="num-count">0/9</span></button>
+  <button class="num-btn" data-n="8"><span class="num-main">8</span><span class="num-count">0/9</span></button>
+  <button class="num-btn" data-n="9"><span class="num-main">9</span><span class="num-count">0/9</span></button>
+  <button class="num-btn clear" data-n="0">清除</button>
+</div>
+
+<!-- 下方：开始 -->
+<button class="btn-start" id="btnStart">开 始</button>
+
+<!-- 结束遮罩 -->
+<div class="overlay" id="overlay">
+  <div class="overlay-panel">
+    <div class="ov-title">✓ 完 成</div>
+
+    <div class="ov-row">
+      <span class="ov-label">难度</span>
+      <span class="ov-value" id="ovDiff">—</span>
+    </div>
+
+    <div class="ov-row">
+      <span class="ov-label">用时</span>
+      <span class="ov-value" id="ovTime">—</span>
+    </div>
+
+    <div class="ov-row">
+      <span class="ov-label">错误次数</span>
+      <span class="ov-value err" id="ovErr">—</span>
+    </div>
+
+    <button class="ov-btn" id="btnNewGame">开始新游戏</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+ *  一、常量
+ * ============================================================ */
+
+const HOLES = {
+  easy:      42,
+  simple:    50,
+  hard:      56,
+  nightmare: 62
+};
+
+const TIME_LIMIT = {
+  easy:      1200,
+  simple:    2000,
+  hard:      2800,
+  nightmare: 3600
+};
+
+const DIFF_NAME = { easy:'易', simple:'简', hard:'难', nightmare:'噩梦' };
+
+/* ============================================================
+ *  二、数独生成
+ * ============================================================ */
+
+function shuffle(a){
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function boxIdx(i){
+  return Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3);
+}
+
+function generateSolution(){
+  const grid = new Array(81).fill(0);
+  const rows = new Array(9).fill(0);
+  const cols = new Array(9).fill(0);
+  const boxes = new Array(9).fill(0);
+
+  function fill(pos){
+    if(pos === 81) return true;
+
+    const r = Math.floor(pos / 9), c = pos % 9, b = boxIdx(pos);
+    const used = rows[r] | cols[c] | boxes[b];
+
+    const cands = [];
+    for(let n = 1; n <= 9; n++){
+      if(!(used & (1 << n))) cands.push(n);
+    }
+    shuffle(cands);
+
+    for(const n of cands){
+      const bit = 1 << n;
+      rows[r] |= bit; cols[c] |= bit; boxes[b] |= bit;
+      grid[pos] = n;
+      if(fill(pos + 1)) return true;
+      rows[r] &= ~bit; cols[c] &= ~bit; boxes[b] &= ~bit;
+      grid[pos] = 0;
+    }
+    return false;
+  }
+
+  fill(0);
+  return grid;
+}
+
+function countSolutions(grid, limit){
+  limit = limit || 2;
+
+  const g = grid.slice();
+  const rows = new Array(9).fill(0);
+  const cols = new Array(9).fill(0);
+  const boxes = new Array(9).fill(0);
+
+  for(let i = 0; i < 81; i++){
+    const v = g[i];
+    if(v){
+      const r = Math.floor(i / 9), c = i % 9, b = boxIdx(i);
+      const bit = 1 << v;
+      rows[r] |= bit; cols[c] |= bit; boxes[b] |= bit;
+    }
+  }
+
+  let count = 0;
+
+  function solve(){
+    if(count >= limit) return;
+
+    let best = -1, bestCount = 10, bestUsed = 0;
+
+    for(let i = 0; i < 81; i++){
+      if(g[i]) continue;
+      const r = Math.floor(i / 9), c = i % 9, b = boxIdx(i);
+      const used = rows[r] | cols[c] | boxes[b];
+      let cnt = 0;
+      for(let n = 1; n <= 9; n++) if(!(used & (1 << n))) cnt++;
+      if(cnt === 0) return;
+      if(cnt < bestCount){
+        bestCount = cnt;
+        best = i;
+        bestUsed = used;
+        if(cnt === 1) break;
+      }
+    }
+
+    if(best === -1){ count++; return; }
+
+    const r = Math.floor(best / 9), c = best % 9, b = boxIdx(best);
+
+    for(let n = 1; n <= 9; n++){
+      const bit = 1 << n;
+      if(bestUsed & bit) continue;
+
+      g[best] = n;
+      rows[r] |= bit; cols[c] |= bit; boxes[b] |= bit;
+
+      solve();
+
+      g[best] = 0;
+      rows[r] &= ~bit; cols[c] &= ~bit; boxes[b] &= ~bit;
+
+      if(count >= limit) return;
+    }
+  }
+
+  solve();
+  return count;
+}
+
+function makePuzzle(solution, holes, timeLimitMs){
+  const puzzle = solution.slice();
+  const order = shuffle([...Array(81).keys()]);
+  const start = Date.now();
+  let removed = 0;
+
+  for(const i of order){
+    if(removed >= holes) break;
+    if(Date.now() - start > timeLimitMs) break;
+
+    const backup = puzzle[i];
+    puzzle[i] = 0;
+
+    if(countSolutions(puzzle, 2) !== 1){
+      puzzle[i] = backup;
+    }else{
+      removed++;
+    }
+  }
+
+  return puzzle;
+}
+
+/* ============================================================
+ *  三、状态
+ * ============================================================ */
+
+const boardEl   = document.getElementById('board');
+const numpadEl  = document.getElementById('numpad');
+const statusEl  = document.getElementById('status');
+const btnStart  = document.getElementById('btnStart');
+const diffGroup = document.getElementById('diffGroup');
+const overlayEl = document.getElementById('overlay');
+const errorNumEl= document.getElementById('errorNum');
+
+let level     = 'easy';
+let solution  = [];
+let puzzle    = [];
+let values    = [];
+let cells     = [];
+let selected  = -1;
+let playing   = false;
+
+let timer = null;
+let startTime = 0;
+let elapsed = 0;
+
+/* 错误相关 */
+let errorCount   = 0;
+/* wrongDigit[i] = 该格填错的数字（0 表示没填错过）。
+   清除后仍保留，用来持续提示「这一格你填错过」。 */
+let wrongDigit   = new Array(81).fill(0);
+/* 本局已震动过的数字，保证每个数字只震动一次 */
+let shakenDigits = new Set();
+
+/* ============================================================
+ *  四、棋盘基础
+ * ============================================================ */
+
+function buildBoard(){
+  boardEl.innerHTML = '';
+  cells = [];
+  for(let i = 0; i < 81; i++){
+    const d = document.createElement('div');
+    d.className = 'cell';
+    d.dataset.i = i;
+    boardEl.appendChild(d);
+    cells.push(d);
+  }
+}
+
+function isRelated(a, b){
+  if(a === b) return false;
+  const ra = Math.floor(a / 9), ca = a % 9;
+  const rb = Math.floor(b / 9), cb = b % 9;
+  if(ra === rb || ca === cb) return true;
+  return boxIdx(a) === boxIdx(b);
+}
+
+function countDigit(n){
+  let c = 0;
+  for(let i = 0; i < 81; i++){
+    if(values[i] === n) c++;
+  }
+  return c;
+}
+
+/* 该格是否应显示「错误红字」：
+   填错过，且当前盘面上该数字还没满 9 个（数字填满后不再提示） */
+function isCellWrongVisible(i){
+  if(wrongDigit[i] <= 0) return false;
+  return countDigit(wrongDigit[i]) < 9;
+}
+
+/* ============================================================
+ *  五、数字键盘更新
+ * ============================================================ */
+
+function updateNumButtons(){
+  /* 选中格若有「填错记录」，且该数字未满 9 个 → 按钮红色 */
+  const selWrong = (selected >= 0 && wrongDigit[selected] > 0)
+    ? wrongDigit[selected]
+    : 0;
+  const selWrongVisible = (selWrong > 0) && (countDigit(selWrong) < 9);
+
+  numpadEl.querySelectorAll('.num-btn').forEach(btn => {
+    const n = Number(btn.dataset.n);
+    if(!n) return;
+
+    const c = countDigit(n);
+    const span = btn.querySelector('.num-count');
+    if(span) span.textContent = c + '/9';
+
+    const isWrong = (n === selWrong) && selWrongVisible;
+    const isFull  = (c >= 9);
+
+    btn.classList.toggle('wrong', isWrong);
+    btn.classList.toggle('complete', isFull);
+  });
+}
+
+function shakeNumBtn(n){
+  const btn = numpadEl.querySelector('.num-btn[data-n="' + n + '"]');
+  if(!btn) return;
+  btn.classList.remove('shake');
+  void btn.offsetWidth;
+  btn.classList.add('shake');
+  setTimeout(() => btn.classList.remove('shake'), 460);
+}
+
+/* ============================================================
+ *  六、错误次数
+ * ============================================================ */
+
+function updateErrorDisplay(){
+  errorNumEl.textContent = errorCount === 0 ? '--' : String(errorCount);
+}
+
+/* ============================================================
+ *  七、渲染
+ * ============================================================ */
+
+function render(){
+  const selVal = (selected >= 0) ? values[selected] : 0;
+
+  for(let i = 0; i < 81; i++){
+    const cell = cells[i];
+    const v = values[i];
+
+    cell.textContent = v ? v : '';
+    cell.className = 'cell';
+
+    if(puzzle[i]){
+      cell.classList.add('given');
+    }else if(v){
+      cell.classList.add('user');
+    }
+
+    if(selected >= 0){
+      if(i === selected)                        cell.classList.add('sel');
+      else if(selVal && v === selVal)           cell.classList.add('same');
+      else if(isRelated(i, selected))           cell.classList.add('rel');
+    }
+
+    /* 填错的数字：只要还在盘面上、且该数字未满 9 个，就一直显示红色 */
+    if(v && isCellWrongVisible(i)){
+      cell.classList.add('err');
+    }
+  }
+
+  updateNumButtons();
+}
+
+/* ============================================================
+ *  八、状态行
+ * ============================================================ */
+
+function fmtTime(sec){
+  const m = String(Math.floor(sec / 60)).padStart(2, '0');
+  const s = String(sec % 60).padStart(2, '0');
+  return m + ':' + s;
+}
+
+function updateStatus(done){
+  if(!playing && !done){
+    statusEl.textContent = '选择难度 · 点击开始';
+    statusEl.classList.remove('done', 'loading');
+    return;
+  }
+  const text = DIFF_NAME[level] + ' · 用时 ' + fmtTime(elapsed);
+  if(done){
+    statusEl.textContent = text + ' · ✓ 已完成';
+    statusEl.classList.add('done');
+    statusEl.classList.remove('loading');
+  }else{
+    statusEl.textContent = text;
+    statusEl.classList.remove('done', 'loading');
+  }
+}
+
+/* ============================================================
+ *  九、游戏流程
+ * ============================================================ */
+
+function newGame(){
+  const sol = generateSolution();
+  const puz = makePuzzle(sol, HOLES[level], TIME_LIMIT[level]);
+
+  solution = sol;
+  puzzle   = puz;
+  values   = puz.slice();
+  selected = -1;
+  playing  = true;
+  elapsed  = 0;
+
+  errorCount = 0;
+  wrongDigit = new Array(81).fill(0);
+  shakenDigits.clear();
+
+  updateErrorDisplay();
+  startTimer();
+  updateStatus(false);
+  render();
+  numpadEl.classList.add('show');
+}
+
+function startTimer(){
+  clearInterval(timer);
+  startTime = Date.now();
+  timer = setInterval(() => {
+    elapsed = Math.floor((Date.now() - startTime) / 1000);
+    updateStatus(false);
+  }, 1000);
+}
+
+function stopTimer(){
+  clearInterval(timer);
+  timer = null;
+}
+
+function isComplete(){
+  if(!solution || solution.length !== 81) return false;
+  for(let i = 0; i < 81; i++){
+    if(values[i] !== solution[i]) return false;
+  }
+  return true;
+}
+
+/* 核心：填入数字 */
+function inputNum(n){
+  if(!playing) return;
+  if(selected < 0) return;
+  if(puzzle[selected]) return;         /* 题目给定格不可改 */
+
+  const prev = values[selected];
+
+  /* 数字已满 9 个且不是在原格改写 → 忽略 */
+  if(n !== 0 && n !== prev && countDigit(n) >= 9) return;
+
+  values[selected] = n;
+
+  /* 与固定答案比对，只要不等于答案就算填错 */
+  if(n === 0){
+    /* 清除：保留 wrongDigit 记录，回到该格仍提示「填错过」 */
+  }else if(n === solution[selected]){
+    /* 填对：抹掉该格的填错记录 */
+    wrongDigit[selected] = 0;
+  }else{
+    /* 填错 */
+    wrongDigit[selected] = n;
+
+    if(n !== prev){
+      errorCount++;
+      updateErrorDisplay();
+
+      if(!shakenDigits.has(n)){
+        shakenDigits.add(n);
+        shakeNumBtn(n);          /* 本局首次填错该数字 → 震动一次 */
+      }
+    }
+  }
+
+  render();
+
+  if(isComplete()){
+    endGame();
+  }
+}
+
+/* 选中格子 */
+function select(i){
+  selected = i;
+  render();
+}
+
+function moveSel(delta){
+  if(selected < 0){ select(0); return; }
+
+  if(delta === 1 && selected % 9 === 8) return;
+  if(delta === -1 && selected % 9 === 0) return;
+
+  const n = selected + delta;
+  if(n < 0 || n > 80) return;
+
+  select(n);
+}
+
+function endGame(){
+  playing = false;
+  stopTimer();
+  updateStatus(true);
+  numpadEl.classList.remove('show');
+  selected = -1;
+  render();
+
+  document.getElementById('ovDiff').textContent = DIFF_NAME[level];
+  document.getElementById('ovTime').textContent = fmtTime(elapsed);
+  document.getElementById('ovErr').textContent  = errorCount + ' 次';
+
+  overlayEl.classList.add('show');
+}
+
+/* 恢复到空白网格初始界面 */
+function resetToBlank(){
+  overlayEl.classList.remove('show');
+
+  puzzle    = new Array(81).fill(0);
+  values    = new Array(81).fill(0);
+  solution  = [];
+  selected  = -1;
+  playing   = false;
+  elapsed   = 0;
+  errorCount = 0;
+  wrongDigit = new Array(81).fill(0);
+  shakenDigits.clear();
+
+  stopTimer();
+  updateErrorDisplay();
+
+  btnStart.textContent = '开 始';
+  btnStart.disabled = false;
+
+  numpadEl.classList.remove('show');
+  updateStatus(false);
+  render();
+}
+
+/* ============================================================
+ *  十、事件绑定
+ * ============================================================ */
+
+buildBoard();
+resetToBlank();
+
+/* 棋盘点击 */
+boardEl.addEventListener('click', (e) => {
+  const cell = e.target.closest('.cell');
+  if(!cell || !playing) return;
+  select(Number(cell.dataset.i));
+});
+
+/* 数字键盘 */
+numpadEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('.num-btn');
+  if(!btn) return;
+  if(btn.classList.contains('complete')) return;
+  inputNum(Number(btn.dataset.n));
+});
+
+/* 难度切换 */
+diffGroup.addEventListener('click', (e) => {
+  const btn = e.target.closest('.diff-btn');
+  if(!btn) return;
+
+  level = btn.dataset.level;
+
+  diffGroup.querySelectorAll('.diff-btn').forEach(b => {
+    b.classList.toggle('on', b === btn);
+  });
+
+  if(!playing){
+    updateStatus(false);
+  }
+});
+
+/* 开始 / 重新开始 */
+btnStart.addEventListener('click', () => {
+  btnStart.disabled = true;
+  btnStart.textContent = '生成中…';
+
+  statusEl.textContent = '正在生成「' + DIFF_NAME[level] + '」题目…';
+  statusEl.classList.remove('done');
+  statusEl.classList.add('loading');
+
+  setTimeout(() => {
+    newGame();
+    btnStart.disabled = false;
+    btnStart.textContent = '重 新 开 始';
+  }, 40);
+});
+
+/* 结束面板：开始新游戏 → 回到空白网格 */
+document.getElementById('btnNewGame').addEventListener('click', () => {
+  resetToBlank();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+/* 键盘操作 */
+document.addEventListener('keydown', (e) => {
+  if(!playing) return;
+
+  if(e.key >= '1' && e.key <= '9'){
+    e.preventDefault();
+    inputNum(Number(e.key));
+  }else if(e.key === 'Backspace' || e.key === 'Delete' || e.key === '0'){
+    e.preventDefault();
+    inputNum(0);
+  }else if(e.key === 'ArrowUp'){    e.preventDefault(); moveSel(-9); }
+  else if(e.key === 'ArrowDown'){   e.preventDefault(); moveSel(9);  }
+  else if(e.key === 'ArrowLeft'){   e.preventDefault(); moveSel(-1); }
+  else if(e.key === 'ArrowRight'){  e.preventDefault(); moveSel(1);  }
+  else if(e.key === 'Escape'){      selected = -1; render(); }
+});
+
+</script>
+
+</body>
+</html>
