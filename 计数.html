@@ -8,13 +8,40 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body {
     margin: 0;
-    padding: 14px 12px 32px;
+    padding: 68px 12px 32px;   /* 顶部留出返回按钮的空间 */
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
     background: #eef1f6;
     color: #1e293b;
     -webkit-text-size-adjust: 100%;
   }
   .app { max-width: 520px; margin: 0 auto; }
+
+  /* ===== 左上角返回按钮 ===== */
+  .back-btn {
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    color: #1e293b;
+    text-decoration: none;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, .10);
+    z-index: 99;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .back-btn:hover {
+    transform: translateX(-2px);
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .16);
+  }
+  .back-btn:active { transform: scale(.94); }
+  .back-btn svg { width: 22px; height: 22px; display: block; }
 
   .board {
     background: #fff; border-radius: 16px;
@@ -99,6 +126,14 @@
 </style>
 </head>
 <body>
+
+<!-- 左上角返回箭头 -->
+<a class="back-btn" href="index.html" aria-label="返回主页">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M15 5L8 12l7 7" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</a>
 
 <div class="app">
 
