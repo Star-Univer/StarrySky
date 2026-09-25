@@ -146,7 +146,7 @@
     animation-delay:.95s;
   }
 
-  /* ===== 下方：提示文字 + 计数按钮 ===== */
+  /* ===== 下方：提示文字 + 工具按钮 ===== */
   .tools{
     flex:1;
     display:flex;
@@ -170,11 +170,24 @@
     to  { opacity:1; transform:none; }
   }
 
+  /* 工具卡片容器：可容纳多个按钮 */
+  .tool-grid{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:stretch;
+    gap:18px;
+    width:100%;
+    max-width:520px;
+  }
+
   .tool-box{
     display:flex;
     align-items:center;
     justify-content:center;
-    width:min(240px, 72vw);
+    flex:1 1 150px;
+    min-width:140px;
+    max-width:220px;
     aspect-ratio:1 / 1;
     border:1px solid var(--faint);
     border-radius:16px;
@@ -183,8 +196,11 @@
     background:transparent;
     transition:border-color .35s ease, transform .35s cubic-bezier(.2,.7,.3,1),
                background .35s ease, box-shadow .35s ease;
-    animation:rise .9s .42s cubic-bezier(.2,.7,.3,1) backwards;
+    animation:rise .9s cubic-bezier(.2,.7,.3,1) backwards;
   }
+
+  .tool-box:nth-child(1){ animation-delay:.42s; }
+  .tool-box:nth-child(2){ animation-delay:.52s; }
 
   .tool-box:hover{
     border-color:var(--ink);
@@ -198,16 +214,17 @@
   }
 
   .tool-box-name{
-    font-size:1.45rem;
+    font-size:1.2rem;
     font-weight:600;
-    letter-spacing:.24em;
-    padding-left:.24em;
+    letter-spacing:.2em;
+    padding-left:.2em;
+    white-space:nowrap;
     transition:letter-spacing .35s ease;
   }
 
   .tool-box:hover .tool-box-name{
-    letter-spacing:.3em;
-    padding-left:.3em;
+    letter-spacing:.26em;
+    padding-left:.26em;
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -216,8 +233,9 @@
 
   @media (max-width:520px){
     .title-wrap{ padding:28px 26px; }
-    .tool-box{ border-radius:14px; }
-    .tool-box-name{ font-size:1.25rem; }
+    .tool-grid{ gap:14px; }
+    .tool-box{ border-radius:14px; flex:1 1 130px; min-width:125px; }
+    .tool-box-name{ font-size:1.05rem; }
   }
 </style>
 </head>
@@ -257,15 +275,22 @@
       </div>
     </header>
 
-    <!-- 下方：提示文字 + 计数方块 -->
+    <!-- 下方：提示文字 + 工具按钮 -->
     <main class="tools">
 
       <p class="hint-label">小工具</p>
 
-      <!-- ✅ 修正：链接到实际文件名“计数.html” -->
-      <a class="tool-box" href="计数.html" aria-label="进入计数工具">
-        <span class="tool-box-name">计数</span>
-      </a>
+      <div class="tool-grid">
+
+        <a class="tool-box" href="计数.html" aria-label="进入计数工具">
+          <span class="tool-box-name">计数</span>
+        </a>
+
+        <a class="tool-box" href="八字排盘.html" aria-label="进入八字排盘工具">
+          <span class="tool-box-name">八字排盘</span>
+        </a>
+
+      </div>
 
     </main>
 
