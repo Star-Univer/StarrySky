@@ -30,18 +30,6 @@ body{
 }
 .wrap{max-width:560px;margin:0 auto}
 
-/* ===== 固定左上角返回按钮 ===== */
-.back-btn{
-  position:fixed;top:14px;left:14px;z-index:9999;
-  width:46px;height:46px;
-  display:flex;align-items:center;justify-content:center;
-  background:transparent;border:none;color:#1a1a1a;cursor:pointer;padding:0;outline:none;
-  transition:transform .2s,opacity .2s;-webkit-appearance:none;appearance:none;
-}
-.back-btn svg{width:28px;height:28px;display:block}
-.back-btn:hover{transform:translateX(-2px);opacity:.7}
-.back-btn:active{transform:scale(.9)}
-
 /* ===== 标题 ===== */
 header{text-align:center;padding:26px 0 14px}
 h1{font-size:24px;margin:0;letter-spacing:8px;font-weight:700;color:#1a1a1a;text-indent:8px;
@@ -431,8 +419,6 @@ h1{font-size:24px;margin:0;letter-spacing:8px;font-weight:700;color:#1a1a1a;text
   .dt-score .n{font-size:20px}
   .mw-year{width:84px}
   .mw-month{width:62px}
-  .back-btn{width:40px;height:40px;top:10px;left:10px}
-  .back-btn svg{width:24px;height:24px}
   .sheet,.reason-card{max-height:80vh}
   .sheet-bg,.reason-sheet{padding:20px 12px}
   .bb-gz{font-size:18px}
@@ -442,13 +428,6 @@ h1{font-size:24px;margin:0;letter-spacing:8px;font-weight:700;color:#1a1a1a;text
 </style>
 </head>
 <body>
-
-<button class="back-btn" id="backBtn" aria-label="返回">
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <path d="M15 4L7 12l8 8" fill="none" stroke="currentColor"
-          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-</button>
 
 <div class="wrap">
   <header>
@@ -1527,7 +1506,6 @@ function exitToMain(){
 }
 
 function bindUI(){
-  document.getElementById('backBtn').onclick = exitToMain;
   document.getElementById('backMain').onclick = exitToMain;
 
   document.getElementById('prevMonth').onclick = () => {
