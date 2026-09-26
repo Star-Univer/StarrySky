@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>黄道日历 · 择吉参考</title>
+<style>
+:root{
+  --bg:#ffffff;
+  --line:#eeeeee;
+  --line2:#f5f5f5;
+  --text:#1f2328;
+  --dim:#8a8f98;
+  --gold:#b8860b;
+  --gold-l:#d4a94e;
+  --green:#16a34a;
+  --red:#dc2626;
+  --blue:#2563eb;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;padding:20px 14px 40px;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:14px;line-height:1.6;
+  background-image:
+    radial-gradient(circle at 10% 4%,rgba(184,134,11,.045) 0,transparent 42%),
+    radial-gradient(circle at 92% 96%,rgba(139,46,46,.035) 0,transparent 42%);
+  background-attachment:fixed;
+}
+.wrap{max-width:560px;margin:0 auto}
+
+/* ===== 固定左上角返回按钮 ===== */
+.back-btn{
+  position:fixed;top:14px;left:14px;z-index:9999;
+  width:46px;height:46px;
+  display:flex;align-items:center;justify-content:center;
+  background:transparent;border:none;color:#1a1a1a;cursor:pointer;padding:0;outline:none;
+  transition:transform .2s,opacity .2s;-webkit-appearance:none;appearance:none;
+}
+.back-btn svg{width:28px;height:28px;display:block}
+.back-btn:hover{transform:translateX(-2px);opacity:.7}
+.back-btn:active{transform:scale(.9)}
+
+/* ===== 标题 ===== */
+header{text-align:center;padding:26px 0 14px}
+h1{font-size:24px;margin:0;letter-spacing:8px;font-weight:700;color:#1a1a1a;text-indent:8px;
+   font-family:"Songti SC","STSong","SimSun",serif}
+.sub{font-size:11.5px;color:var(--dim);letter-spacing:3px;margin-top:8px;text-indent:3px}
+
+/* ===== 命主信息条 ===== */
+.bazi-bar{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:linear-gradient(135deg,#fdf9ef,#f7f0e0);
+  border:1px solid #ecdfc0;border-radius:14px;
+  padding:12px 16px;margin-bottom:16px;
+  box-shadow:0 2px 10px rgba(184,134,11,.08);
+}
+.bazi-bar.empty{
+  background:#fafafa;border-color:#eee;justify-content:center;
+  box-shadow:none;
+}
+.bb-left{display:flex;align-items:center;gap:12px;min-width:0}
+.bb-gz{
+  font-family:"Songti SC","STSong",serif;
+  font-size:21px;font-weight:700;letter-spacing:2px;color:#8b2e2e;
+  flex:0 0 auto;line-height:1.1;
+}
+.bb-info{font-size:11.5px;color:#9a8f7d;line-height:1.5;min-width:0}
+.bb-info b{display:block;color:#6b5a3e;font-weight:600;font-size:12.5px;margin-bottom:1px}
+.bb-btn{
+  flex:0 0 auto;background:#fff;border:1px solid #e0d3b4;
+  color:#a16207;font-size:12px;padding:7px 14px;border-radius:20px;
+  cursor:pointer;font-family:inherit;letter-spacing:.5px;
+  transition:all .2s;-webkit-appearance:none;appearance:none;
+}
+.bb-btn:hover{background:#fdf6e6;border-color:#d4a94e}
+.bb-btn:active{transform:scale(.96)}
+.bb-empty{font-size:12.5px;color:#b0b0b0}
+.bb-link{
+  font-size:12px;color:#a16207;text-decoration:none;
+  border:1px solid #e0d3b4;padding:6px 14px;border-radius:20px;
+  margin-left:10px;transition:all .2s;
+}
+.bb-link:hover{background:#fdf6e6;border-color:#d4a94e}
+
+/* ===== 日历主体 ===== */
+.cal-wrap{
+  background:#fff;border:1px solid var(--line);border-radius:16px;
+  padding:16px 12px 12px;box-shadow:0 2px 16px rgba(0,0,0,.035);
+}
+.cal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2px 14px;gap:8px;
+}
+.cal-nav{
+  width:36px;height:36px;background:transparent;border:none;color:#1a1a1a;
+  cursor:pointer;font-size:22px;font-weight:400;
+  display:flex;align-items:center;justify-content:center;
+  padding:0;line-height:1;flex:0 0 auto;
+  transition:opacity .2s,transform .15s;font-family:inherit;
+  -webkit-appearance:none;appearance:none;outline:none;
+}
+.cal-nav:hover{opacity:.55}
+.cal-nav:active{transform:scale(.88)}
+
+.wheel-group{
+  display:flex;gap:12px;flex:1;justify-content:center;align-items:center;min-width:0;
+}
+.mw{
+  position:relative;height:52px;overflow:hidden;background:transparent;border:none;
+  cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;flex:0 0 auto;
+}
+.mw:active{cursor:grabbing}
+.mw-year{width:100px}
+.mw-month{width:76px}
+.mw::before{
+  content:"";position:absolute;left:6px;right:6px;top:10px;height:32px;
+  border-radius:7px;background:rgba(0,0,0,.025);
+  border-top:1px solid rgba(0,0,0,.06);border-bottom:1px solid rgba(0,0,0,.06);
+  pointer-events:none;z-index:1;
+}
+.mw-track{
+  position:absolute;left:0;right:0;top:0;will-change:transform;z-index:2;
+}
+.mw-item{
+  height:32px;line-height:32px;text-align:center;
+  font-size:14px;color:rgba(0,0,0,.28);white-space:nowrap;
+  font-family:"Songti SC","STSong",serif;font-weight:400;
+  transition:color .15s,font-weight .15s;
+}
+.mw-item.active{color:#000;font-weight:700;font-size:16px}
+.mw::after{
+  content:"";position:absolute;left:0;right:0;top:0;height:10px;
+  background:linear-gradient(180deg,#fff 20%,rgba(255,255,255,0));
+  pointer-events:none;z-index:3;
+}
+.mw-fade-bottom{
+  position:absolute;left:0;right:0;bottom:0;height:10px;
+  background:linear-gradient(0deg,#fff 20%,rgba(255,255,255,0));
+  pointer-events:none;z-index:3;
+}
+
+.cal-week{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:2px;
+}
+.cal-week div{
+  text-align:center;font-size:11.5px;color:#a8a8a8;padding:7px 0;letter-spacing:1px;
+}
+.cal-week div:first-child,
+.cal-week div:last-child{color:#c98a8a}
+
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day{
+  position:relative;aspect-ratio:1/1.08;border-radius:10px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;user-select:none;-webkit-user-select:none;
+  transition:background .15s;overflow:hidden;
+}
+.cal-day:hover{background:#faf7f0}
+.cal-day:active{background:#f4efe4}
+.cal-day.other{opacity:.3}
+.cal-day.all-yi{
+  background:linear-gradient(140deg,#fdf7e4,#f7ecc7);
+  box-shadow:inset 0 0 0 1px #ecd9a0;
+}
+.cal-day.all-yi:hover{background:linear-gradient(140deg,#fbf1d5,#f4e6b8)}
+.cal-day.all-yi .num{color:#a87a0d;font-weight:800}
+.cal-day.all-yi .lunar{color:#c4a65c}
+.cal-day .num{
+  font-size:16px;font-weight:600;line-height:1;color:#2b2b2b;
+  display:flex;align-items:center;justify-content:center;
+}
+.cal-day .lunar{
+  font-size:9px;color:#b0b0b0;margin-top:3px;line-height:1;
+  white-space:nowrap;letter-spacing:0;transform:scale(.98);
+}
+.cal-day .lunar.fes{color:#c9736f}
+.cal-day.today .num{
+  width:29px;height:29px;border-radius:50%;background:#1f2328;color:#fff;font-size:14.5px;
+}
+.cal-day.today .lunar{margin-top:2px;color:#a89070}
+.cal-day.today.all-yi .num{background:#b8860b}
+.cal-day.today.all-yi .lunar{color:#b8860b}
+.cal-day .badge{
+  position:absolute;top:3px;right:3px;width:12px;height:12px;line-height:12px;
+  text-align:center;font-size:8px;border-radius:3px;font-weight:700;letter-spacing:0;
+}
+.badge.rest{background:#ffeceb;color:#e05a5a}
+.badge.work{background:#eef0f3;color:#9099a3}
+
+/* 个人关系标记点（左上角） */
+.pdot{
+  position:absolute;top:5px;left:5px;
+  width:6px;height:6px;border-radius:50%;
+  pointer-events:none;z-index:2;
+}
+.pdot.bad{background:#e05a5a;box-shadow:0 0 0 2px rgba(224,90,90,.15)}
+.pdot.good{background:#d4a94e;box-shadow:0 0 0 2px rgba(212,169,78,.2)}
+.pdot.mix{background:linear-gradient(135deg,#e05a5a 50%,#d4a94e 50%);box-shadow:0 0 0 2px rgba(150,120,80,.15)}
+
+/* 图例 */
+.legend{
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  padding:10px 4px 2px;margin-top:6px;
+  font-size:10.5px;color:#b0b0b0;letter-spacing:.3px;
+  flex-wrap:wrap;
+}
+.legend span{display:flex;align-items:center;gap:5px}
+.lg-dot{
+  display:inline-block;width:7px;height:7px;border-radius:50%;
+}
+.lg-dot.bad{background:#e05a5a}
+.lg-dot.good{background:#d4a94e}
+.lg-note{color:#c8c8c8}
+
+.foot{
+  text-align:center;padding:22px 10px 0;
+  font-size:11px;color:#c0c0c0;line-height:1.9;letter-spacing:1px;
+}
+.foot .gray-btn{
+  background:#f3f3f3;border:1px solid #eaeaea;color:#a5a5a5;
+  font-size:11px;padding:6px 16px;border-radius:20px;cursor:pointer;
+  letter-spacing:1px;font-family:inherit;transition:all .15s;margin-bottom:12px;
+}
+.foot .gray-btn:hover{background:#ececec;color:#888}
+.foot .back-main{
+  background:#fdf6e6;border:1px solid #ecdfc0;color:#a16207;
+  font-size:11.5px;padding:7px 20px;border-radius:20px;cursor:pointer;
+  letter-spacing:1px;font-family:inherit;transition:all .15s;margin:0 0 12px 8px;
+}
+.foot .back-main:hover{background:#f9edcd}
+
+/* ===== 详情面板：居中悬浮卡片，不触底 ===== */
+.sheet-bg{
+  position:fixed;inset:0;background:rgba(20,22,26,.42);z-index:300;
+  display:none;align-items:center;justify-content:center;
+  padding:24px 16px;
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+}
+.sheet-bg.on{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.sheet{
+  background:#fff;width:100%;max-width:520px;
+  max-height:76vh;
+  height:auto;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  border-radius:18px;
+  padding:8px 20px 24px;
+  animation:cardUp .3s cubic-bezier(.3,.85,.4,1);
+  box-shadow:0 20px 60px rgba(0,0,0,.22);
+}
+@keyframes cardUp{
+  from{transform:translateY(30px) scale(.96);opacity:0}
+  to{transform:translateY(0) scale(1);opacity:1}
+}
+
+.sheet-handle{
+  width:36px;height:4px;border-radius:2px;background:#e8e8e8;
+  margin:6px auto 16px;
+}
+
+.dt-head{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.dt-left{min-width:0}
+.dt-date{
+  font-size:22px;font-weight:700;letter-spacing:1px;line-height:1.2;
+  font-family:"Songti SC","STSong",serif;color:#1a1a1a;
+}
+.dt-date em{font-style:normal;font-size:14px;font-weight:400;color:#9a9a9a;margin-left:8px;letter-spacing:0}
+.dt-sub{font-size:12px;color:var(--dim);margin-top:6px;letter-spacing:.5px}
+.dt-sub .fes{color:#c9736f}
+.dt-score{
+  flex:0 0 auto;width:62px;height:62px;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#fdf9ef,#f7efdc);
+  border:1px solid #ecdfc0;
+}
+.dt-score .n{font-size:22px;font-weight:800;color:var(--gold);line-height:1}
+.dt-score .l{font-size:10px;color:#bb9f6a;margin-top:3px;letter-spacing:1px}
+
+.dt-gz{display:flex;gap:8px;margin:16px 0 0}
+.dt-gz > div{
+  flex:1;text-align:center;background:#fafafa;border:1px solid #f2f2f2;
+  border-radius:9px;padding:9px 4px;
+  font-family:"Songti SC","STSong",serif;font-size:15px;font-weight:700;
+  letter-spacing:1px;line-height:1.3;
+}
+.dt-gz > div span{
+  display:block;font-size:9.5px;color:#b8b8b8;font-weight:400;
+  letter-spacing:2px;margin-bottom:3px;
+  font-family:-apple-system,"PingFang SC",sans-serif;
+}
+.dt-gz i{font-style:normal;color:#a34a3a}
+.dt-gz b{font-weight:700;color:#31506b}
+
+/* 命主关系条 */
+.dt-personal{
+  display:flex;align-items:center;gap:10px;
+  margin-top:14px;padding:10px 14px;border-radius:10px;
+  background:linear-gradient(135deg,#fdf9ef,#f9f2df);
+  border-left:3px solid #d4a94e;
+  font-size:11.5px;color:#8a6a1e;line-height:1.5;
+}
+.dt-personal .p-gz{
+  font-family:"Songti SC","STSong",serif;
+  font-size:16px;font-weight:700;letter-spacing:1px;color:#8b2e2e;
+  flex:0 0 auto;
+}
+.dt-personal .p-desc{min-width:0;flex:1}
+
+.dt-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.tag{
+  font-size:11px;padding:3px 10px;border-radius:20px;
+  border:1px solid var(--line);color:var(--dim);background:#fafafa;white-space:nowrap;
+}
+.tag.good{border-color:rgba(22,163,74,.35);color:#15803d;background:rgba(22,163,74,.06)}
+.tag.bad{border-color:rgba(220,38,38,.35);color:#b91c1c;background:rgba(220,38,38,.06)}
+.tag.gold{border-color:rgba(184,134,11,.4);color:#a16207;background:rgba(184,134,11,.07)}
+.tag.blue{border-color:rgba(37,99,235,.3);color:#1d4ed8;background:rgba(37,99,235,.05)}
+.tag.personal-good{border-color:rgba(184,134,11,.45);color:#a16207;background:rgba(184,134,11,.1);font-weight:600}
+.tag.personal-bad{border-color:rgba(220,38,38,.45);color:#b91c1c;background:rgba(220,38,38,.09);font-weight:600}
+
+.sec-title{
+  font-size:12px;color:var(--gold);font-weight:600;letter-spacing:2px;
+  margin:22px 0 4px;display:flex;align-items:center;gap:8px;
+}
+.sec-title::after{
+  content:"";flex:1;height:1px;
+  background:linear-gradient(90deg,#ece2cc,transparent);
+}
+
+.tp-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 2px;border-bottom:1px solid var(--line2);
+}
+.tp-item:last-child{border-bottom:none}
+.tp-info{flex:1;min-width:0}
+.tp-t{font-size:14px;font-weight:600;color:#2b2b2b;letter-spacing:.5px}
+.tp-s{font-size:11px;color:#a8a8a8;margin-top:2px;letter-spacing:.3px}
+.tp-tag{
+  flex:0 0 auto;width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;cursor:pointer;
+  border:none;font-family:inherit;transition:transform .15s,box-shadow .15s;
+}
+.tp-tag:active{transform:scale(.94)}
+.tp-tag.y{background:linear-gradient(135deg,#fdf3d7,#f7e6b0);color:#a87a0d;box-shadow:0 2px 6px rgba(184,134,11,.18)}
+.tp-tag.s{background:#e3f6e8;color:#2d8a4e;box-shadow:0 2px 6px rgba(45,138,78,.12)}
+.tp-tag.p{background:#f3f3f3;color:#9a9a9a}
+
+/* 推理解读：同样居中卡片 */
+.reason-sheet{
+  position:fixed;inset:0;background:rgba(20,22,26,.42);z-index:400;
+  display:none;align-items:center;justify-content:center;
+  padding:24px 16px;
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+}
+.reason-sheet.on{display:flex;animation:fadeIn .2s ease}
+.reason-card{
+  background:#fff;width:100%;max-width:520px;
+  max-height:76vh;
+  overflow-y:auto;border-radius:18px;padding:8px 22px 24px;
+  animation:cardUp .3s cubic-bezier(.3,.85,.4,1);
+  box-shadow:0 20px 60px rgba(0,0,0,.22);
+}
+.reason-card .rc-handle{
+  width:36px;height:4px;border-radius:2px;background:#e8e8e8;margin:6px auto 16px;
+}
+.reason-card h4{
+  margin:0 0 4px;font-size:17px;letter-spacing:1px;color:#1a1a1a;
+  font-family:"Songti SC","STSong",serif;
+}
+.reason-card .rc-sub{
+  font-size:11.5px;color:#b0b0b0;letter-spacing:.5px;margin-bottom:16px;
+}
+.reason-card .rc-body{
+  font-size:13px;color:#4a4a4a;line-height:2;letter-spacing:.3px;
+}
+.reason-card .rc-body b{color:#b8860b;font-weight:600}
+.reason-card .rc-body i{font-style:normal;color:#a34a3a;font-weight:600}
+.reason-card .rc-body .hl{color:#15803d;font-weight:600}
+.reason-card .rc-body hr{border:none;border-top:1px dashed #eee;margin:12px 0}
+.reason-card .rc-conclusion{
+  margin-top:16px;padding:12px 16px;border-radius:10px;
+  background:linear-gradient(135deg,#fdf9ef,#f9f2df);
+  font-size:13px;color:#8a6a1e;line-height:1.9;
+  border-left:3px solid #d4a94e;
+}
+.reason-card .rc-close{
+  display:block;margin:20px auto 0;background:#f3f3f3;border:1px solid #eaeaea;
+  color:#888;font-size:12px;padding:9px 30px;border-radius:20px;cursor:pointer;
+  font-family:inherit;letter-spacing:1px;
+}
+.reason-card .rc-close:hover{background:#ececec}
+
+/* 说明弹窗 */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(20,22,26,.42);z-index:500;
+  display:none;align-items:center;justify-content:center;padding:22px;
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+}
+.modal-bg.on{display:flex}
+.modal{
+  background:#fff;border-radius:16px;max-width:520px;width:100%;
+  max-height:80vh;overflow-y:auto;padding:24px;
+  box-shadow:0 24px 60px rgba(0,0,0,.18);
+  animation:pop .25s cubic-bezier(.3,.9,.4,1);
+}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+.modal h3{font-size:14px;margin:0 0 14px;color:var(--gold);letter-spacing:2px}
+.modal p{font-size:12.5px;color:#5a5a5a;line-height:2;margin:0 0 9px}
+.modal .close{
+  display:block;margin:18px auto 0;background:#f3f3f3;border:1px solid #eaeaea;
+  color:#888;font-size:12px;padding:8px 26px;border-radius:20px;cursor:pointer;
+  font-family:inherit;letter-spacing:1px;
+}
+.modal .close:hover{background:#ececec}
+
+/* 响应式 */
+@media (max-width:400px){
+  h1{font-size:21px;letter-spacing:6px;text-indent:6px}
+  .cal-wrap{padding:14px 8px 10px}
+  .cal-day .num{font-size:15px}
+  .cal-day .lunar{font-size:8.5px}
+  .cal-day.today .num{width:27px;height:27px;font-size:13.5px}
+  .cal-day .badge{width:11px;height:11px;line-height:11px;font-size:7.5px;top:2px;right:2px}
+  .pdot{width:5px;height:5px;top:4px;left:4px}
+  .dt-date{font-size:20px}
+  .dt-score{width:56px;height:56px}
+  .dt-score .n{font-size:20px}
+  .mw-year{width:84px}
+  .mw-month{width:62px}
+  .back-btn{width:40px;height:40px;top:10px;left:10px}
+  .back-btn svg{width:24px;height:24px}
+  .sheet,.reason-card{max-height:80vh}
+  .sheet-bg,.reason-sheet{padding:20px 12px}
+  .bb-gz{font-size:18px}
+  .bb-info{font-size:10.5px}
+  .bazi-bar{padding:10px 12px}
+}
+</style>
+</head>
+<body>
+
+<button class="back-btn" id="backBtn" aria-label="返回">
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M15 4L7 12l8 8" fill="none" stroke="currentColor"
+          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+
+<div class="wrap">
+  <header>
+    <h1>黄 道 日 历</h1>
+    <div class="sub">择 吉 而 行 · 顺 时 而 动</div>
+  </header>
+
+  <!-- 命主信息条（动态渲染） -->
+  <div class="bazi-bar" id="baziBar"></div>
+
+  <div class="cal-wrap">
+    <div class="cal-head">
+      <button class="cal-nav" id="prevMonth">‹</button>
+      <div class="wheel-group">
+        <div class="mw mw-year" id="yearWheel">
+          <div class="mw-fade-bottom"></div>
+        </div>
+        <div class="mw mw-month" id="monthWheel">
+          <div class="mw-fade-bottom"></div>
+        </div>
+      </div>
+      <button class="cal-nav" id="nextMonth">›</button>
+    </div>
+    <div class="cal-week">
+      <div>日</div><div>一</div><div>二</div><div>三</div>
+      <div>四</div><div>五</div><div>六</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="legend" id="legend" style="display:none;">
+      <span><i class="lg-dot bad"></i>日冲 / 伏吟</span>
+      <span><i class="lg-dot good"></i>日合 / 三合</span>
+      <span class="lg-note">● 基于命主日柱推算</span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <button class="gray-btn" id="showAlgo">算法说明</button>
+    <button class="back-main" id="backMain">返回命盘</button>
+    <div>传统文化参考工具 · 不构成任何决策建议</div>
+  </div>
+</div>
+
+<div class="sheet-bg" id="sheetBg">
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <div id="sheetContent"></div>
+  </div>
+</div>
+
+<div class="reason-sheet" id="reasonBg">
+  <div class="reason-card" id="reasonCard">
+    <div class="rc-handle"></div>
+    <div id="reasonContent"></div>
+    <button class="rc-close" id="rcClose">关 闭</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>算 法 说 明</h3>
+    <p>① 月建以二十四节气交接为界，非农历初一。</p>
+    <p>② 十二建除以月建为起点顺数，除、危、定、执、成、开为吉。</p>
+    <p>③ 大黄道按青龙诀起神，黄道六神为青龙、明堂、金匮、天德、玉堂、司命。</p>
+    <p>④ 二十八宿按儒略日周期推算，锚点为 1900-01-01 虚宿。</p>
+    <p>⑤ 吉神含天德、月德、天赦、天喜、三合、六合等；凶煞含月破、岁破、四离、四绝等。</p>
+    <p>⑥ 各事项适宜度，依据当日建除、神煞与该事项传统宜忌综合评分，分「宜 / 顺 / 平」三档。</p>
+    <p>⑦ <b style="color:#a16207">命主个人化</b>：若已从八字排盘获取命主日柱，会额外计算当日日柱与命主日柱的冲、合、三合、伏吟等关系，并叠加到评分与日历标记上。个人化仅作参考，不可据此决断。</p>
+    <p style="color:#b8b8b8;font-size:11.5px;margin-top:14px">
+      本工具为传统民俗文化参考，命由己造，请理性看待。
+    </p>
+    <button class="close" id="closeModal">关 闭</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+ *  〇、八字联动：读取主系统写入的命主信息
+ * ============================================================ */
+const BAZI_LINK_KEY  = 'baziLinkData';   /* 八字 → 黄道吉日 */
+const BAZI_RESUME_KEY = 'baziResume';    /* 黄道吉日 → 八字：请求恢复现场 */
+
+let baziData = null;
+try{
+  const raw = sessionStorage.getItem(BAZI_LINK_KEY);
+  if (raw){
+    const d = JSON.parse(raw);
+    /* 基本校验 */
+    if (d && d.dayGanName && d.dayZhiName && d.input){
+      baziData = d;
+    }
+  }
+}catch(e){ baziData = null; }
+
+/* 清空按日期缓存（保险，避免极端情况下的旧数据） */
+const dayCache = {};
+
+/* ============================================================
+ *  一、农历数据
+ * ============================================================ */
+const lunarInfo = [
+0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
+0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
+0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
+0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
+0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
+0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,
+0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
+0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,
+0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,
+0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x055c0,0x0ab60,0x096d5,0x092e0,
+0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,
+0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,
+0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,
+0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,
+0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,
+0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,
+0x0a2e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,
+0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,
+0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,
+0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a2d0,0x0d150,0x0f252,
+0x0d520];
+
+function lYearDays(y){
+  let sum = 348;
+  for(let i = 0x8000; i > 0x8; i >>= 1) sum += (lunarInfo[y-1900] & i) ? 1 : 0;
+  return sum + leapDays(y);
+}
+function leapMonth(y){ return lunarInfo[y-1900] & 0xf; }
+function leapDays(y){
+  if(leapMonth(y)) return (lunarInfo[y-1900] & 0x10000) ? 30 : 29;
+  return 0;
+}
+function monthDays(y, m){
+  return (lunarInfo[y-1900] & (0x10000 >> m)) ? 30 : 29;
+}
+const LUNAR_DAY = ['','初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
+'十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+'廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+const LUNAR_MON = ['','正','二','三','四','五','六','七','八','九','十','冬','腊'];
+
+function solar2lunar(y, m, d){
+  let offset = Math.floor((Date.UTC(y, m-1, d) - Date.UTC(1900, 0, 31)) / 86400000);
+  let temp = 0, i;
+  for(i = 1900; i < 2101 && offset > 0; i++){
+    temp = lYearDays(i);
+    offset -= temp;
+  }
+  if(offset < 0){ offset += temp; i--; }
+  const lunarYear = i;
+  const leap = leapMonth(i);
+  let isLeap = false;
+  for(i = 1; i < 13 && offset > 0; i++){
+    if(leap > 0 && i === (leap + 1) && isLeap === false){
+      --i; isLeap = true; temp = leapDays(lunarYear);
+    }else{
+      temp = monthDays(lunarYear, i);
+    }
+    if(isLeap === true && i === (leap + 1)) isLeap = false;
+    offset -= temp;
+  }
+  if(offset === 0 && leap > 0 && i === leap + 1){
+    if(isLeap){ isLeap = false; } else { isLeap = true; --i; }
+  }
+  if(offset < 0){ offset += temp; --i; }
+  return { year: lunarYear, month: i, day: offset + 1, isLeap };
+}
+
+/* ============================================================
+ *  二、节日与节假日
+ * ============================================================ */
+const SOLAR_FEST = {
+  '01-01':'元旦','02-14':'情人节','03-08':'妇女节','03-12':'植树节',
+  '04-01':'愚人节','05-01':'劳动节','05-04':'青年节','06-01':'儿童节',
+  '07-01':'建党节','08-01':'建军节','09-10':'教师节','10-01':'国庆节',
+  '12-24':'平安夜','12-25':'圣诞节'
+};
+const LUNAR_FEST = {
+  '1-1':'春节','1-15':'元宵','2-2':'龙抬头','5-5':'端午','7-7':'七夕',
+  '7-15':'中元','8-15':'中秋','9-9':'重阳','12-8':'腊八','12-23':'小年'
+};
+const REST_DAYS = [
+  '2024-01-01',
+  '2024-02-10','2024-02-11','2024-02-12','2024-02-13','2024-02-14','2024-02-15','2024-02-16','2024-02-17',
+  '2024-04-04','2024-04-05','2024-04-06',
+  '2024-05-01','2024-05-02','2024-05-03','2024-05-04','2024-05-05',
+  '2024-06-10',
+  '2024-09-15','2024-09-16','2024-09-17',
+  '2024-10-01','2024-10-02','2024-10-03','2024-10-04','2024-10-05','2024-10-06','2024-10-07',
+  '2025-01-01',
+  '2025-01-28','2025-01-29','2025-01-30','2025-01-31','2025-02-01','2025-02-02','2025-02-03','2025-02-04',
+  '2025-04-04','2025-04-05','2025-04-06',
+  '2025-05-01','2025-05-02','2025-05-03','2025-05-04','2025-05-05',
+  '2025-05-31','2025-06-01','2025-06-02',
+  '2025-10-01','2025-10-02','2025-10-03','2025-10-04','2025-10-05','2025-10-06','2025-10-07','2025-10-08',
+  '2026-01-01','2026-01-02','2026-01-03',
+  '2026-02-15','2026-02-16','2026-02-17','2026-02-18','2026-02-19','2026-02-20','2026-02-21','2026-02-22',
+  '2026-04-04','2026-04-05','2026-04-06',
+  '2026-05-01','2026-05-02','2026-05-03','2026-05-04','2026-05-05',
+  '2026-06-19','2026-06-20','2026-06-21',
+  '2026-09-25','2026-09-26','2026-09-27',
+  '2026-10-01','2026-10-02','2026-10-03','2026-10-04','2026-10-05','2026-10-06','2026-10-07'
+];
+const WORK_DAYS = [
+  '2024-02-04','2024-02-18','2024-04-07','2024-04-28','2024-05-11',
+  '2024-09-14','2024-09-29','2024-10-12',
+  '2025-01-26','2025-02-08','2025-04-27','2025-09-28','2025-10-11',
+  '2026-02-14','2026-02-28','2026-05-09','2026-10-10'
+];
+const REST_SET = new Set(REST_DAYS);
+const WORK_SET = new Set(WORK_DAYS);
+
+/* ============================================================
+ *  三、干支历法核心
+ * ============================================================ */
+const ZHI = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const ZHI_IDX = {}; ZHI.forEach((z,i)=>ZHI_IDX[z]=i);
+const GAN = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const WEEK = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+
+const CHONG = {子:'午',午:'子',丑:'未',未:'丑',寅:'申',申:'寅',卯:'酉',酉:'卯',辰:'戌',戌:'辰',巳:'亥',亥:'巳'};
+const LIUHE = {子:'丑',丑:'子',寅:'亥',亥:'寅',卯:'戌',戌:'卯',辰:'酉',酉:'辰',巳:'申',申:'巳',午:'未',未:'午'};
+const SANHE  = [new Set(['申','子','辰']), new Set(['亥','卯','未']),
+                new Set(['寅','午','戌']), new Set(['巳','酉','丑'])];
+
+/* 天干五合 */
+const GAN_HE = {
+  甲:'己', 己:'甲',
+  乙:'庚', 庚:'乙',
+  丙:'辛', 辛:'丙',
+  丁:'壬', 壬:'丁',
+  戊:'癸', 癸:'戊'
+};
+
+const JIANCHU = ['建','除','满','平','定','执','破','危','成','收','开','闭'];
+const JC_JI = new Set(['除','危','定','执','成','开']);
+
+const QINGLONG = ['青龙','明堂','天刑','朱雀','金匮','天德',
+                  '白虎','玉堂','天牢','玄武','司命','勾陈'];
+const HUANGDAO_SHEN = new Set(['青龙','明堂','金匮','天德','玉堂','司命']);
+
+const QL_START = {
+  子:'申', 午:'申', 卯:'寅', 酉:'寅', 寅:'子', 申:'子',
+  巳:'午', 亥:'午', 辰:'辰', 戌:'辰', 丑:'戌', 未:'戌'
+};
+
+const XIU = ['角','亢','氐','房','心','尾','箕','斗','牛','女','虚','危','室','壁',
+             '奎','娄','胃','昴','毕','觜','参','井','鬼','柳','星','张','翼','轸'];
+const XIU_JI = new Set(['角','房','尾','室','壁','娄','胃','毕','张']);
+
+const TIANDE = {寅:'丁',卯:'申',辰:'壬',巳:'辛',午:'亥',未:'甲',
+                申:'癸',酉:'寅',戌:'丙',亥:'乙',子:'巳',丑:'庚'};
+const YUEDE  = {寅:'丙',午:'丙',戌:'丙', 申:'壬',子:'壬',辰:'壬',
+                亥:'甲',卯:'甲',未:'甲', 巳:'庚',酉:'庚',丑:'庚'};
+const TIANXI = {子:'酉',丑:'申',寅:'未',卯:'午',辰:'巳',巳:'辰',
+                午:'卯',未:'寅',申:'丑',酉:'子',戌:'亥',亥:'戌'};
+
+function jdn(y, m, d){
+  if (m <= 2){ y -= 1; m += 12; }
+  const A = Math.floor(y / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524;
+}
+function jdToYMD(jd){
+  const z = Math.floor(jd + 0.5);
+  let A = z;
+  if (z >= 2299161){
+    const alpha = Math.floor((z - 1867216.25) / 36524.25);
+    A = z + 1 + alpha - Math.floor(alpha / 4);
+  }
+  const B = A + 1524;
+  const C = Math.floor((B - 122.1) / 365.25);
+  const D = Math.floor(365.25 * C);
+  const E = Math.floor((B - D) / 30.6001);
+  const day = B - D - Math.floor(30.6001 * E);
+  const month = E < 14 ? E - 1 : E - 13;
+  const year = month > 2 ? C - 4716 : C - 4715;
+  return { y: year, m: month, d: day };
+}
+function sunLongitude(jd){
+  const T = (jd - 2451545.0) / 36525.0;
+  const L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
+  const M  = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
+  const Mr = M * Math.PI / 180;
+  const C  = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(Mr)
+           + (0.019993 - 0.000101 * T) * Math.sin(2 * Mr)
+           + 0.000289 * Math.sin(3 * Mr);
+  let lon = L0 + C;
+  const Om = 125.04 - 1934.136 * T;
+  lon += -0.00569 - 0.00478 * Math.sin(Om * Math.PI / 180);
+  return ((lon % 360) + 360) % 360;
+}
+function findTermJD(year, targetLon){
+  const jd0 = jdn(year, 1, 1) - 0.5;
+  const lon0 = sunLongitude(jd0);
+  const delta = ((targetLon - lon0) % 360 + 360) % 360;
+  let jd = jd0 + delta * 365.2422 / 360;
+  for (let i = 0; i < 30; i++){
+    const lon = sunLongitude(jd);
+    const d = ((targetLon - lon) + 540) % 360 - 180;
+    if (Math.abs(d) < 1e-7) break;
+    jd += d * 365.2422 / 360;
+  }
+  return jd;
+}
+const JIE_LIST = [
+  { name:'小寒', lon:285, zhi:'丑' }, { name:'立春', lon:315, zhi:'寅' },
+  { name:'惊蛰', lon:345, zhi:'卯' }, { name:'清明', lon:15,  zhi:'辰' },
+  { name:'立夏', lon:45,  zhi:'巳' }, { name:'芒种', lon:75,  zhi:'午' },
+  { name:'小暑', lon:105, zhi:'未' }, { name:'立秋', lon:135, zhi:'申' },
+  { name:'白露', lon:165, zhi:'酉' }, { name:'寒露', lon:195, zhi:'戌' },
+  { name:'立冬', lon:225, zhi:'亥' }, { name:'大雪', lon:255, zhi:'子' }
+];
+const jqCache = {};
+function getJieqiDate(year, lon){
+  const key = year + '_' + lon;
+  if (!jqCache[key]){
+    const jd = findTermJD(year, lon);
+    jqCache[key] = jdToYMD(jd + 8 / 24);
+  }
+  return jqCache[key];
+}
+function cmpYMD(a, b){
+  if (a.y !== b.y) return a.y < b.y ? -1 : 1;
+  if (a.m !== b.m) return a.m < b.m ? -1 : 1;
+  if (a.d !== b.d) return a.d < b.d ? -1 : 1;
+  return 0;
+}
+function addDays(ymd, n){ return jdToYMD(jdn(ymd.y, ymd.m, ymd.d) + n); }
+
+function getMonthInfo(y, m, d){
+  const today = { y, m, d };
+  let best = null;
+  for (const yy of [y - 1, y, y + 1]){
+    for (const j of JIE_LIST){
+      const jd = getJieqiDate(yy, j.lon);
+      if (cmpYMD(jd, today) <= 0){
+        if (!best || cmpYMD(jd, best.date) > 0){
+          best = { date: jd, zhi: j.zhi, name: j.name };
+        }
+      }
+    }
+  }
+  return best;
+}
+function getYearZhi(y, m, d){
+  const lichun = getJieqiDate(y, 315);
+  const after = cmpYMD({ y, m, d }, lichun) >= 0;
+  const gy = after ? y : y - 1;
+  const idx = ((gy - 4) % 60 + 60) % 60;
+  return ZHI[idx % 12];
+}
+function getDayGZ(y, m, d){
+  const jd = jdn(y, m, d);
+  const idx = ((jd + 49) % 60 + 60) % 60;
+  return { gan: GAN[idx % 10], zhi: ZHI[idx % 12], idx, jd };
+}
+function getLiJue(y, m, d){
+  const targets = [
+    { lon:315, name:'四绝' }, { lon:45,  name:'四绝' },
+    { lon:135, name:'四绝' }, { lon:225, name:'四绝' },
+    { lon:0,   name:'四离' }, { lon:90,  name:'四离' },
+    { lon:180, name:'四离' }, { lon:270, name:'四离' }
+  ];
+  for (const t of targets){
+    for (const yy of [y - 1, y, y + 1]){
+      const jdDate = getJieqiDate(yy, t.lon);
+      const prev = addDays(jdDate, -1);
+      if (prev.y === y && prev.m === m && prev.d === d) return t.name;
+    }
+  }
+  return null;
+}
+
+/* ============================================================
+ *  四、命主个人化：日柱与命主日柱的关系
+ * ============================================================ */
+function getPersonalRelation(dayGan, dayZhi){
+  if (!baziData) return [];
+  const myGan = baziData.dayGanName;
+  const myZhi = baziData.dayZhiName;
+  if (!myGan || !myZhi) return [];
+
+  const rel = [];
+
+  /* --- 地支关系 --- */
+  if (dayZhi === myZhi){
+    rel.push({
+      t:'伏吟', type:'bad', score:10,
+      desc:'当日地支与命主日支相同，主重复、停滞、旧事重提，大事宜避'
+    });
+  } else if (CHONG[dayZhi] === myZhi){
+    rel.push({
+      t:'日冲', type:'bad', score:18,
+      desc:'当日地支冲命主日支，主变动、冲突、奔波，诸事多阻'
+    });
+  } else if (LIUHE[dayZhi] === myZhi){
+    rel.push({
+      t:'日合', type:'good', score:12,
+      desc:'当日地支与命主日支六合，主和顺、合作、贵人相助'
+    });
+  } else {
+    for (const g of SANHE){
+      if (g.has(dayZhi) && g.has(myZhi)){
+        rel.push({
+          t:'三合', type:'good', score:10,
+          desc:'当日地支与命主日支三合，主助力、机会、合作顺畅'
+        });
+        break;
+      }
+    }
+  }
+
+  /* --- 天干关系 --- */
+  if (GAN_HE[dayGan] === myGan){
+    rel.push({
+      t:'天干合', type:'good', score:8,
+      desc:'当日天干与命主日干相合，主人缘、合作、情谊顺畅'
+    });
+  } else if (dayGan === myGan){
+    rel.push({
+      t:'比肩', type:'neutral', score:0,
+      desc:'当日天干与命主日干相同，同气相求，助力平平'
+    });
+  }
+
+  return rel;
+}
+
+/* ============================================================
+ *  五、单日黄道推算
+ * ============================================================ */
+function getDayInfo(y, m, d){
+  const k = y + '-' + m + '-' + d;
+  if (dayCache[k]) return dayCache[k];
+  dayCache[k] = evaluateDay(y, m, d);
+  return dayCache[k];
+}
+function evaluateDay(y, m, d){
+  const gz = getDayGZ(y, m, d);
+  const monthInfo = getMonthInfo(y, m, d);
+  const monthZhi = monthInfo.zhi;
+
+  const jcIdx = ((ZHI_IDX[gz.zhi] - ZHI_IDX[monthZhi]) % 12 + 12) % 12;
+  const jianchu = JIANCHU[jcIdx];
+
+  const startZhi = QL_START[monthZhi];
+  const qlIdx = ((ZHI_IDX[gz.zhi] - ZHI_IDX[startZhi]) % 12 + 12) % 12;
+  const qinglong = QINGLONG[qlIdx];
+  const isHuangdao = HUANGDAO_SHEN.has(qinglong);
+
+  const xiuIdx = ((gz.jd + 17) % 28 + 28) % 28;
+  const xiu = XIU[xiuIdx];
+
+  const jiShen = [], xiongSha = [];
+  const td = TIANDE[monthZhi];
+  if (td === gz.gan || td === gz.zhi) jiShen.push('天德');
+  if (YUEDE[monthZhi] === gz.gan) jiShen.push('月德');
+
+  const dzStr = gz.gan + gz.zhi;
+  const season = ['寅','卯','辰'].includes(monthZhi) ? '春'
+               : ['巳','午','未'].includes(monthZhi) ? '夏'
+               : ['申','酉','戌'].includes(monthZhi) ? '秋' : '冬';
+  if ((season === '春' && dzStr === '戊寅') ||
+      (season === '夏' && dzStr === '甲午') ||
+      (season === '秋' && dzStr === '戊申') ||
+      (season === '冬' && dzStr === '甲子')) jiShen.push('天赦');
+
+  if (CHONG[gz.zhi] === monthZhi) xiongSha.push('月破');
+
+  const yearZhi = getYearZhi(y, m, d);
+  if (CHONG[gz.zhi] === yearZhi) xiongSha.push('岁破');
+  if (LIUHE[gz.zhi] === yearZhi) jiShen.push('岁合');
+  if (TIANXI[yearZhi] === gz.zhi) jiShen.push('天喜');
+  if (LIUHE[gz.zhi] === monthZhi) jiShen.push('月合');
+  for (const g of SANHE){
+    if (g.has(gz.zhi) && g.has(yearZhi) && gz.zhi !== yearZhi){ jiShen.push('三合'); break; }
+  }
+
+  const lijue = getLiJue(y, m, d);
+
+  /* 个人化关系 */
+  const personalRel = getPersonalRelation(gz.gan, gz.zhi);
+
+  return {
+    y, m, d, jdn: gz.jd,
+    dayGan: gz.gan, dayZhi: gz.zhi, dayGZ: gz.gan + gz.zhi,
+    monthZhi, monthName: monthInfo.name, yearZhi,
+    jianchu, qinglong, isHuangdao, xiu,
+    xiuJi: XIU_JI.has(xiu),
+    jiShen: [...new Set(jiShen)],
+    xiongSha: [...new Set(xiongSha)],
+    lijue,
+    personalRel
+  };
+}
+
+/* 个人化加减分（对整体评分） */
+function personalDelta(info){
+  if (!info.personalRel || !info.personalRel.length) return 0;
+  let d = 0;
+  for (const r of info.personalRel){
+    if (r.type === 'good') d += r.score;
+    else if (r.type === 'bad') d -= r.score;
+  }
+  return d;
+}
+
+function scoreDay(info){
+  let score = 55;
+  if (info.isHuangdao) score += 15; else score -= 12;
+  if (JC_JI.has(info.jianchu)) score += 10; else score -= 8;
+  if (info.xiuJi) score += 6;
+  score += info.jiShen.length * 4;
+  score -= info.xiongSha.length * 6;
+  if (info.lijue) score -= 20;
+  score += personalDelta(info) * 0.6;   /* 个人化影响整体评分，权重稍低 */
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+function levelOf(score){
+  if (score >= 82) return { lv:'上吉' };
+  if (score >= 68) return { lv:'中吉' };
+  if (score >= 52) return { lv:'小吉' };
+  return { lv:'平' };
+}
+
+/* ============================================================
+ *  六、十项事宜
+ * ============================================================ */
+const TOPICS = [
+  { t:'缔结良缘', s:'嫁娶 · 纳采 · 订盟',
+    goodJC:['除','定','执','成','开'], badJC:['破','闭','平','收'],
+    goodShen:['天喜','三合','岁合','月合','天德','月德','天赦'],
+    badShen:['月破','岁破','四离','四绝'] },
+  { t:'乔迁安宅', s:'入宅 · 移徙 · 安床',
+    goodJC:['成','开','除','定'], badJC:['破','闭','平','收'],
+    goodShen:['天德','月德','天赦','三合','岁合'],
+    badShen:['月破','岁破','四离','四绝'] },
+  { t:'开市纳财', s:'开市 · 交易 · 立券',
+    goodJC:['成','开','定','执'], badJC:['破','闭','平'],
+    goodShen:['天德','月德','天赦','三合','岁合'],
+    badShen:['月破','岁破','四离','四绝'] },
+  { t:'兴工动土', s:'动土 · 修造 · 起基',
+    goodJC:['成','开','定','执'], badJC:['破','闭','危'],
+    goodShen:['天德','月德','三合','岁合'],
+    badShen:['月破','岁破','四离','四绝'] },
+  { t:'慎终追远', s:'安葬 · 祭祀 · 破土',
+    goodJC:['除','定','执','成','开'], badJC:['破','闭','平','收'],
+    goodShen:['天德','月德'],
+    badShen:['月破','岁破','四离','四绝'] },
+  { t:'行旅远游', s:'出行 · 移徙 · 赴任',
+    goodJC:['开','成','除'], badJC:['闭','破','收'],
+    goodShen:['天德','月德','三合','岁合'],
+    badShen:['月破','岁破','四离','四绝'] },
+  { t:'车马新程', s:'交易 · 纳财 · 提车',
+    goodJC:['成','开','定','执'], badJC:['破','闭','平'],
+    goodShen:['天德','月德','三合','岁合'],
+    badShen:['月破','岁破','四离','四绝'] },
+  { t:'文昌应试', s:'考试 · 面试 · 赴考',
+    goodJC:['成','开','定','执'], badJC:['破','闭'],
+    goodShen:['天德','月德','天赦','三合','岁合'],
+    badShen:['月破','岁破','四离','四绝'] },
+  { t:'履新赴任', s:'上任 · 就职 · 赴任',
+    goodJC:['成','开','定','执'], badJC:['破','闭','平'],
+    goodShen:['天德','月德','三合','岁合'],
+    badShen:['月破','岁破','四离','四绝'] },
+  { t:'求财谋利', s:'纳财 · 交易 · 投资',
+    goodJC:['成','开','定','执'], badJC:['破','闭','平'],
+    goodShen:['天德','月德','天赦','三合','岁合'],
+    badShen:['月破','岁破','四离','四绝'] }
+];
+
+/* ============================================================
+ *  七、事项评分（含个人化调整）
+ * ============================================================ */
+function topicScore(info, tp){
+  let s = 55;
+  if (info.isHuangdao) s += 12; else s -= 10;
+  if (JC_JI.has(info.jianchu)) s += 8; else s -= 8;
+  if (tp.goodJC.includes(info.jianchu)) s += 20;
+  if (tp.badJC.includes(info.jianchu)) s -= 20;
+  for (const g of info.jiShen) if (tp.goodShen.includes(g)) s += 8;
+  for (const b of info.xiongSha) if (tp.badShen.includes(b)) s -= 12;
+  if (info.lijue) s -= 20;
+  /* 个人化叠加 */
+  s += personalDelta(info);
+  return Math.max(0, Math.min(100, Math.round(s)));
+}
+function topicLevel(s){
+  if (s >= 76) return { k:'宜', c:'y' };
+  if (s >= 56) return { k:'顺', c:'s' };
+  return { k:'平', c:'p' };
+}
+function isAllYi(info){
+  for (const tp of TOPICS){
+    if (topicLevel(topicScore(info, tp)).k !== '宜') return false;
+  }
+  return true;
+}
+
+/* ============================================================
+ *  八、推理解读（含个人化段落）
+ * ============================================================ */
+function generateReason(info, topicIdx){
+  const tp = TOPICS[topicIdx];
+  const sc = topicScore(info, tp);
+  const lv = topicLevel(sc);
+  const lm = solar2lunar(info.y, info.m, info.d);
+  const lunarTxt = (lm.isLeap ? '闰' : '') + LUNAR_MON[lm.month] + '月' + LUNAR_DAY[lm.day];
+
+  const parts = [];
+  parts.push(`<b>起盘</b>：${info.y}年${info.m}月${info.d}日，农历${lunarTxt}，日柱${info.dayGZ}。`);
+  parts.push(`<b>十二建除</b>：以月建起数，此日逢「<i>${info.jianchu}</i>」。${
+    JC_JI.has(info.jianchu) ? '建除得吉，气机顺畅。' : '建除非吉，气机略滞。'
+  }`);
+  if (info.isHuangdao){
+    parts.push(`<b>青龙诀</b>：顺数得「<b>${info.qinglong}</b>」，属黄道六神，主光明通达，诸事得庇。`);
+  }else{
+    parts.push(`<b>青龙诀</b>：顺数得「<i>${info.qinglong}</i>」，属黑道神煞，气机稍逊，宜谨慎行事。`);
+  }
+  parts.push(`<b>二十八宿</b>：值「${info.xiu}」宿，${info.xiuJi ? '<span class="hl">为吉宿，可承其事</span>' : '吉凶参半，宜择事而行'}。`);
+  if (info.jiShen.length) parts.push(`<b>吉神临照</b>：${info.jiShen.join('、')}。`);
+  if (info.xiongSha.length) parts.push(`<b>凶煞当值</b>：${info.xiongSha.join('、')}。`);
+  if (info.lijue) parts.push(`<b>节候警示</b>：此日为${info.lijue}日，节气交接之际，气机未定，大事宜避。`);
+
+  /* 个人化段落 */
+  if (info.personalRel && info.personalRel.length){
+    parts.push(`<hr>`);
+    parts.push(`<b>与命主日柱的关系</b>（命主 ${baziData.dayGZ || baziData.dayGanName + baziData.dayZhiName}）：`);
+    for (const r of info.personalRel){
+      const icon = r.type === 'good'
+        ? '<span class="hl">吉</span>'
+        : r.type === 'bad' ? '<i>凶</i>' : '平';
+      parts.push(`· <b>${r.t}</b>（${icon}）：${r.desc}`);
+    }
+  }
+
+  parts.push(`<hr>`);
+  parts.push(`<b>就「${tp.t}」（${tp.s}）推之</b>：`);
+  if (tp.goodJC.includes(info.jianchu)){
+    parts.push(`· 此日建除为「${info.jianchu}」，正合${tp.t}之用，为事之吉。`);
+  }
+  if (tp.badJC.includes(info.jianchu)){
+    parts.push(`· 此日建除为「${info.jianchu}」，于${tp.t}不宜，宜另择。`);
+  }
+  const goodMatch = info.jiShen.filter(s => tp.goodShen.includes(s));
+  const badMatch = info.xiongSha.filter(s => tp.badShen.includes(s));
+  if (goodMatch.length) parts.push(`· 吉神 ${goodMatch.join('、')} 当值，助益${tp.t}。`);
+  if (badMatch.length) parts.push(`· 凶煞 ${badMatch.join('、')} 相扰，${tp.t}宜避。`);
+  if (info.lijue) parts.push(`· 又逢${info.lijue}，气机未定，${tp.t}大事须避。`);
+
+  /* 个人化对事项的具体提醒 */
+  if (info.personalRel && info.personalRel.length){
+    const bads = info.personalRel.filter(r => r.type === 'bad');
+    const goods = info.personalRel.filter(r => r.type === 'good');
+    if (bads.length){
+      parts.push(`· 于命主而言，此日逢${bads.map(b => b.t).join('、')}，${tp.t}之事更宜谨慎。`);
+    }
+    if (goods.length){
+      parts.push(`· 于命主而言，此日逢${goods.map(g => g.t).join('、')}，可借势而行。`);
+    }
+  }
+
+  const baseConcl = {
+    '宜': `${info.dayGZ}日，${info.isHuangdao ? info.qinglong + '值黄道，' : ''}${info.jianchu}日之建除，${info.jiShen.length ? info.jiShen.slice(0,3).join('、') + '等吉神临照，' : ''}此日行「${tp.t}」之事，天时地利人和俱足，可放心为之。`,
+    '顺': `${info.dayGZ}日，虽有${info.jianchu}日之建除，${info.isHuangdao ? '黄道当值，' : '黑道稍逊，'}整体气机尚可。行「${tp.t}」之事，顺势而为、量力而行即可，不必刻意强求。`,
+    '平': `${info.dayGZ}日，${info.xiongSha.length ? info.xiongSha.join('、') + '当值，' : ''}建除为「${info.jianchu}」日，于「${tp.t}」之事条件不足。若非必要，建议另择吉日。`
+  }[lv.k];
+
+  let concl = baseConcl;
+  if (info.personalRel && info.personalRel.length){
+    const bads = info.personalRel.filter(r => r.type === 'bad');
+    if (bads.length){
+      concl += ` 另需留意，此日与命主日柱有${bads.map(b => b.t).join('、')}，个人层面宜多一分审慎。`;
+    }
+  }
+
+  return `
+    <h4>${tp.t} · ${lv.k}</h4>
+    <div class="rc-sub">${tp.s} ｜ 综合评分 ${sc}${baziData ? ' ｜ 含个人化' : ''}</div>
+    <div class="rc-body">${parts.join('<br>')}</div>
+    <div class="rc-conclusion">${concl}</div>
+  `;
+}
+
+/* ============================================================
+ *  九、日历渲染（含个人化标记点）
+ * ============================================================ */
+const NOW = new Date();
+let curYear  = NOW.getFullYear();
+let curMonth = NOW.getMonth() + 1;
+
+const pad2 = n => String(n).padStart(2, '0');
+const keyOf = (y, m, d) => `${y}-${pad2(m)}-${pad2(d)}`;
+const todayKey = keyOf(NOW.getFullYear(), NOW.getMonth()+1, NOW.getDate());
+
+function getCellInfo(y, m, d){
+  const lm = solar2lunar(y, m, d);
+  if (!lm.isLeap){
+    const lk = lm.month + '-' + lm.day;
+    if (LUNAR_FEST[lk]) return { txt: LUNAR_FEST[lk], fes: true };
+    if (lm.month === 12 && lm.day === monthDays(lm.year, 12))
+      return { txt:'除夕', fes: true };
+  }
+  const sk = pad2(m) + '-' + pad2(d);
+  if (SOLAR_FEST[sk]) return { txt: SOLAR_FEST[sk], fes: true };
+  if (lm.day === 1)
+    return { txt: (lm.isLeap ? '闰' : '') + LUNAR_MON[lm.month] + '月', fes: false };
+  return { txt: LUNAR_DAY[lm.day], fes: false };
+}
+
+function renderCalendar(){
+  const firstDay = new Date(curYear, curMonth - 1, 1);
+  const startDay = firstDay.getDay();
+  const gridStart = new Date(curYear, curMonth - 1, 1 - startDay);
+
+  let html = '';
+  for (let i = 0; i < 42; i++){
+    const dt = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
+    const y = dt.getFullYear(), m = dt.getMonth() + 1, d = dt.getDate();
+    const k = keyOf(y, m, d);
+    const isOther = (m !== curMonth);
+    const isToday = (k === todayKey);
+
+    const cell = getCellInfo(y, m, d);
+
+    let allYi = false;
+    let pdot = '';
+    if (!isOther){
+      const info = getDayInfo(y, m, d);
+      allYi = isAllYi(info);
+      if (info.personalRel && info.personalRel.length){
+        const hasGood = info.personalRel.some(r => r.type === 'good');
+        const hasBad  = info.personalRel.some(r => r.type === 'bad');
+        if (hasGood && hasBad) pdot = '<span class="pdot mix"></span>';
+        else if (hasBad)       pdot = '<span class="pdot bad"></span>';
+        else if (hasGood)      pdot = '<span class="pdot good"></span>';
+      }
+    }
+
+    let badge = '';
+    if (REST_SET.has(k)) badge = '<span class="badge rest">休</span>';
+    else if (WORK_SET.has(k)) badge = '<span class="badge work">班</span>';
+
+    let cls = 'cal-day';
+    if (isOther) cls += ' other';
+    if (isToday) cls += ' today';
+    if (allYi && !isOther) cls += ' all-yi';
+
+    html += `
+      <div class="${cls}" data-y="${y}" data-m="${m}" data-d="${d}">
+        ${badge}
+        ${pdot}
+        <div class="num">${d}</div>
+        <div class="lunar${cell.fes ? ' fes' : ''}">${cell.txt}</div>
+      </div>`;
+  }
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = html;
+
+  grid.querySelectorAll('.cal-day').forEach(el => {
+    el.addEventListener('click', () => {
+      openDetail(+el.dataset.y, +el.dataset.m, +el.dataset.d);
+    });
+  });
+
+  /* 显示 / 隐藏图例 */
+  document.getElementById('legend').style.display = baziData ? 'flex' : 'none';
+}
+
+/* ============================================================
+ *  十、详情面板（含命主关系条）
+ * ============================================================ */
+function openDetail(y, m, d){
+  const info = getDayInfo(y, m, d);
+  const sc = scoreDay(info);
+  const lv = levelOf(sc);
+  const lm = solar2lunar(y, m, d);
+  const wd = WEEK[new Date(y, m - 1, d).getDay()];
+  const cell = getCellInfo(y, m, d);
+
+  let lunarTxt = (lm.isLeap ? '闰' : '') + LUNAR_MON[lm.month] + '月' + LUNAR_DAY[lm.day];
+  if (cell.fes) lunarTxt = cell.txt;
+
+  const tags = [];
+  tags.push(`<span class="tag ${info.isHuangdao ? 'gold' : 'bad'}">${info.isHuangdao ? '黄道' : '黑道'} · ${info.qinglong}</span>`);
+  tags.push(`<span class="tag ${JC_JI.has(info.jianchu) ? 'good' : 'bad'}">${info.jianchu}日</span>`);
+  tags.push(`<span class="tag ${info.xiuJi ? 'good' : 'blue'}">${info.xiu}宿</span>`);
+  tags.push(`<span class="tag blue">${info.monthZhi}月</span>`);
+  for (const s of info.jiShen) tags.push(`<span class="tag good">${s}</span>`);
+  for (const s of info.xiongSha) tags.push(`<span class="tag bad">${s}</span>`);
+  if (info.lijue) tags.push(`<span class="tag bad">${info.lijue}</span>`);
+
+  /* 个人关系标签 */
+  if (info.personalRel && info.personalRel.length){
+    for (const r of info.personalRel){
+      const cls = r.type === 'good' ? 'personal-good'
+                : r.type === 'bad'  ? 'personal-bad'
+                : 'blue';
+      tags.push(`<span class="tag ${cls}">${r.t}</span>`);
+    }
+  }
+
+  /* 命主关系条 */
+  let personalBar = '';
+  if (baziData && info.personalRel && info.personalRel.length){
+    const goodNames = info.personalRel.filter(r => r.type === 'good').map(r => r.t);
+    const badNames  = info.personalRel.filter(r => r.type === 'bad').map(r => r.t);
+    let descParts = [];
+    if (goodNames.length) descParts.push(`逢${goodNames.join('、')}，可借势`);
+    if (badNames.length)  descParts.push(`逢${badNames.join('、')}，宜谨慎`);
+    personalBar = `
+      <div class="dt-personal">
+        <span class="p-gz">${info.dayGZ}</span>
+        <span class="p-desc">与命主日柱 <b>${baziData.dayGZ || baziData.dayGanName + baziData.dayZhiName}</b> ${descParts.join('；') || '关系平和'}</span>
+      </div>`;
+  }
+
+  const topicsHtml = TOPICS.map((tp, i) => {
+    const s = topicScore(info, tp);
+    const l = topicLevel(s);
+    return `
+      <div class="tp-item">
+        <div class="tp-info">
+          <div class="tp-t">${tp.t}</div>
+          <div class="tp-s">${tp.s}</div>
+        </div>
+        <button class="tp-tag ${l.c}" data-topic="${i}">${l.k}</button>
+      </div>`;
+  }).join('');
+
+  const html = `
+    <div class="dt-head">
+      <div class="dt-left">
+        <div class="dt-date">${m}月${d}日<em>${y}</em></div>
+        <div class="dt-sub">${wd} · 农历${lunarTxt}${cell.fes ? ' · <span class="fes">' + cell.txt + '</span>' : ''}</div>
+      </div>
+      <div class="dt-score">
+        <div class="n">${sc}</div>
+        <div class="l">${lv.lv}</div>
+      </div>
+    </div>
+
+    <div class="dt-gz">
+      <div><span>年</span><i>${info.yearZhi}</i></div>
+      <div><span>月</span><i>${info.monthZhi}</i></div>
+      <div><span>日</span><i>${info.dayGan}</i><b>${info.dayZhi}</b></div>
+    </div>
+
+    ${personalBar}
+
+    <div class="dt-tags">${tags.join('')}</div>
+
+    <div class="sec-title">当 日 宜 忌</div>
+    ${topicsHtml}
+
+    <div style="text-align:center;padding:18px 0 4px;font-size:11px;color:#c8c8c8;line-height:1.9">
+      点击右侧标签查看详细推理解读
+    </div>
+  `;
+
+  document.getElementById('sheetContent').innerHTML = html;
+  document.getElementById('sheetBg').classList.add('on');
+  document.getElementById('sheet').scrollTop = 0;
+
+  document.querySelectorAll('#sheetContent .tp-tag').forEach(btn => {
+    btn.onclick = () => openReason(info, +btn.dataset.topic);
+  });
+}
+function openReason(info, topicIdx){
+  document.getElementById('reasonContent').innerHTML = generateReason(info, topicIdx);
+  document.getElementById('reasonBg').classList.add('on');
+}
+
+/* ============================================================
+ *  十一、上下滚动吸附滚轮组件（支持循环）
+ * ============================================================ */
+class MiniWheel {
+  constructor(el, items, index, onChange, opts = {}){
+    this.el = el;
+    this.items = items;
+    this.index = index;
+    this.onChange = onChange;
+    this.wrap = opts.wrap || false;
+    this.itemH = 32;
+    this.padding = 10;
+
+    const fadeBottom = el.querySelector('.mw-fade-bottom');
+    el.innerHTML = '';
+    const track = document.createElement('div');
+    track.className = 'mw-track';
+    track.innerHTML = items.map((it, i) =>
+      `<div class="mw-item${i === index ? ' active' : ''}">${it.label}</div>`
+    ).join('');
+    el.appendChild(track);
+    if (fadeBottom) el.appendChild(fadeBottom);
+    else {
+      const fb = document.createElement('div');
+      fb.className = 'mw-fade-bottom';
+      el.appendChild(fb);
+    }
+
+    this.track = track;
+    this._apply(false);
+    this._bind();
+  }
+
+  _apply(anim){
+    const y = this.padding - this.index * this.itemH;
+    this.track.style.transition = anim ? 'transform .32s cubic-bezier(.22,.8,.32,1)' : 'none';
+    this.track.style.transform = `translate3d(0,${y}px,0)`;
+    const items = this.track.children;
+    for (let i = 0; i < items.length; i++){
+      items[i].classList.toggle('active', i === this.index);
+    }
+  }
+
+  _bind(){
+    let dragging = false;
+    let startY = 0, startIdx = 0;
+    let lastY = 0, lastT = 0;
+    let velocity = 0;
+
+    const onDown = (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      dragging = true;
+      startY = e.clientY;
+      startIdx = this.index;
+      lastY = e.clientY;
+      lastT = performance.now();
+      velocity = 0;
+      this.track.style.transition = 'none';
+      try { this.el.setPointerCapture(e.pointerId); } catch(_){}
+    };
+
+    const onMove = (e) => {
+      if (!dragging) return;
+      const now = performance.now();
+      const dt = now - lastT;
+      if (dt > 0 && dt < 200){
+        const v = (e.clientY - lastY) / dt;
+        velocity = velocity * 0.6 + v * 0.4;
+      }
+      lastY = e.clientY;
+      lastT = now;
+
+      const dy = e.clientY - startY;
+      const y = this.padding - startIdx * this.itemH + dy;
+      this.track.style.transform = `translate3d(0,${y}px,0)`;
+    };
+
+    const onUp = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      try { this.el.releasePointerCapture(e.pointerId); } catch(_){}
+
+      const dy = e.clientY - startY;
+      const inertia = velocity * 140;
+      const rawIdx = startIdx - (dy + inertia) / this.itemH;
+      let target = Math.round(rawIdx);
+      let wrapDir = 0;
+
+      if (this.wrap){
+        if (target >= this.items.length){
+          target -= this.items.length;
+          wrapDir = 1;
+        } else if (target < 0){
+          target += this.items.length;
+          wrapDir = -1;
+        }
+      }
+
+      target = Math.max(0, Math.min(this.items.length - 1, target));
+      this.index = target;
+      this._apply(true);
+      if (this.onChange) this.onChange(target, this.items[target], wrapDir);
+    };
+
+    const onCancel = () => {
+      if (!dragging) return;
+      dragging = false;
+      this._apply(true);
+    };
+
+    this.el.addEventListener('pointerdown', onDown);
+    this.el.addEventListener('pointermove', onMove);
+    this.el.addEventListener('pointerup', onUp);
+    this.el.addEventListener('pointercancel', onCancel);
+
+    this.el.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const dir = e.deltaY > 0 ? 1 : -1;
+      let target = this.index + dir;
+      let wrapDir = 0;
+      if (this.wrap){
+        if (target >= this.items.length){ target = 0; wrapDir = 1; }
+        else if (target < 0){ target = this.items.length - 1; wrapDir = -1; }
+      } else {
+        target = Math.max(0, Math.min(this.items.length - 1, target));
+      }
+      this.index = target;
+      this._apply(true);
+      if (this.onChange) this.onChange(target, this.items[target], wrapDir);
+    }, { passive: false });
+  }
+
+  setIndex(i, anim = true){
+    i = Math.max(0, Math.min(this.items.length - 1, i));
+    const changed = i !== this.index;
+    this.index = i;
+    this._apply(anim);
+    if (changed && this.onChange) this.onChange(i, this.items[i], 0);
+  }
+}
+
+/* ============================================================
+ *  十二、界面绑定
+ * ============================================================ */
+let yearWheel = null, monthWheel = null;
+const MIN_YEAR = 1901, MAX_YEAR = 2099;
+
+function syncYearWheel(){
+  if (!yearWheel) return;
+  const i = yearWheel.items.findIndex(it => it.value === curYear);
+  if (i >= 0 && yearWheel.index !== i){
+    yearWheel.index = i;
+    yearWheel._apply(true);
+  }
+}
+
+function initWheels(){
+  const yearItems = [];
+  for (let y = MIN_YEAR; y <= MAX_YEAR; y++) yearItems.push({ label: y + '年', value: y });
+  const monthItems = [];
+  for (let m = 1; m <= 12; m++) monthItems.push({ label: m + ' 月', value: m });
+
+  const yIdx = yearItems.findIndex(it => it.value === curYear);
+  const mIdx = monthItems.findIndex(it => it.value === curMonth);
+
+  yearWheel = new MiniWheel(document.getElementById('yearWheel'), yearItems, yIdx,
+    (i, it) => {
+      curYear = it.value;
+      renderCalendar();
+    },
+    { wrap: false }
+  );
+
+  monthWheel = new MiniWheel(document.getElementById('monthWheel'), monthItems, mIdx,
+    (i, it, wrapDir) => {
+      if (wrapDir === 1){
+        curYear = Math.min(MAX_YEAR, curYear + 1);
+        syncYearWheel();
+      } else if (wrapDir === -1){
+        curYear = Math.max(MIN_YEAR, curYear - 1);
+        syncYearWheel();
+      }
+      curMonth = it.value;
+      renderCalendar();
+    },
+    { wrap: true }
+  );
+}
+
+/* 返回主系统：先写入恢复标志，再跳转 */
+function exitToMain(){
+  try{ sessionStorage.setItem(BAZI_RESUME_KEY, '1'); }catch(e){}
+  const ref = document.referrer || '';
+  /* 如果来源包含“八字”或“bazi”，优先用 replace 回到来源页，避免历史记录回环 */
+  if (ref && (ref.indexOf('八字') >= 0 || ref.toLowerCase().indexOf('bazi') >= 0)){
+    window.location.replace(ref);
+  } else {
+    window.location.href = '八字排盘.html';
+  }
+}
+
+function bindUI(){
+  document.getElementById('backBtn').onclick = exitToMain;
+  document.getElementById('backMain').onclick = exitToMain;
+
+  document.getElementById('prevMonth').onclick = () => {
+    curMonth--;
+    if (curMonth < 1){
+      curMonth = 12;
+      curYear = Math.max(MIN_YEAR, curYear - 1);
+    }
+    syncYearWheel();
+    monthWheel.setIndex(curMonth - 1, true);
+    renderCalendar();
+  };
+  document.getElementById('nextMonth').onclick = () => {
+    curMonth++;
+    if (curMonth > 12){
+      curMonth = 1;
+      curYear = Math.min(MAX_YEAR, curYear + 1);
+    }
+    syncYearWheel();
+    monthWheel.setIndex(curMonth - 1, true);
+    renderCalendar();
+  };
+
+  const sheetBg = document.getElementById('sheetBg');
+  sheetBg.onclick = (e) => { if (e.target === sheetBg) sheetBg.classList.remove('on'); };
+
+  const reasonBg = document.getElementById('reasonBg');
+  reasonBg.onclick = (e) => { if (e.target === reasonBg) reasonBg.classList.remove('on'); };
+  document.getElementById('rcClose').onclick = () => reasonBg.classList.remove('on');
+
+  const modalBg = document.getElementById('modalBg');
+  document.getElementById('showAlgo').onclick = () => modalBg.classList.add('on');
+  document.getElementById('closeModal').onclick = () => modalBg.classList.remove('on');
+  modalBg.onclick = (e) => { if (e.target === modalBg) modalBg.classList.remove('on'); };
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape'){
+      sheetBg.classList.remove('on');
+      reasonBg.classList.remove('on');
+      modalBg.classList.remove('on');
+    }
+  });
+}
+
+/* ============================================================
+ *  十三、命主信息条渲染
+ * ============================================================ */
+function renderBaziBar(){
+  const bar = document.getElementById('baziBar');
+  if (!baziData){
+    bar.className = 'bazi-bar empty';
+    bar.innerHTML = `
+      <span class="bb-empty">未获取命盘信息</span>
+      <a class="bb-link" href="八字排盘.html">去排盘 →</a>
+    `;
+    return;
+  }
+  bar.className = 'bazi-bar';
+  const gz = baziData.dayGZ || (baziData.dayGanName + baziData.dayZhiName);
+  const strongTxt = baziData.isStrong ? '身偏旺' : '身偏弱';
+  const dirTxt = baziData.forward ? '顺行' : '逆行';
+  bar.innerHTML = `
+    <div class="bb-left">
+      <span class="bb-gz">${gz}</span>
+      <span class="bb-info">
+        <b>日主${baziData.dayGanName}${baziData.dayWx || ''} · 属${baziData.shengXiao || ''}</b>
+        ${strongTxt} · 大运${dirTxt}行
+      </span>
+    </div>
+    <button class="bb-btn" id="bbExit">返回命盘</button>
+  `;
+  document.getElementById('bbExit').onclick = exitToMain;
+}
+
+/* ============================================================
+ *  十四、启动
+ * ============================================================ */
+renderBaziBar();
+initWheels();
+renderCalendar();
+bindUI();
+
+</script>
+</body>
+</html>

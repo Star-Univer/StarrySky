@@ -22,36 +22,40 @@ body{
 }
 .wrap{max-width:820px;margin:0 auto;padding:0 16px;}
 
-/* ==================== 左上角返回箭头 ==================== */
+/* ==================== 左上角返回箭头（固定，不随滚动） ==================== */
 .back-btn{
-  position:fixed;
+  position:fixed !important;
   top:14px;
   left:14px;
-  z-index:100;
-  width:40px;
-  height:40px;
+  z-index:99999;
+  width:44px;
+  height:44px;
   display:flex;
   align-items:center;
   justify-content:center;
   border-radius:50%;
   color:#8b7355;
-  background:rgba(255,253,249,.85);
+  background:rgba(255,253,249,.92);
   border:1px solid #e8e1d4;
-  -webkit-backdrop-filter:blur(8px);
-  backdrop-filter:blur(8px);
-  box-shadow:0 2px 10px rgba(120,105,80,.10);
+  box-shadow:0 2px 10px rgba(120,105,80,.12);
   text-decoration:none;
+  cursor:pointer;
+  outline:none;
+  -webkit-appearance:none;
+  appearance:none;
   transition:background .25s,color .25s,transform .25s,border-color .25s,box-shadow .25s;
+  will-change:transform;
+  transform:translateZ(0);
+  -webkit-transform:translateZ(0);
 }
 .back-btn svg{width:22px;height:22px;display:block;}
 .back-btn:hover{
   color:#8b2e2e;
   border-color:#dcc79b;
   background:#fffdf9;
-  transform:translateY(-1px);
   box-shadow:0 6px 16px rgba(120,105,80,.16);
 }
-.back-btn:active{transform:scale(.94);}
+.back-btn:active{transform:translateZ(0) scale(.94);}
 
 /* ==================== 顶部标题 ==================== */
 header{
@@ -392,6 +396,36 @@ table.pillar td.cell.filled{color:#2b2b2b;}
   to{opacity:1;transform:translateY(0);}
 }
 
+/* 结果区顶部：黄道吉日入口（单行金色按钮） */
+.hd-entry{
+  scroll-margin-top:16px;
+  margin:0 0 16px;
+}
+.btn-huangdao{
+  display:block;
+  width:100%;
+  padding:15px 0;
+  border-radius:10px;
+  text-align:center;
+  text-decoration:none;
+  font-family:inherit;
+  font-size:16.5px;
+  font-weight:700;
+  letter-spacing:7px;
+  text-indent:7px;
+  color:#5a3d0e;
+  background:linear-gradient(135deg,#f6dd96 0%,#e6c363 45%,#c9a227 100%);
+  border:1px solid #d8b45f;
+  box-shadow:0 6px 18px rgba(201,162,39,.30);
+  transition:transform .25s,box-shadow .25s,filter .25s;
+  cursor:pointer;
+}
+.btn-huangdao:hover{
+  filter:brightness(1.05);
+  box-shadow:0 9px 24px rgba(201,162,39,.42);
+}
+.btn-huangdao:active{transform:translateY(1px);}
+
 .info-grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
@@ -608,14 +642,15 @@ footer .line{
   .liunian-grid{grid-template-columns:repeat(4,1fr);}
   .gender-btn{font-size:14px;letter-spacing:2px;}
   .card{padding:16px 12px;}
-  .back-btn{width:36px;height:36px;top:10px;left:10px;}
+  .back-btn{width:38px;height:38px;top:10px;left:10px;}
   .back-btn svg{width:20px;height:20px;}
+  .btn-huangdao{font-size:15px;letter-spacing:5px;text-indent:5px;padding:13px 0;}
 }
 </style>
 </head>
 <body>
 
-<!-- 左上角返回箭头：跳回主页 index.html -->
+<!-- 左上角返回箭头：固定，绝不随页面滚动；跳回主页 index.html -->
 <a class="back-btn" href="index.html" aria-label="返回主页">
   <svg viewBox="0 0 24 24" aria-hidden="true">
     <path d="M15 5L8 12l7 7" fill="none" stroke="currentColor"
@@ -703,6 +738,11 @@ footer .line{
 
   <!-- ============ 结果区 ============ -->
   <div id="result">
+
+    <!-- 顶部：黄道吉日入口（单行金色按钮） -->
+    <div class="hd-entry" id="hdEntry">
+      <a class="btn-huangdao" href="黄道吉日.html">黄 道 吉 日</a>
+    </div>
 
     <!-- 基本信息 -->
     <div class="card">
@@ -1392,6 +1432,37 @@ const wrapHour  = document.getElementById('wrapHour');
 const btnConfirm = document.getElementById('btnConfirm');
 const btnReset   = document.getElementById('btnReset');
 
+/* ---------- 跨页联动存储 ---------- */
+
+const BAZI_LINK_KEY = 'baziLinkData';   /* 八字 → 黄道吉日 */
+const BAZI_RESUME_KEY = 'baziResume';   /* 黄道吉日 → 八字：请求恢复现场 */
+
+function saveBaziLink(res){
+  try{
+    const payload = {
+      ts: Date.now(),
+      input: res.input,
+      yearGan: res.yearGan, yearZhi: res.yearZhi,
+      monthGan: res.monthGan, monthZhi: res.monthZhi,
+      dayGan: res.dayGan, dayZhi: res.dayZhi,
+      hourGan: res.hourGan, hourZhi: res.hourZhi,
+      yearGZ:  GAN[res.yearGan]  + ZHI[res.yearZhi],
+      monthGZ: GAN[res.monthGan] + ZHI[res.monthZhi],
+      dayGZ:   GAN[res.dayGan]   + ZHI[res.dayZhi],
+      hourGZ:  GAN[res.hourGan]  + ZHI[res.hourZhi],
+      dayGanName: GAN[res.dayGan],
+      dayZhiName: ZHI[res.dayZhi],
+      dayWx: GAN_WX[res.dayGan],
+      shengXiao: ZHI[res.yearZhi],
+      isStrong: res.isStrong,
+      startYearNum: res.startYearNum,
+      startMonthNum: res.startMonthNum,
+      forward: res.forward
+    };
+    sessionStorage.setItem(BAZI_LINK_KEY, JSON.stringify(payload));
+  }catch(e){ /* 隐私模式等场景忽略 */ }
+}
+
 /* ---------- 滚轮数据构建 ---------- */
 
 /* 年份：从当前年往前（倒序），index 0 = 当前年 */
@@ -1528,7 +1599,7 @@ function initUI(){
   });
 
   btnReset.addEventListener('click', resetAll);
-  btnConfirm.addEventListener('click', onConfirm);
+  btnConfirm.addEventListener('click', () => onConfirm());
 
   refreshConfirm();
 }
@@ -1576,7 +1647,10 @@ function onConfirm(){
   const h = hourItems[hourWheel.index].value;
 
   const res = calcBazi(y, m, d, h, state.gender);
+  doPaiPan(res, true);
+}
 
+function doPaiPan(res, scrollToResult){
   renderPillarTable(res);
   renderDetailTable(res);
   renderInfo(res);
@@ -1590,9 +1664,75 @@ function onConfirm(){
   state.done = true;
   refreshConfirm();
 
+  /* 把命盘写入会话存储，供黄道吉日子系统读取 */
+  saveBaziLink(res);
+
+  if(scrollToResult){
+    setTimeout(() => {
+      const entry = document.getElementById('hdEntry');
+      if(entry){
+        const top = entry.getBoundingClientRect().top + window.pageYOffset - 16;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    }, 220);
+  }
+}
+
+/* ---------- 从子系统返回时恢复现场 ---------- */
+
+function tryRestoreFromLink(){
+  let flag = null;
+  try{ flag = sessionStorage.getItem(BAZI_RESUME_KEY); }catch(e){}
+  if(flag !== '1') return false;
+  try{ sessionStorage.removeItem(BAZI_RESUME_KEY); }catch(e){}
+
+  let data = null;
+  try{
+    const raw = sessionStorage.getItem(BAZI_LINK_KEY);
+    if(raw) data = JSON.parse(raw);
+  }catch(e){}
+  if(!data || !data.input || data.dayGan === undefined || data.dayGan === null) return false;
+
+  const inp = data.input;
+  const y = inp.y, m = inp.m, d = inp.d, h = inp.h, gender = inp.gender;
+  if(!y || !m || !d || h === null || h === undefined || !gender) return false;
+  if(y < MIN_YEAR || y > NOW_YEAR) return false;
+
+  /* 恢复性别 */
+  state.gender = gender;
+  document.querySelectorAll('.gender-btn').forEach(b => {
+    b.classList.toggle('on', b.dataset.gender === gender);
+  });
+
+  /* 恢复年 */
+  const yIdx = yearItems.findIndex(it => it.value === y);
+  if(yIdx >= 0) yearWheel.setIndex(yIdx, false);
+
+  /* 恢复月 */
+  if(m >= 1 && m <= 12) monthWheel.setIndex(m, false);
+
+  /* 重建并恢复日 */
+  rebuildDayWheel(0);
+  if(d >= 1 && d <= dayItems.length - 1) dayWheel.setIndex(d, false);
+
+  /* 恢复时辰 */
+  if(h >= 0 && h <= 23) hourWheel.setIndex(h + 1, false);
+
+  refreshConfirm();
+
+  const res = calcBazi(y, m, d, h, gender);
+  doPaiPan(res, false);
+
+  /* 回到结果区顶部，让用户接着看 */
   setTimeout(() => {
-    document.getElementById('result').scrollIntoView({ behavior:'smooth', block:'start' });
-  }, 120);
+    const entry = document.getElementById('hdEntry');
+    if(entry){
+      const top = entry.getBoundingClientRect().top + window.pageYOffset - 16;
+      window.scrollTo({ top, behavior: 'auto' });
+    }
+  }, 60);
+
+  return true;
 }
 
 /* ============================================================
@@ -1955,6 +2095,7 @@ function renderAnalysis(res){
  * ============================================================ */
 
 initUI();
+tryRestoreFromLink();
 
 </script>
 
