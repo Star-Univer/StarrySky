@@ -135,7 +135,8 @@
     bottom:16px; left:4px;
     width:46px; height:1.5px;
     background:var(--ink);
-    transform:rotate(-12deg);
+    /* 沿棍自身方向朝左下平移半个棍长（46px / 2 = 23px） */
+    transform:rotate(-12deg) translate(-23px, 0);
     animation-delay:.85s;
   }
 
