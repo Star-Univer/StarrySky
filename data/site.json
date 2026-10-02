@@ -1,0 +1,22 @@
+{
+  "site_title": "星空",
+  "hero_title": "星空",
+  "welcome_text": "欢迎",
+  "tools": [
+    { "name": "比分计数", "url": "比分计数.html" },
+    { "name": "八字排盘", "url": "八字排盘.html" },
+    { "name": "数独推理", "url": "数独推理.html" }
+  ],
+  "friends": [
+    {
+      "name": "薰汐ですよ_p",
+      "url": "https://space.bilibili.com/1627369468?spm_id_from=333.1387.fans.user_card.click",
+      "desc": "bilibili"
+    },
+    {
+      "name": "某不知名的筱天",
+      "url": "https://space.bilibili.com/391348144?spm_id_from=333.1387.fans.user_card.click",
+      "desc": "bilibili"
+    }
+  ]
+}
