@@ -1,0 +1,35 @@
+backend:
+  name: git-gateway
+  branch: main
+
+locale: 'zh_Hans'
+
+media_folder: "images"
+public_folder: "/images"
+
+collections:
+  - name: "site"
+    label: "网站内容"
+    files:
+      - name: "site_data"
+        label: "网站信息"
+        file: "data/site.json"
+        fields:
+          - { label: "网站标题", name: "site_title", widget: "string" }
+          - { label: "首页大标题", name: "hero_title", widget: "string" }
+          - { label: "欢迎语", name: "welcome_text", widget: "string" }
+          - label: "小工具列表"
+            name: "tools"
+            widget: "list"
+            summary: "{{fields.name}}"
+            fields:
+              - { label: "名称", name: "name", widget: "string" }
+              - { label: "链接", name: "url", widget: "string" }
+          - label: "友链列表"
+            name: "friends"
+            widget: "list"
+            summary: "{{fields.name}}"
+            fields:
+              - { label: "名称", name: "name", widget: "string" }
+              - { label: "链接", name: "url", widget: "string" }
+              - { label: "描述", name: "desc", widget: "string", required: false }
