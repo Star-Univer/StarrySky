@@ -1,8 +1,7 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: Star-Univer/StarrySky
   branch: main
-
-site_url: https://taupe-torrone-77607a.netlify.app
 
 locale: 'zh_Hans'
 media_folder: "images"
