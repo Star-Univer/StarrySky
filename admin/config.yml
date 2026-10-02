@@ -2,8 +2,9 @@ backend:
   name: git-gateway
   branch: main
 
-locale: 'zh_Hans'
+site_url: https://taupe-torrone-77607a.netlify.app
 
+locale: 'zh_Hans'
 media_folder: "images"
 public_folder: "/images"
 
