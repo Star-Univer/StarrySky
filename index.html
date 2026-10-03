@@ -1434,8 +1434,8 @@
       letter-spacing: .04em;
       outline: none;
       -webkit-appearance: none;
-        -webkit-appearance: none;
-  appearance: none;
+      -webkit-appearance: none;
+      appearance: none;
       transition: border-color .25s ease, background .25s ease, box-shadow .25s ease;
     }
 
@@ -2316,7 +2316,7 @@
           <div class="setting-row">
             <div class="setting-info">
               <span class="setting-name">背景音乐</span>
-              <span class="setting-desc">播放 · 星空之下</span>
+              <span class="setting-desc">播放 · 笼中遗事 </span>
             </div>
             <button class="switch" id="musicSwitch" type="button" role="switch" aria-checked="false"
               aria-label="背景音乐开关">
@@ -2713,7 +2713,7 @@
       var MUSIC_KEY = 'sky_music';     // 音乐开关状态
 
       /* 默认音乐文件：把音乐放进 music/bgm.mp3 即可 */
-      var DEFAULT_BGM = 'music/bgm.mp3';
+      var DEFAULT_BGM = '笼中遗事 .mp3';
 
       /* ---------- DOM ---------- */
       var mask = document.getElementById('authMask');
@@ -2999,24 +2999,6 @@
 
     })();
   </script>
-
-  <!-- 背景音乐播放器（保留你添加的部分，这里改成了 bgm-extra 防止冲突） -->
-  <audio id="bgm-extra" loop>
-    <source src="bgm.mp3" type="audio/mpeg">
-  </audio>
-  <button id="bgmToggle-extra" class="bgm-btn" aria-label="播放/暂停背景音乐">
-    <!-- 播放图标（默认显示） -->
-    <svg class="icon-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-      stroke-linejoin="round">
-      <polygon points="5 3 19 12 5 21 5 3"></polygon>
-    </svg>
-    <!-- 暂停图标（播放后显示） -->
-    <svg class="icon-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-      stroke-linecap="round" stroke-linejoin="round" style="display:none;">
-      <rect x="6" y="4" width="4" height="16"></rect>
-      <rect x="14" y="4" width="4" height="16"></rect>
-    </svg>
-  </button>
 
 </body>
 
