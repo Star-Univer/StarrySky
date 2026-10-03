@@ -207,7 +207,6 @@
             <g fill="#ffffff" opacity=".55">
               <circle cx="60" cy="120" r="0.9"/><circle cx="140" cy="380" r="0.7"/><circle cx="220" cy="620" r="1"/><circle cx="310" cy="200" r="0.7"/><circle cx="380" cy="480" r="0.9"/><circle cx="450" cy="760" r="0.8"/><circle cx="530" cy="150" r="0.9"/><circle cx="620" cy="410" r="0.7"/><circle cx="700" cy="700" r="1"/><circle cx="780" cy="260" r="0.7"/><circle cx="860" cy="540" r="0.9"/><circle cx="930" cy="800" r="0.7"/><circle cx="1010" cy="180" r="0.9"/><circle cx="1100" cy="430" r="0.7"/><circle cx="1180" cy="720" r="0.9"/><circle cx="1260" cy="250" r="0.7"/><circle cx="1340" cy="560" r="0.9"/><circle cx="1420" cy="810" r="0.7"/><circle cx="1500" cy="200" r="0.9"/><circle cx="1590" cy="450" r="0.7"/><circle cx="1670" cy="720" r="0.9"/><circle cx="1740" cy="300" r="0.7"/>
             </g>
-            <!-- 北斗七星等星座已简化，原完整代码里已有 -->
             <g><line class="c-line" x1="120" y1="140" x2="185" y2="175"/><line class="c-line" x1="185" y1="175" x2="260" y2="195"/><line class="c-line" x1="260" y1="195" x2="330" y2="205"/><line class="c-line" x1="330" y1="205" x2="395" y2="240"/><line class="c-line" x1="395" y1="240" x2="380" y2="310"/><line class="c-line" x1="380" y1="310" x2="310" y2="335"/><circle class="c-star bright" cx="120" cy="140" r="2.6"/><circle class="c-star" cx="185" cy="175" r="2.0"/><circle class="c-star" cx="260" cy="195" r="2.4"/><circle class="c-star" cx="330" cy="205" r="1.9"/><circle class="c-star" cx="395" cy="240" r="2.2"/><circle class="c-star" cx="380" cy="310" r="2.4"/><circle class="c-star" cx="310" cy="335" r="2.0"/></g>
           </svg>
         </div>
@@ -284,7 +283,7 @@
         <form class="auth-form" id="authForm" autocomplete="off" novalidate>
           <label class="auth-field"><span class="auth-label">名字</span><input id="authName" type="text" maxlength="16" placeholder="给自己起个名字" autocomplete="off" /></label>
           <label class="auth-field"><span class="auth-label">密码</span><input id="authPassword" type="password" maxlength="32" placeholder="设置登录密码" autocomplete="new-password" /></label>
-          <label class="auth-field"><span class="auth-label">邀请码</span><input id="authCode" type="text" maxlength="32" placeholder="请输入邀请码" autocomplete="off" /></label>
+          <label class="auth-field"><span class="auth-label">邀请码</span><input id="authCode" type="text" maxlength="32" placeholder="请输入邀请码（仅注册需要）" autocomplete="off" /></label>
           <p class="auth-msg" id="authMsg" role="alert"></p>
           <button class="auth-submit" id="authSubmit" type="submit">进入</button>
         </form>
@@ -310,6 +309,7 @@
   <audio id="bgm" loop preload="none"></audio>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><filter id="outlineOnly" x="-30%" y="-30%" width="160%" height="160%"><feMorphology in="SourceAlpha" operator="dilate" radius="5" result="dilated"/><feComposite in="dilated" in2="SourceAlpha" operator="out" result="out"/><feFlood flood-color="currentColor" result="ink"/><feComposite in="ink" in2="out" operator="in"/></filter></defs></svg>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 /* ========== 星宿复制 ========== */
@@ -338,13 +338,19 @@
   if(Array.isArray(data.friends)){ var list = document.querySelector('.link-list'); if(list){ var biliIcon = '<svg viewBox="0 0 24 24"><path d="M18.223 3.086a1.25 1.25 0 0 1 0 1.768L17.08 6.996H19.5A3.5 3.5 0 0 1 23 10.496v8.5a3.5 3.5 0 0 1-3.5 3.5h-15A3.5 3.5 0 0 1 1 18.996v-8.5a3.5 3.5 0 0 1 3.5-3.5h2.42L5.777 4.854a1.25 1.25 0 1 1 1.768-1.768l2.847 2.848c.15.15.264.325.338.517h2.54c.074-.192.188-.367.338-.517l2.847-2.848a1.25 1.25 0 0 1 1.768 0ZM19.5 8.996h-15a2 2 0 0 0-2 2v8.5a2 2 0 0 0 2 2h15a2 2 0 0 0 2-2v-8.5a2 2 0 0 0-2-2Zm-11 4a1.25 1.25 0 0 1 1.25 1.25v1a1.25 1.25 0 1 1-2.5 0v-1a1.25 1.25 0 0 1 1.25-1.25Zm7 0a1.25 1.25 0 0 1 1.25 1.25v1a1.25 1.25 0 1 1-2.5 0v-1a1.25 1.25 0 0 1 1.25-1.25Z"/></svg>'; list.innerHTML = data.friends.map(function(f){ var name = escapeHtml(f.name || ''); var url = escapeHtml(f.url || '#'); var desc = escapeHtml(f.desc || ''); return '<li><a class="link-item" href="'+url+'" target="_blank" rel="noopener noreferrer"><span class="link-ico" aria-hidden="true">'+biliIcon+'</span><span class="link-meta"><span class="link-name">'+name+'</span><span class="link-desc">'+desc+'</span></span><span class="link-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a></li>'; }).join(''); } }
 })();
 /* =========================================================
-   账号系统 + 设置面板 + 背景音乐 + 邀请码 + 设备限制
+   账号系统 + 设置面板 + 背景音乐 + Supabase云端
    ========================================================= */
 (function(){
   "use strict";
-  var USERS_KEY = 'sky_users', SESSION_KEY = 'sky_session', MUSIC_KEY = 'sky_music', DEVICE_KEY = 'sky_device_registered';
+  var SESSION_KEY = 'sky_session', MUSIC_KEY = 'sky_music', DEVICE_KEY = 'sky_device_registered';
   var DEFAULT_BGM = 'music/bgm.mp3';
-  var DEFAULT_INVITE_CODE = "STAR2026"; /* 默认邀请码，你可以在这里修改 */
+  
+  // ⚠️ 重要提示：请把下面两行单引号里的内容，替换成你 Supabase 里复制的 Project URL 和 Publishable Key！
+  var SUPABASE_URL = '你的Project URL';
+  var SUPABASE_ANON_KEY = '你的Publishable key';
+  var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  var DEFAULT_INVITE_CODE = "090224"; /* 默认邀请码，你要求的 090224 */
 
   var mask = document.getElementById('authMask');
   var closeBtn = document.getElementById('authClose');
@@ -366,9 +372,6 @@
 
   if(!mask || !form) return;
 
-  function readUsers(){ try{ var raw = localStorage.getItem(USERS_KEY); var arr = raw ? JSON.parse(raw) : []; if(!Array.isArray(arr)) return []; return arr.filter(function(u){ return u && typeof u.name === 'string' && typeof u.password === 'string'; }); }catch(e){ return []; } }
-  function writeUsers(arr){ try{ localStorage.setItem(USERS_KEY, JSON.stringify(arr)); }catch(e){} }
-  function findUser(arr, name){ for(var i = 0; i < arr.length; i++){ if(arr[i].name === name) return arr[i]; } return null; }
   function getSession(){ try{ return localStorage.getItem(SESSION_KEY) || ''; }catch(e){ return ''; } }
   function setSession(name){ try{ localStorage.setItem(SESSION_KEY, name); }catch(e){} }
   function clearSession(){ try{ localStorage.removeItem(SESSION_KEY); }catch(e){} }
@@ -389,7 +392,7 @@
   function pauseBgm(){ if(!bgm) return; try{ bgm.pause(); }catch(e){} }
   function setMusic(on, persist){ musicBtn.setAttribute('aria-checked', on ? 'true' : 'false'); if(persist !== false) setMusicFlag(on); if(on) playBgm(); else pauseBgm(); }
 
-  form.addEventListener('submit', function(e){
+  form.addEventListener('submit', async function(e){
     e.preventDefault();
     var name = (nameInput.value || '').trim();
     var password = (passwordInput.value || '').trim();
@@ -399,29 +402,44 @@
     if(!password) { setMsg('请输入密码', 'error'); return; }
     if(password.length < 4) { setMsg('密码至少 4 位', 'error'); return; }
 
-    var users = readUsers();
-    var exist = findUser(users, name);
+    // --- 查询云端 Supabase 中的用户是否存在 ---
+    const { data: existingUser, error: selectError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('name', name)
+        .single();
 
-    if(exist){
-      /* ===== 登录逻辑 ===== */
-      if(exist.password !== password){ setMsg('密码不正确', 'error'); return; }
-      setSession(name);
-      setMsg('欢迎回来，' + name, 'ok');
-    }else{
-      /* ===== 注册逻辑 ===== */
-      /* 1. 检查是否该设备已注册过 */
-      if(isDeviceRegistered()){ setMsg('该设备已注册过账号，请直接登录', 'error'); return; }
-      /* 2. 检查邀请码 */
-      if(code !== DEFAULT_INVITE_CODE){ setMsg('邀请码不正确', 'error'); return; }
-      
-      users.push({ name: name, password: password, at: Date.now() });
-      writeUsers(users);
-      markDeviceRegistered(); /* 标记该设备已注册 */
-      setSession(name);
-      setMsg('注册成功，欢迎来到星空', 'ok');
+    if (selectError && selectError.code !== 'PGRST116') {
+        setMsg('数据库连接错误: ' + selectError.message, 'error'); return;
+    }
+
+    if (existingUser) {
+        // ===== 云端登录逻辑 =====
+        if (existingUser.password !== password) {
+            setMsg('密码不正确', 'error'); return;
+        }
+        setSession(name);
+        setMsg('欢迎回来，' + name, 'ok');
+        showUserView(name);
+    } else {
+        // ===== 云端注册逻辑 =====
+        if (isDeviceRegistered()) { setMsg('该设备已注册过账号，请直接登录', 'error'); return; }
+        if (code !== DEFAULT_INVITE_CODE) { setMsg('邀请码不正确', 'error'); return; }
+
+        const { error: insertError } = await supabase
+            .from('users')
+            .insert([{ name: name, password: password, invite_code: code }]);
+
+        if (insertError) {
+            setMsg('注册失败: ' + insertError.message, 'error'); return;
+        }
+
+        markDeviceRegistered();
+        setSession(name);
+        setMsg('注册成功，欢迎来到星空', 'ok');
+        showUserView(name);
     }
     renderUser();
-    setTimeout(function(){ passwordInput.value = ''; codeInput.value = ''; showUserView(name); }, 420);
   });
 
   musicBtn.addEventListener('click', function(){ var next = musicBtn.getAttribute('aria-checked') !== 'true'; setMusic(next, true); });
