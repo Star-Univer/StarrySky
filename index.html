@@ -1434,6 +1434,8 @@
       letter-spacing: .04em;
       outline: none;
       -webkit-appearance: none;
+        -webkit-appearance: none;
+  appearance: none;
       transition: border-color .25s ease, background .25s ease, box-shadow .25s ease;
     }
 
@@ -1645,8 +1647,6 @@
     .switch[aria-checked="true"] .knob {
       left: calc(100% - 25px);
     }
-
-
 
     .switch:focus-visible {
       outline: 2px solid rgba(120, 185, 255, .85);
@@ -2704,10 +2704,6 @@
   <script>
     /* =========================================================
        账号系统 + 设置面板 + 背景音乐
-       ---------------------------------------------------------
-       · 一个键搞定：填名字 + 邀请码 → 新名字自动注册，老名字校验后登录
-       · 登录后直接进入设置面板（背景音乐开关 / 退出登录）
-       · 数据全部存在浏览器 localStorage，纯前端，无需后端
        ========================================================= */
     (function () {
       "use strict";
@@ -2716,8 +2712,7 @@
       var SESSION_KEY = 'sky_session';   // 当前登录的名字
       var MUSIC_KEY = 'sky_music';     // 音乐开关状态
 
-      /* 默认音乐文件：把音乐放进 music/bgm.mp3 即可
-         （也可以在 data/site.json 里写 "music_url": "..." 覆盖） */
+      /* 默认音乐文件：把音乐放进 music/bgm.mp3 即可 */
       var DEFAULT_BGM = 'music/bgm.mp3';
 
       /* ---------- DOM ---------- */
@@ -2727,6 +2722,7 @@
       var userView = document.getElementById('userView');
       var form = document.getElementById('authForm');
       var nameInput = document.getElementById('authName');
+      var passwordInput = document.getElementById('authPassword');
       var codeInput = document.getElementById('authCode');
       var msgEl = document.getElementById('authMsg');
       var userNameEl = document.getElementById('userName');
@@ -2777,239 +2773,238 @@
         try { return localStorage.getItem(MUSIC_KEY) === '1'; } catch (e) { return false; }
       }
       function setMusicFlag(on) {
+        try { localStorage.setItem(MUSIC_KEY, on ? '1' : '0'); } catch (e) { }
+      }
+      function isDeviceRegistered() {
         try { return localStorage.getItem('sky_device_registered') === 'true'; } catch (e) { return false; }
       }
       function markDeviceRegistered() {
         try { localStorage.setItem('sky_device_registered', 'true'); } catch (e) { }
       }
-      try { localStorage.setItem(MUSIC_KEY, on ? '1' : '0'); } catch (e) { }
-    }
 
-  /* ---------- 提示信息 ---------- */
-  function setMsg(text, type) {
-      msgEl.textContent = text || '';
-      msgEl.className = 'auth-msg' + (type ? ' ' + type : '');
-    }
-
-    /* ---------- 表单校验 ---------- */
-    function check(name, code) {
-      if (!name) return '请输入名字';
-      if (name.length > 16) return '名字最多 16 个字符';
-      if (/\s/.test(name)) return '名字中不要包含空格';
-      if (!code) return '请输入邀请码';
-      if (code.length < 4) return '邀请码至少 4 位';
-      if (code.length > 32) return '邀请码最多 32 位';
-      return '';
-    }
-
-    /* ---------- 导航栏头像 ---------- */
-    function renderUser() {
-      var name = getSession();
-      if (name) {
-        navUser.classList.add('logged-in');
-        navInitial.textContent = name.charAt(0).toUpperCase();
-        navUser.setAttribute('aria-label', name + ' · 打开设置');
-      } else {
-        navUser.classList.remove('logged-in');
-        navInitial.textContent = '';
-        navUser.setAttribute('aria-label', '登录 / 注册');
+      /* ---------- 提示信息 ---------- */
+      function setMsg(text, type) {
+        msgEl.textContent = text || '';
+        msgEl.className = 'auth-msg' + (type ? ' ' + type : '');
       }
-    }
 
-    /* ---------- 视图切换 ---------- */
-    function showAuthView() {
-      authView.hidden = false;
-      userView.hidden = true;
-      setMsg('');
-      setTimeout(function () {
-        if (nameInput && mask.classList.contains('show')) nameInput.focus();
-      }, 340);
-    }
+      /* ---------- 表单校验 ---------- */
+      function check(name, code) {
+        if (!name) return '请输入名字';
+        if (name.length > 16) return '名字最多 16 个字符';
+        if (/\s/.test(name)) return '名字中不要包含空格';
+        if (!code) return '请输入邀请码';
+        if (code.length < 4) return '邀请码至少 4 位';
+        if (code.length > 32) return '邀请码最多 32 位';
+        return '';
+      }
 
-    function showUserView(name) {
-      authView.hidden = true;
-      userView.hidden = false;
-      userNameEl.textContent = name;
-      userAvatar.textContent = (name || '星').charAt(0).toUpperCase();
-      musicBtn.setAttribute('aria-checked', musicOn() ? 'true' : 'false');
-    }
-
-    /* ---------- 打开 / 关闭面板 ---------- */
-    function openPanel() {
-      var name = getSession();
-      if (name) { showUserView(name); } else { showAuthView(); }
-      mask.classList.add('show');
-      mask.setAttribute('aria-hidden', 'false');
-    }
-
-    function closePanel() {
-      mask.classList.remove('show');
-      mask.setAttribute('aria-hidden', 'true');
-      setMsg('');
-    }
-
-    /* ---------- 背景音乐 ---------- */
-    function resolveBgmSrc() {
-      return window.__bgmSrc || DEFAULT_BGM;
-    }
-
-    function playBgm() {
-      if (!bgm) return;
-      try {
-        if (!bgm.getAttribute('src')) bgm.setAttribute('src', resolveBgmSrc());
-        bgm.loop = true;
-        bgm.volume = 0.45;
-        var p = bgm.play();
-        if (p && typeof p.catch === 'function') {
-          p.catch(function (err) {
-            console.warn('背景音乐播放失败：', (err && err.message) || err);
-          });
+      /* ---------- 导航栏头像 ---------- */
+      function renderUser() {
+        var name = getSession();
+        if (name) {
+          navUser.classList.add('logged-in');
+          navInitial.textContent = name.charAt(0).toUpperCase();
+          navUser.setAttribute('aria-label', name + ' · 打开设置');
+        } else {
+          navUser.classList.remove('logged-in');
+          navInitial.textContent = '';
+          navUser.setAttribute('aria-label', '登录 / 注册');
         }
-      } catch (e) {
-        console.warn('背景音乐播放失败：', e);
-      }
-    }
-
-    function pauseBgm() {
-      if (!bgm) return;
-      try { bgm.pause(); } catch (e) { }
-    }
-
-    function setMusic(on, persist) {
-      musicBtn.setAttribute('aria-checked', on ? 'true' : 'false');
-      if (persist !== false) setMusicFlag(on);
-      if (on) playBgm(); else pauseBgm();
-    }
-
-    // 1. 初始化 Supabase 客户端
-    var SUPABASE_URL = 'https://icjptvrlmmnxamgnemvz.supabase.co';
-    var SUPABASE_ANON_KEY = 'sb_publishable_CXkeX5ESKgC5WKQaXjvnrQ_8bJi__c-';
-    console.log('我设置的URL是:', SUPABASE_URL);
-    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // 默认邀请码，你可以在这里自由修改
-    var DEFAULT_INVITE_CODE = "090224";
-
-    form.addEventListener('submit', async function (e) {
-      e.preventDefault();
-
-      // 2. 新的云端注册/登录逻辑
-      var name = (nameInput.value || '').trim();
-      var password = (passwordInput.value || '').trim();
-      var code = (codeInput.value || '').trim();
-
-      if (!name) { setMsg('请输入名字', 'error'); return; }
-      if (!password) { setMsg('请输入密码', 'error'); return; }
-      if (password.length < 4) { setMsg('密码至少 4 位', 'error'); return; }
-
-      // --- 查询云端用户是否存在 ---
-      const { data: existingUser, error: selectError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('name', name)
-        .single();
-
-      // 处理查询报错（PGRST116 表示没找到，属于正常情况，不报错）
-      if (selectError && selectError.code !== 'PGRST116') {
-        setMsg('数据库连接错误: ' + selectError.message, 'error'); return;
       }
 
-      if (existingUser) {
-        // ===== 云端登录逻辑 =====
-        if (existingUser.password !== password) {
-          setMsg('密码不正确', 'error'); return;
+      /* ---------- 视图切换 ---------- */
+      function showAuthView() {
+        authView.hidden = false;
+        userView.hidden = true;
+        setMsg('');
+        setTimeout(function () {
+          if (nameInput && mask.classList.contains('show')) nameInput.focus();
+        }, 340);
+      }
+
+      function showUserView(name) {
+        authView.hidden = true;
+        userView.hidden = false;
+        userNameEl.textContent = name;
+        userAvatar.textContent = (name || '星').charAt(0).toUpperCase();
+        musicBtn.setAttribute('aria-checked', musicOn() ? 'true' : 'false');
+      }
+
+      /* ---------- 打开 / 关闭面板 ---------- */
+      function openPanel() {
+        var name = getSession();
+        if (name) { showUserView(name); } else { showAuthView(); }
+        mask.classList.add('show');
+        mask.setAttribute('aria-hidden', 'false');
+      }
+
+      function closePanel() {
+        mask.classList.remove('show');
+        mask.setAttribute('aria-hidden', 'true');
+        setMsg('');
+      }
+
+      /* ---------- 背景音乐 ---------- */
+      function resolveBgmSrc() {
+        return window.__bgmSrc || DEFAULT_BGM;
+      }
+
+      function playBgm() {
+        if (!bgm) return;
+        try {
+          if (!bgm.getAttribute('src')) bgm.setAttribute('src', resolveBgmSrc());
+          bgm.loop = true;
+          bgm.volume = 0.45;
+          var p = bgm.play();
+          if (p && typeof p.catch === 'function') {
+            p.catch(function (err) {
+              console.warn('背景音乐播放失败：', (err && err.message) || err);
+            });
+          }
+        } catch (e) {
+          console.warn('背景音乐播放失败：', e);
         }
-        setSession(name);
-        setMsg('欢迎回来，' + name, 'ok');
-        showUserView(name);
-      } else {
-        // ===== 云端注册逻辑 =====
-        if (isDeviceRegistered()) { setMsg('该设备已注册过账号，请直接登录', 'error'); return; }
-        if (code !== DEFAULT_INVITE_CODE) { setMsg('邀请码不正确', 'error'); return; }
+      }
 
-        const { error: insertError } = await supabase
+      function pauseBgm() {
+        if (!bgm) return;
+        try { bgm.pause(); } catch (e) { }
+      }
+
+      function setMusic(on, persist) {
+        musicBtn.setAttribute('aria-checked', on ? 'true' : 'false');
+        if (persist !== false) setMusicFlag(on);
+        if (on) playBgm(); else pauseBgm();
+      }
+
+      // 1. 初始化 Supabase 客户端
+      var SUPABASE_URL = 'https://icjptvrlmmnxamgnemvz.supabase.co';
+      // ⚠️ 如果注册失败提示 Invalid URL 或 Key，请检查下面这行 Key 是否完整（注意不要有换行和空格）
+      var SUPABASE_ANON_KEY = 'sb_publishable_CXkeX5ESKgC5WKQaXjvnrQ_8bJi__c-';
+      console.log('我设置的URL是:', SUPABASE_URL);
+      var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      // 默认邀请码
+      var DEFAULT_INVITE_CODE = "090224";
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        // 2. 新的云端注册/登录逻辑
+        var name = (nameInput.value || '').trim();
+        var password = (passwordInput.value || '').trim();
+        var code = (codeInput.value || '').trim();
+
+        if (!name) { setMsg('请输入名字', 'error'); return; }
+        if (!password) { setMsg('请输入密码', 'error'); return; }
+        if (password.length < 4) { setMsg('密码至少 4 位', 'error'); return; }
+
+        // --- 查询云端用户是否存在 ---
+        const { data: existingUser, error: selectError } = await supabase
           .from('users')
-          .insert([{ name: name, password: password, invite_code: code }]);
+          .select('*')
+          .eq('name', name)
+          .single();
 
-        if (insertError) {
-          setMsg('注册失败: ' + insertError.message, 'error'); return;
+        // 处理查询报错（PGRST116 表示没找到，属于正常情况，不报错）
+        if (selectError && selectError.code !== 'PGRST116') {
+          setMsg('数据库连接错误: ' + selectError.message, 'error'); return;
         }
 
-        markDeviceRegistered();
-        setSession(name);
-        setMsg('注册成功，欢迎来到星空', 'ok');
-        showUserView(name);
-      }
-      renderUser();
-    });
+        if (existingUser) {
+          // ===== 云端登录逻辑 =====
+          if (existingUser.password !== password) {
+            setMsg('密码不正确', 'error'); return;
+          }
+          setSession(name);
+          setMsg('欢迎回来，' + name, 'ok');
+          showUserView(name);
+        } else {
+          // ===== 云端注册逻辑 =====
+          if (isDeviceRegistered()) { setMsg('该设备已注册过账号，请直接登录', 'error'); return; }
+          if (code !== DEFAULT_INVITE_CODE) { setMsg('邀请码不正确', 'error'); return; }
 
-    /* ---------- 音乐开关 ---------- */
-    musicBtn.addEventListener('click', function () {
-      var next = musicBtn.getAttribute('aria-checked') !== 'true';
-      setMusic(next, true);
-    });
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert([{ name: name, password: password, invite_code: code }]);
 
-    /* ---------- 退出登录 ---------- */
-    logoutBtn.addEventListener('click', function () {
-      clearSession();
-      renderUser();
-      setMusic(false, true);
-      showAuthView();
-      setMsg('已退出登录', 'ok');
-    });
+          if (insertError) {
+            setMsg('注册失败: ' + insertError.message, 'error'); return;
+          }
 
-    /* ---------- 打开面板：Logo + 右上角图标 ---------- */
-    function bindOpen(el) {
-      if (!el) return;
-      el.addEventListener('click', openPanel);
-      el.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
-          e.preventDefault();
-          openPanel();
+          markDeviceRegistered();
+          setSession(name);
+          setMsg('注册成功，欢迎来到星空', 'ok');
+          showUserView(name);
         }
+        renderUser();
       });
-    }
-    bindOpen(logo);
-    bindOpen(navUser);
 
-    /* ---------- 关闭面板 ---------- */
-    closeBtn.addEventListener('click', closePanel);
+      /* ---------- 音乐开关 ---------- */
+      musicBtn.addEventListener('click', function () {
+        var next = musicBtn.getAttribute('aria-checked') !== 'true';
+        setMusic(next, true);
+      });
 
-    mask.addEventListener('click', function (e) {
-      if (e.target === mask) closePanel();
-    });
+      /* ---------- 退出登录 ---------- */
+      logoutBtn.addEventListener('click', function () {
+        clearSession();
+        renderUser();
+        setMusic(false, true);
+        showAuthView();
+        setMsg('已退出登录', 'ok');
+      });
 
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && mask.classList.contains('show')) closePanel();
-    });
+      /* ---------- 打开面板：Logo + 右上角图标 ---------- */
+      function bindOpen(el) {
+        if (!el) return;
+        el.addEventListener('click', openPanel);
+        el.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+            e.preventDefault();
+            openPanel();
+          }
+        });
+      }
+      bindOpen(logo);
+      bindOpen(navUser);
 
-    /* ---------- 初始化 ---------- */
-    renderUser();
+      /* ---------- 关闭面板 ---------- */
+      closeBtn.addEventListener('click', closePanel);
 
-    musicBtn.setAttribute('aria-checked', musicOn() ? 'true' : 'false');
+      mask.addEventListener('click', function (e) {
+        if (e.target === mask) closePanel();
+      });
 
-    document.addEventListener('DOMContentLoaded', function () {
-      /* 若上次是开启状态，等用户第一次点击页面再尝试续播（浏览器自动播放限制） */
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && mask.classList.contains('show')) closePanel();
       });
 
+      /* ---------- 初始化 ---------- */
       renderUser();
 
-      if (musicOn()) {
-        document.addEventListener('click', function once() {
-          document.removeEventListener('click', once);
-          if (musicOn()) playBgm();
-        }, { once: true });
-      }
-    });;
-  </script>
-  <!-- 背景音乐播放器 -->
-  <audio id="bgm" loop>
-    <source src="bgm.mp3" type="audio/mpeg">
+      musicBtn.setAttribute('aria-checked', musicOn() ? 'true' : 'false');
 
+      document.addEventListener('DOMContentLoaded', function () {
+        renderUser();
+
+        if (musicOn()) {
+          document.addEventListener('click', function once() {
+            document.removeEventListener('click', once);
+            if (musicOn()) playBgm();
+          }, { once: true });
+        }
+      });
+
+    })();
+  </script>
+
+  <!-- 背景音乐播放器（保留你添加的部分，这里改成了 bgm-extra 防止冲突） -->
+  <audio id="bgm-extra" loop>
+    <source src="bgm.mp3" type="audio/mpeg">
   </audio>
-  <button id="bgmToggle" class="bgm-btn" aria-label="播放/暂停背景音乐">
+  <button id="bgmToggle-extra" class="bgm-btn" aria-label="播放/暂停背景音乐">
     <!-- 播放图标（默认显示） -->
     <svg class="icon-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
       stroke-linejoin="round">
@@ -3022,6 +3017,7 @@
       <rect x="14" y="4" width="4" height="16"></rect>
     </svg>
   </button>
+
 </body>
 
 </html>
