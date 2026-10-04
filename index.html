@@ -3327,10 +3327,16 @@
 
         regMsgEl.textContent = '正在注册...'; regMsgEl.className = 'auth-msg';
 
-        var { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+                var { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: email,
           password: password,
-          options: { data: { username: name } }
+          options: {
+            data: {
+              username: name,
+              full_name: name,   
+              name: name         
+            }
+          }
         });
 
         if (signUpError) {
