@@ -2366,16 +2366,20 @@
 
       <!-- ---------- 6 留言板 ---------- -->
       <section class="page" data-page="message">
-        <div class="page-inner">
-          <h2 class="page-title">给开发者留言</h2>
-          <p class="page-sub">GUESTBOOK</p>
-          
-          <div style="width: 100%; max-width: 500px; margin-top: 20px;">
-            <textarea id="msgContent" placeholder="在这里写下你想对开发者说的话..." style="width: 100%; height: 120px; padding: 12px; border-radius: 12px; border: 1px solid var(--glass-item-border); background: var(--glass-item-bg); color: var(--glass-item-text); font-size: 0.95rem; resize: vertical;"></textarea>
-            <p id="msgStatus" style="font-size: 0.75rem; color: #79dfb4; min-height: 20px; text-align: center; margin-top: 8px;"></p>
-            <button class="auth-submit" id="sendMsgBtn" style="margin-top: 10px;">发送留言</button>
-          </div>
-        </div>
+        <div class="friend-stage">
+          <section class="glass-card" aria-label="留言板" style="width: min(92vw, 500px); padding: 30px 24px;">
+            
+            <div class="glass-head" style="margin-bottom: 18px;">
+              <span class="glass-title">给开发者留言</span>
+              <span class="glass-sub">Guestbook</span>
+            </div>
+            
+            <div style="width: 100%;">
+              <textarea id="msgContent" placeholder="在这里写下你想对开发者说的话..." style="width: 100%; height: 120px; padding: 12px; border-radius: 12px; border: 1px solid var(--glass-item-border); background: rgba(255, 255, 255, 0.05); color: var(--glass-item-text); font-size: 0.95rem; resize: vertical; outline: none;"></textarea>
+              <p id="msgStatus" style="font-size: 0.75rem; color: #79dfb4; min-height: 20px; text-align: center; margin-top: 8px;"></p>
+              <button class="auth-submit" id="sendMsgBtn" style="margin-top: 10px;">发送留言</button>
+            </div>
+                   
       </section>      
     </div>
   </main>
