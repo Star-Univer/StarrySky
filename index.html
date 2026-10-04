@@ -2978,23 +2978,10 @@
           } else {
             setMsg('注册成功，但自动登录失败，请手动尝试登录。', 'ok');
           }
-        }
-      });
+         } 
+        });
+  
 
-      /* ---------- 音乐开关 ---------- */
-      musicBtn.addEventListener('click', function () {
-        var next = musicBtn.getAttribute('aria-checked') !== 'true';
-        setMusic(next, true);
-      });
-
-      /* ---------- 退出登录 ---------- */
-      logoutBtn.addEventListener('click', function () {
-        clearSession();
-        renderUser();
-        setMusic(false, true);
-        showAuthView();
-        setMsg('已退出登录', 'ok');
-      });
       /* ---------- 快捷登录（记住上次账号） ---------- */
       var QUICK_LOGIN_KEY = 'sky_quick_login_data';
 
@@ -3052,6 +3039,21 @@
         setMsg('一键登录成功，欢迎回来！', 'ok');
         showUserView(data.name);
         renderUser();
+      });
+
+      /* ---------- 退出登录 ---------- */
+      logoutBtn.addEventListener('click', function () {
+        clearSession();
+        renderUser();
+        setMusic(false, true);
+        showAuthView();
+        setMsg('已退出登录', 'ok');
+      });
+
+      /* ---------- 音乐开关 ---------- */
+      musicBtn.addEventListener('click', function () {
+        var next = musicBtn.getAttribute('aria-checked') !== 'true';
+        setMusic(next, true);
       });
 
       // 在页面加载/初始化时，检查一次按钮状态
