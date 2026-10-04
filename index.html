@@ -2542,6 +2542,7 @@
         <!-- 3.4 数据 -->
         <div class="tab-pane" id="tab-data" style="display: none;">
           <div class="setting-list">
+            
             <!-- 八字记录区 -->
             <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
               <div class="setting-info">
@@ -2559,24 +2560,7 @@
               <button class="auth-submit ghost" id="saveBaziBtn" style="width: 100%; margin-top: 4px; padding: 6px; font-size: 0.8rem;">保存八字记录</button>
             </div>
 
-            <!-- 跳转按钮（点击时带参数） -->
-            <a class="setting-row" id="baziLink" href="#" style="text-decoration: none; color: inherit; cursor: pointer;">
-              <div class="setting-info">
-                <span class="setting-name">生辰八字日历</span>
-                <span class="setting-desc">跳转查看已填写的八字信息</span>
-              </div>
-              <div style="display: flex; gap: 6px; width: 100%;">
-                <input type="date" id="baziDate" style="flex: 1; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;">
-                <input type="time" id="baziTime" style="width: 80px; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;">
-              </div>
-              <select id="baziGender" style="width: 100%; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;">
-                <option value="male">男</option>
-                <option value="female">女</option>
-              </select>
-              <button class="auth-submit ghost" id="saveBaziBtn" style="width: 100%; margin-top: 4px; padding: 6px; font-size: 0.8rem;">保存八字记录</button>
-            </div>
-
-            <!-- 跳转按钮（点击时带参数） -->
+            <!-- 跳转按钮 -->
             <a class="setting-row" id="baziLink" href="#" style="text-decoration: none; color: inherit; cursor: pointer;">
               <div class="setting-info">
                 <span class="setting-name">生辰八字日历</span>
@@ -2584,15 +2568,17 @@
               </div>
               <span style="color: var(--bili);">前往 ></span>
             </a>
-           
+
             <div class="setting-row">
               <div class="setting-info">
                 <span class="setting-name">我的留言历史</span>
                 <span class="setting-desc">数据同步中...</span>
               </div>
             </div>
+
           </div>
         </div>  
+
         <button class="auth-submit ghost" id="logoutBtn" type="button">退出登录</button>
 
         <button class="auth-submit ghost" id="logoutAllBtn" type="button" style="margin-top: 8px; color: #ff8a8a;">退出所有设备</button>
