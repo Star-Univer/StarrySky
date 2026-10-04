@@ -2905,7 +2905,7 @@
 
         // 将名字转成合法的英文邮箱（自动将中文转换为编码，避免格式报错）
         var safeName = encodeURIComponent(name).replace(/%/g, '');
-        var email = name.includes('@') ? name : (safeName + '@starrysky.local');
+        var email = name.includes('@') ? name : (safeName + '@qq.com');
 
         // ===== 1. 尝试登录 =====
         var { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
