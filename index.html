@@ -2335,14 +2335,48 @@
       <!-- ===== 已登录：设置 ===== -->
       <div class="auth-view" id="userView" hidden>
         <div class="user-head">
-          <span class="user-avatar" id="userAvatar">星</span>
+          <div class="avatar-wrapper" id="avatarWrapper" style="cursor: pointer; position: relative; width: 52px; height: 52px; flex-shrink: 0;" title="点击上传头像">
+            <span class="user-avatar" id="userAvatar">星</span>
+            <img id="userAvatarImg" style="display:none; position: absolute; top:0; left:0; width:100%; height:100%; border-radius:50%; object-fit: cover;" />
+            <input type="file" id="avatarInput" accept="image/*" style="display: none;" />
+          </div>
           <div class="user-meta">
             <span class="user-name" id="userName">—</span>
-            <span class="user-tag">已登录</span>
+            <span class="user-tag" id="userSignature">这个人很懒，没有签名</span>
+          </div>
+        </div>
+        
+<!-- 2. 标签导航 -->
+        <div class="user-tabs" style="display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid var(--glass-item-border); padding-bottom: 8px;">
+          <button class="tab-btn active" data-tab="profile" style="flex:1; font-size: .75rem; padding: 6px 0; background:transparent; border:none; color:var(--bili); font-weight:bold; cursor:pointer;">资料</button>
+          <button class="tab-btn" data-tab="appearance" style="flex:1; font-size: .75rem; padding: 6px 0; background:transparent; border:none; color:var(--glass-item-desc); cursor:pointer;">外观</button>
+          <button class="tab-btn" data-tab="security" style="flex:1; font-size: .75rem; padding: 6px 0; background:transparent; border:none; color:var(--glass-item-desc); cursor:pointer;">安全</button>
+          <button class="tab-btn" data-tab="data" style="flex:1; font-size: .75rem; padding: 6px 0; background:transparent; border:none; color:var(--glass-item-desc); cursor:pointer;">数据</button>
+        </div>
+
+        <!-- 3. 标签页内容 -->
+        <!-- 3.1 资料 -->
+        <div class="tab-pane" id="tab-profile">
+          <div class="setting-list">
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-name">名字</span>
+              </div>
+              <input id="editNameInput" type="text" maxlength="16" style="width: 120px; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;" placeholder="输入名字">
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-name">个性签名</span>
+              </div>
+              <input id="editSignInput" type="text" maxlength="30" style="width: 120px; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;" placeholder="一句话介绍自己">
+            </div>
+            <button class="auth-submit ghost" id="saveProfileBtn" style="margin-top: 8px; padding: 8px; font-size: 0.8rem;">保存资料</button>
           </div>
         </div>
 
-        <div class="setting-list">
+        <!-- 3.2 外观 -->
+        <div class="tab-pane" id="tab-appearance" style="display: none;">
+          <div class="setting-list">
           <div class="setting-row">
             <div class="setting-info">
               <span class="setting-name">背景音乐</span>
@@ -2354,8 +2388,72 @@
             </button>
           </div>
         </div>
+        
+        <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-name">专属主题色</span>
+              </div>
+              <input type="color" id="themeColorPicker" value="#00AEEC" style="width: 40px; height: 30px; padding: 0; border: none; background: transparent; cursor: pointer;">
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-name">字体大小</span>
+              </div>
+              <input type="range" id="fontSizeSlider" min="12" max="20" value="14" style="width: 80px;">
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-name">动态背景（流星）</span>
+              </div>
+              <button class="switch" id="bgAnimSwitch" type="button" role="switch" aria-checked="true" aria-label="动态背景开关">
+                <span class="knob"></span>
+              </button>
+            </div>
+          </div>
+        </div>
 
+        <!-- 3.3 安全 -->
+        <div class="tab-pane" id="tab-security" style="display: none;">
+          <div class="setting-list">
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-name">修改邮箱</span>
+              </div>
+              <input id="editEmailInput" type="email" style="width: 120px; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;" placeholder="新邮箱">
+            </div>
+            <button class="auth-submit ghost" id="updateEmailBtn" style="margin-top: 8px; padding: 8px; font-size: 0.8rem;">更新邮箱</button>
+            
+            <div class="setting-row" style="margin-top: 14px;">
+              <div class="setting-info">
+                <span class="setting-name">修改密码</span>
+              </div>
+              <input id="editPasswordInput" type="password" style="width: 120px; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;" placeholder="新密码">
+            </div>
+            <button class="auth-submit ghost" id="updatePasswordBtn" style="margin-top: 8px; padding: 8px; font-size: 0.8rem;">更新密码</button>
+          </div>
+        </div>
+
+        <!-- 3.4 数据 -->
+        <div class="tab-pane" id="tab-data" style="display: none;">
+          <div class="setting-list">
+            <a class="setting-row" href="八字排盘.html" style="text-decoration: none; color: inherit; cursor: pointer;">
+              <div class="setting-info">
+                <span class="setting-name">生辰八字日历</span>
+                <span class="setting-desc">去记录你的八字信息</span>
+              </div>
+              <span style="color: var(--bili);">前往 ></span>
+            </a>
+            <div class="setting-row">
+              <div class="setting-info">
+                <span class="setting-name">我的留言历史</span>
+                <span class="setting-desc">数据同步中...</span>
+              </div>
+            </div>
+          </div>
+        </div>  
         <button class="auth-submit ghost" id="logoutBtn" type="button">退出登录</button>
+
+        <button class="auth-submit ghost" id="logoutAllBtn" type="button" style="margin-top: 8px; color: #ff8a8a;">退出所有设备</button>
       </div>
 
     </div>
@@ -2847,12 +2945,13 @@
 
       /* ---------- 视图切换 ---------- */
       function showAuthView() {
-        authView.hidden = false;
+       authView.hidden = false;
         userView.hidden = true;
         setMsg('');
         setTimeout(function () {
-          if (nameInput && mask.classList.contains('show')) nameInput.focus();
-        }, 340);
+          var loginInput = document.getElementById('loginName');
+          if (loginInput && mask.classList.contains('show')) loginInput.focus();
+        }, 340); 
       }
 
       function showUserView(name) {
@@ -2866,7 +2965,10 @@
       /* ---------- 打开 / 关闭面板 ---------- */
       function openPanel() {
         var name = getSession();
-        if (name) { showUserView(name); } else { showAuthView(); }
+        if (name) { 
+          showUserView(name);          
+          loadUserProfile(); 
+        } else { showAuthView(); }
         mask.classList.add('show');
         mask.setAttribute('aria-hidden', 'false');
       }
@@ -3119,6 +3221,131 @@
 
       musicBtn.setAttribute('aria-checked', musicOn() ? 'true' : 'false');
 
+            /* ========== 个人中心扩展功能 ========== */
+      
+      // 1. 标签页切换
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.style.color = 'var(--glass-item-desc)'; b.style.fontWeight = 'normal'; });
+          this.classList.add('active'); this.style.color = 'var(--bili)'; this.style.fontWeight = 'bold';
+          
+          document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+          document.getElementById('tab-' + this.dataset.tab).style.display = 'block';
+        });
+      });
+
+      // 2. 头像上传与压缩
+      document.getElementById('avatarWrapper').addEventListener('click', () => { document.getElementById('avatarInput').click(); });
+      document.getElementById('avatarInput').addEventListener('change', function(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          var img = new Image();
+          img.onload = function() {
+            // 使用 Canvas 压缩到 150x150
+            var canvas = document.createElement('canvas');
+            canvas.width = 150; canvas.height = 150;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, 150, 150);
+            var base64 = canvas.toDataURL('image/jpeg', 0.8); // 压缩为 JPEG
+            
+            // 更新本地显示
+            var imgEl = document.getElementById('userAvatarImg');
+            imgEl.src = base64; imgEl.style.display = 'block';
+            document.getElementById('userAvatar').style.display = 'none';
+            
+            // 保存到 Supabase 用户信息中
+            supabase.auth.updateUser({ data: { avatar: base64 } }).then(() => {
+              alert('头像上传成功！');
+            });
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // 3. 保存资料（名字和签名）
+      document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+        var newName = document.getElementById('editNameInput').value.trim();
+        var newSign = document.getElementById('editSignInput').value.trim();
+        if (!newName) return alert('名字不能为空');
+        
+        var { error } = await supabase.auth.updateUser({ data: { username: newName, signature: newSign } });
+        if (error) { alert('保存失败: ' + error.message); return; }
+        
+        setSession(newName);
+        document.getElementById('userName').textContent = newName;
+        document.getElementById('userSignature').textContent = newSign || '这个人很懒，没有签名';
+        renderUser();
+        alert('资料已更新！');
+      });
+
+      // 4. 外观偏好设置（存 LocalStorage 并应用）
+      function applyPreferences() {
+        var color = localStorage.getItem('sky_theme_color');
+        if (color) { document.documentElement.style.setProperty('--bili', color); document.getElementById('themeColorPicker').value = color; }
+        
+        var fontSize = localStorage.getItem('sky_font_size');
+        if (fontSize) { document.body.style.fontSize = fontSize + 'px'; document.getElementById('fontSizeSlider').value = fontSize; }
+        
+        var bgAnim = localStorage.getItem('sky_bg_anim');
+        if (bgAnim === 'false') { document.getElementById('meteors').style.display = 'none'; document.getElementById('bgAnimSwitch').setAttribute('aria-checked', 'false'); }
+      }
+      
+      document.getElementById('themeColorPicker').addEventListener('input', function() {
+        document.documentElement.style.setProperty('--bili', this.value);
+        localStorage.setItem('sky_theme_color', this.value);
+      });
+      document.getElementById('fontSizeSlider').addEventListener('input', function() {
+        document.body.style.fontSize = this.value + 'px';
+        localStorage.setItem('sky_font_size', this.value);
+      });
+      document.getElementById('bgAnimSwitch').addEventListener('click', function() {
+        var isOn = this.getAttribute('aria-checked') === 'true';
+        this.setAttribute('aria-checked', !isOn ? 'true' : 'false');
+        document.getElementById('meteors').style.display = !isOn ? 'block' : 'none';
+        localStorage.setItem('sky_bg_anim', !isOn ? 'true' : 'false');
+      });
+      // 初始化外观设置
+      applyPreferences();
+
+      // 5. 安全：修改邮箱、密码、退出所有设备
+      document.getElementById('updateEmailBtn').addEventListener('click', async () => {
+        var newEmail = document.getElementById('editEmailInput').value.trim();
+        if (!newEmail) return alert('请输入新邮箱');
+        var { error } = await supabase.auth.updateUser({ email: newEmail });
+        if (error) alert('更新邮箱失败: ' + error.message);
+        else alert('确认邮件已发送到新邮箱，请查收！');
+      });
+      document.getElementById('updatePasswordBtn').addEventListener('click', async () => {
+        var newPassword = document.getElementById('editPasswordInput').value.trim();
+        if (newPassword.length < 6) return alert('密码至少 6 位');
+        var { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) alert('更新密码失败: ' + error.message);
+        else alert('密码已更新，下次请使用新密码登录！');
+      });
+      document.getElementById('logoutAllBtn').addEventListener('click', async () => {
+        if (!confirm('确定要退出所有设备吗？')) return;
+        await supabase.auth.signOut({ scope: 'global' });
+        clearSession(); renderUser(); showAuthView(); setMsg('已退出所有设备', 'ok');
+      });
+
+      // 6. 页面加载时，回显用户头像、签名、名字
+      async function loadUserProfile() {
+        var { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        var meta = user.user_metadata || {};
+        if (meta.avatar) {
+          document.getElementById('userAvatarImg').src = meta.avatar;
+          document.getElementById('userAvatarImg').style.display = 'block';
+          document.getElementById('userAvatar').style.display = 'none';
+        }
+        if (meta.signature) document.getElementById('userSignature').textContent = meta.signature;
+        document.getElementById('editNameInput').value = meta.username || '';
+        document.getElementById('editSignInput').value = meta.signature || '';
+      }
+      
       document.addEventListener('DOMContentLoaded', function () {
         renderUser();
 
