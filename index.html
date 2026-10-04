@@ -649,7 +649,8 @@
 
         .page[data-page="home"],
     .page[data-page="friend"],
-    .page[data-page="message"] {
+    .page[data-page="message"],
+    .page[data-page="tag"] {
       background: transparent;
     }
 
@@ -1177,6 +1178,66 @@
       letter-spacing: .14em;
       color: var(--glass-foot);
       text-align: center;
+    }
+    /* ===================== 标签云 ===================== */
+    .tag-cloud {
+      position: relative;
+      width: 100%;
+      max-width: 460px;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto;
+      padding: 0;
+    }
+
+    .tag-btn {
+      position: absolute;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--glass-item-text);
+      font-family: inherit;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+      border-radius: 999px;
+      opacity: .75;
+      transform: translate(-50%, -50%);
+      transition: transform .3s cubic-bezier(.2, .7, .3, 1),
+                  color .3s ease,
+                  opacity .3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tag-btn:hover {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.12);
+      color: var(--bili);
+    }
+
+    .tag-btn:active {
+      transform: translate(-50%, -50%) scale(.96);
+    }
+
+    /* 尺寸级别：中央最大，向外递减 */
+    .tag-btn--xl { font-size: 2.6rem; }
+    .tag-btn--lg { font-size: 2.1rem; }
+    .tag-btn--md { font-size: 1.7rem; }
+    .tag-btn--sm { font-size: 1.35rem; }
+    .tag-btn--xs { font-size: 1.05rem; }
+
+    html[data-user-color-scheme="dark"] .tag-btn {
+      color: var(--glass-item-text);
+      opacity: .70;
+    }
+
+    html[data-user-color-scheme="dark"] .tag-btn:hover {
+      color: #7fdcff;
+      opacity: 1;
     }
 
     /* ===================== 最底部：玄寂墨羽 ===================== */
@@ -2290,11 +2351,21 @@
         </div>
       </section>
 
-      <!-- ---------- 3 标签 ---------- -->
+        <!-- ---------- 3 标签 ---------- -->
       <section class="page" data-page="tag">
-        <div class="page-inner">
-          <h2 class="page-title">标签</h2>
-          <p class="page-sub">TAGS</p>
+        <div class="friend-stage">
+          <section class="glass-card" aria-label="标签云">
+
+            <div class="glass-head">
+              <span class="glass-title">标签</span>
+              <span class="glass-sub">Tags</span>
+            </div>
+
+            <div class="tag-cloud" id="tagCloud">
+              <!-- 由下面的 JS 动态渲染 -->
+            </div>
+
+          </section>
         </div>
       </section>
 
@@ -3714,6 +3785,69 @@
           window.location.href = '站长收件箱.html';
         });
       }
+
+      /* ========== 标签云渲染 ========== */
+      // 顺序决定层次：第 1 个最大，后面依次变小
+      // 共 10 个，第 1 层 1 个，第 2 层 2 个，第 3 层 3 个，第 4 层 4 个
+      var TAGS = [
+       // 大号：1 个
+        { text: '星空', url: '#' },
+
+        // 中号：5 个
+        { text: '制作网站', url: '#' },
+        { text: '小说', url: '#' },
+        { text: '抚顺', url: '#' },
+        { text: '加工', url: '#' },
+        { text: '生活', url: '#' },
+
+        // 小号：2 个
+        { text: '韩语', url: '#' },
+        { text: '工具', url: '#' }
+      ];
+
+            (function renderTags() {
+        var container = document.getElementById('tagCloud');
+        if (!container) return;
+
+        var sizeClasses = ['tag-btn--xl', 'tag-btn--lg', 'tag-btn--md', 'tag-btn--sm'];
+
+        // 每层配置：
+        //   size        = 尺寸档位（0 最大，3 最小）
+        //   radius      = 到圆心的半径，单位 %（相对正方形画布）
+        //   startAngle  = 起始角度（度）。0=右，-90=上，90=下，180=左
+        var layers = [
+          { start: 0, end: 1, size: 0, radius: 0,  startAngle: 0 },    // 大号：圆心
+          { start: 1, end: 6, size: 2, radius: 30, startAngle: -90 },  // 中号：5 个，中圈
+          { start: 6, end: 8, size: 3, radius: 46, startAngle: 90 }    // 小号：2 个，外圈
+        ];
+
+        var html = '';
+        layers.forEach(function (layer) {
+          var count = layer.end - layer.start;
+
+          for (var i = 0; i < count && (layer.start + i) < TAGS.length; i++) {
+            var tag = TAGS[layer.start + i];
+
+            // 半径=0 时直接居中；否则按角度算坐标
+            var x = 50, y = 50;
+            if (layer.radius > 0) {
+              var angleDeg = layer.startAngle + (360 / count) * i;
+              var rad = angleDeg * Math.PI / 180;
+              x = 50 + layer.radius * Math.cos(rad);
+              y = 50 + layer.radius * Math.sin(rad);
+            }
+
+            html += '<a class="tag-btn ' + sizeClasses[layer.size] + '"' +
+              ' href="' + (tag.url || '#') + '"' +
+              ' style="left:' + x.toFixed(2) + '%;top:' + y.toFixed(2) + '%;"' +
+              ' data-index="' + (layer.start + i) + '">' +
+              tag.text +
+              '</a>';
+          }
+        });
+
+        container.innerHTML = html;
+      })();
 
     })();
   </script>
