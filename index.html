@@ -2590,6 +2590,14 @@
                 数据同步中...
               </div>
             </div>
+            <!-- 站长专属收件箱（只有站长登录才显示） -->
+            <div id="adminInbox" style="display: none; flex-direction: column; align-items: flex-start; margin-top: 14px;">
+              <div class="setting-info" style="margin-bottom: 10px;">
+                <span class="setting-name">站长收件箱</span>
+                <span class="setting-desc">在这里直接回复所有用户</span>
+              </div>
+              <div id="adminMessagesList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
+            </div>
           </div>
         </div>  
 
@@ -3521,6 +3529,7 @@
       });
 
       // 6. 页面加载时，回显用户头像、签名、名字
+            // 6. 页面加载时，回显用户头像、签名、名字
       async function loadUserProfile() {
         var { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
@@ -3539,8 +3548,16 @@
           document.getElementById('baziTime').value = meta.bazi.time || '';
           document.getElementById('baziGender').value = meta.bazi.gender || 'male';
         }
-      }
 
+        if (user.email === 'piao022400@qq.com') {
+          var adminInbox = document.getElementById('adminInbox');
+          if (adminInbox) {
+            adminInbox.style.display = 'flex';
+            loadAdminMessages(); // 立刻加载所有留言
+          }
+        }
+      } 
+       
       async function loadMyMessages() {
         var listEl = document.getElementById('myMessagesList');
         if (!listEl) return;
@@ -3629,6 +3646,58 @@
           document.getElementById('msgContent').value = '';
         }
       });
+
+      // ========== 站长收件箱逻辑 ==========
+      async function loadAdminMessages() {
+        var listEl = document.getElementById('adminMessagesList');
+        if (!listEl) return;
+        
+        // 站长拉取所有留言
+        var { data, error } = await supabase.from('messages')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error || !data || data.length === 0) {
+          listEl.innerHTML = '<div style="color: #a9a196; font-size: 0.8rem; padding: 10px;">目前还没有留言。</div>';
+          return;
+        }
+
+        listEl.innerHTML = data.map(msg => `
+          <div style="background: var(--glass-item-bg); padding: 12px; border-radius: 10px; border: 1px solid var(--glass-item-border);">
+            <div style="color: var(--glass-item-desc); font-size: 0.7rem; margin-bottom: 4px;">用户 ${msg.user_id.substring(0, 6)} 说：</div>
+            <div style="margin-bottom: 10px;">${msg.content}</div>
+            
+            ${msg.reply ? 
+              `<div style="border-top: 1px dashed var(--glass-item-border); padding-top: 8px;">
+                 <div style="color: var(--bili); font-size: 0.75rem;">你已回复：${msg.reply}</div>
+               </div>` 
+              : 
+              `<div style="display: flex; gap: 6px; width: 100%; margin-top: 6px;">
+                 <input type="text" id="reply-input-${msg.id}" placeholder="输入你的回复..." style="flex: 1; padding: 6px; border-radius: 6px; border: 1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;">
+                 <button onclick="sendAdminReply('${msg.id}')" style="padding: 6px 12px; border-radius: 6px; border: none; background: var(--bili); color: white; cursor: pointer; font-size: 0.8rem;">回复</button>
+               </div>`}
+          </div>
+        `).join('');
+      }
+
+      // 发送回复
+      async function sendAdminReply(msgId) {
+        var inputEl = document.getElementById('reply-input-' + msgId);
+        if (!inputEl) return;
+        var replyText = inputEl.value.trim();
+        if (!replyText) return alert('请输入回复内容');
+
+        var { error } = await supabase.from('messages')
+          .update({ reply: replyText })
+          .eq('id', msgId);
+
+        if (error) {
+          alert('回复失败: ' + error.message);
+        } else {
+          alert('回复成功！');
+          loadAdminMessages(); // 刷新列表
+        }
+      }
 
       document.addEventListener('DOMContentLoaded', function () {
         renderUser();
