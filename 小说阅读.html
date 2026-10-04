@@ -826,17 +826,6 @@
     .mini-btn:hover { background: rgba(127,127,127,.15); }
     .mini-btn.danger { color: #ff6b6b; border-color: rgba(255,107,107,.3); }
 
-    .dev-fab {
-      position: fixed; right: 20px; bottom: 20px; z-index: 100;
-      width: 44px; height: 44px; border: none; border-radius: 50%;
-      background: rgba(0,0,0,.35); color: #fff; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      opacity: .5; transition: opacity .2s ease, transform .2s ease;
-      backdrop-filter: blur(8px);
-    }
-    .dev-fab:hover { opacity: 1; transform: scale(1.08); }
-    .dev-fab svg { width: 20px; height: 20px; }
-
     /* 自定义背景弹窗（内嵌浮层） */
     .bg-custom-pop {
       position: fixed; z-index: 240;
@@ -896,16 +885,6 @@
     </div>
     <div class="shelf" id="shelf"></div>
   </main>
-
-  <!-- 开发者入口 -->
-  <button class="dev-fab" id="devFab" title="开发者模式">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-      stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3" />
-      <path
-        d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
-    </svg>
-  </button>
 
   <!-- ===================== 阅读器 ===================== -->
   <div class="reader" id="reader" aria-hidden="true">
@@ -1079,49 +1058,6 @@
     <div class="comment-input-row">
       <input type="text" id="popoverInput" placeholder="写下你的想法..." maxlength="200">
       <button class="btn-publish" id="popoverSend" type="button">发送</button>
-    </div>
-  </div>
-
-  <!-- ===================== 开发者面板 ===================== -->
-  <div class="modal" id="devModal" aria-hidden="true">
-    <div class="modal-head">
-      <h3>🔧 开发者 · 书籍管理</h3>
-      <button class="panel-close-btn" id="devClose" type="button">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="devAuth">
-        <div class="field">
-          <label>管理密码</label>
-          <input type="password" id="devPassword" placeholder="请输入开发者密码" maxlength="32">
-        </div>
-        <button class="btn-primary" id="devAuthBtn" type="button" style="width:100%;">进入</button>
-      </div>
-      <div id="devPanel" hidden>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-          <span style="font-size:.82rem;color:var(--ui-desc);">书籍列表</span>
-          <button class="btn-primary" id="addBookBtn" type="button">+ 添加新书</button>
-        </div>
-        <div id="devBookList"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===================== 编辑书籍弹窗 ===================== -->
-  <div class="modal" id="bookEditModal" aria-hidden="true">
-    <div class="modal-head">
-      <h3 id="bookEditTitle">添加新书</h3>
-      <button class="panel-close-btn" id="bookEditClose" type="button">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="field"><label>书名</label><input type="text" id="editBookTitle" maxlength="40" placeholder="例：星空之上"></div>
-      <div class="field"><label>作者</label><input type="text" id="editBookAuthor" maxlength="20" placeholder="例：玄寂"></div>
-      <div class="field"><label>简介</label><input type="text" id="editBookDesc" maxlength="60" placeholder="一句话简介"></div>
-      <div class="field"><label>封面配色（CSS 渐变）</label><input type="text" id="editBookCover" placeholder="linear-gradient(135deg, #1a3a5c, #5b8ce0)"></div>
-      <div class="field"><label>章节（每章：第一行标题，空行后接正文段落，段落之间空一行）</label><textarea id="editBookChapters" placeholder="第一章 启程&#10;&#10;第一段内容...&#10;&#10;第二段内容...&#10;&#10;第二章 迷途&#10;&#10;新章节内容..."></textarea></div>
-      <div style="display:flex;gap:10px;">
-        <button class="btn-ghost" id="bookEditCancel" type="button" style="flex:1;">取消</button>
-        <button class="btn-primary" id="bookEditSave" type="button" style="flex:2;">保存</button>
-      </div>
     </div>
   </div>
 
@@ -1568,8 +1504,6 @@
       closeToc();
       hideMenu();
       hideCommentPopover();
-      closeDev();
-      closeBookEdit();
       closeBgCustom();
       hideMask();
     });
@@ -1851,165 +1785,6 @@
       if (popover.contains(e.target)) return;
       if (e.target.closest('.chapter-content p')) return;
       hideCommentPopover();
-    });
-
-    /* =========================================================
-       开发者面板
-       ========================================================= */
-    var devModal = $('devModal');
-    var bookEditModal = $('bookEditModal');
-    var editingBookId = null;
-
-    function openDev() {
-      // 用阅读器的 UI 主题也行，无所谓
-      devModal.classList.add('show');
-      devModal.setAttribute('aria-hidden', 'false');
-      // 复用当前阅读器颜色，若没有则用默认深色
-      var reader = $('reader');
-      var tone = reader.getAttribute('data-tone') || 'light';
-      devModal.style.setProperty('--ui-bg', tone === 'light' ? 'rgba(30,34,42,.98)' : 'rgba(245,240,230,.98)');
-      devModal.style.setProperty('--ui-fg', tone === 'light' ? '#f2f2f2' : '#2a2a2a');
-      devModal.style.setProperty('--ui-desc', tone === 'light' ? '#9a9a9a' : '#7a7a7a');
-      devModal.style.setProperty('--ui-border', tone === 'light' ? 'rgba(255,255,255,.14)' : 'rgba(0,0,0,.10)');
-      devModal.style.setProperty('--ui-chip', tone === 'light' ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.05)');
-      showMask();
-    }
-    function closeDev() { devModal.classList.remove('show'); devModal.setAttribute('aria-hidden', 'true'); }
-
-    $('devFab').addEventListener('click', function () {
-      $('devAuth').hidden = false;
-      $('devPanel').hidden = true;
-      $('devPassword').value = '';
-      openDev();
-    });
-    $('devClose').addEventListener('click', function () { closeDev(); hideMask(); });
-    $('devAuthBtn').addEventListener('click', function () {
-      if ($('devPassword').value !== DEV_PASSWORD) { alert('密码错误'); return; }
-      $('devAuth').hidden = true;
-      $('devPanel').hidden = false;
-      renderDevBookList();
-    });
-
-    function renderDevBookList() {
-      var list = $('devBookList');
-      if (!books.length) {
-        list.innerHTML = '<div style="font-size:.82rem;color:var(--ui-desc);text-align:center;padding:30px 0;">还没有书，点右上角添加吧</div>';
-        return;
-      }
-      list.innerHTML = books.map(function (b) {
-        var cover = b.cover || 'linear-gradient(135deg, #1a3a5c, #5b8ce0)';
-        return '<div class="dev-book-row">' +
-          '<div class="mini-cover" style="background:' + cover + ';"></div>' +
-          '<div class="info"><b>' + escapeHtml(b.title) + '</b><span>' + escapeHtml(b.author || '佚名') + ' · ' + (b.chapters ? b.chapters.length : 0) + ' 章</span></div>' +
-          '<div class="row-actions">' +
-            '<button class="mini-btn" data-act="edit" data-id="' + escapeHtml(b.id) + '">编辑</button>' +
-            '<button class="mini-btn danger" data-act="del" data-id="' + escapeHtml(b.id) + '">删除</button>' +
-          '</div>' +
-        '</div>';
-      }).join('');
-      list.querySelectorAll('button').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var act = btn.getAttribute('data-act');
-          var id = btn.getAttribute('data-id');
-          if (act === 'edit') openBookEdit(id);
-          if (act === 'del') {
-            if (!confirm('确定删除这本书吗？')) return;
-            books = books.filter(function (x) { return x.id !== id; });
-            save(LS_BOOKS, books);
-            renderShelf();
-            renderDevBookList();
-          }
-        });
-      });
-    }
-
-    $('addBookBtn').addEventListener('click', function () { openBookEdit(null); });
-    $('bookEditClose').addEventListener('click', closeBookEdit);
-    $('bookEditCancel').addEventListener('click', closeBookEdit);
-
-    function closeBookEdit() { bookEditModal.classList.remove('show'); bookEditModal.setAttribute('aria-hidden', 'true'); hideMask(); }
-
-    function openBookEdit(id) {
-      editingBookId = id;
-      var b = id ? getBook(id) : null;
-      $('bookEditTitle').textContent = id ? '编辑书籍' : '添加新书';
-      $('editBookTitle').value = b ? b.title : '';
-      $('editBookAuthor').value = b ? (b.author || '') : '';
-      $('editBookDesc').value = b ? (b.desc || '') : '';
-      $('editBookCover').value = b ? (b.cover || '') : 'linear-gradient(135deg, #1a3a5c, #5b8ce0)';
-      if (b && b.chapters) {
-        $('editBookChapters').value = b.chapters.map(function (c) {
-          return c.title + '\n\n' + (c.paragraphs || []).join('\n\n');
-        }).join('\n\n');
-      } else {
-        $('editBookChapters').value = '';
-      }
-      bookEditModal.classList.add('show');
-      bookEditModal.setAttribute('aria-hidden', 'false');
-      showMask();
-    }
-
-    function parseChapters(text) {
-      if (!text.trim()) return [];
-      var lines = text.split('\n');
-      var chapters = [], cur = null, buf = [];
-
-      function flushPara() {
-        if (!cur) return;
-        var p = buf.join('\n').trim();
-        if (p) cur.paragraphs.push(p);
-        buf = [];
-      }
-      function isHead(line) {
-        var t = line.trim();
-        if (!t) return false;
-        if (/^第[\u4e00-\u9fa5\d]+[章卷节回]/.test(t)) return true;
-        if (/^Chapter\s+\d+/i.test(t)) return true;
-        if (/^序章|^楔子|^尾声|^后记|^前言/.test(t)) return true;
-        return false;
-      }
-
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i];
-        if (isHead(line)) {
-          flushPara();
-          if (cur) chapters.push(cur);
-          cur = { title: line.trim(), paragraphs: [] };
-          while (i + 1 < lines.length && !lines[i + 1].trim()) i++;
-        } else if (cur) {
-          if (!line.trim()) flushPara();
-          else buf.push(line);
-        } else {
-          cur = { title: '第一章', paragraphs: [] };
-          if (!line.trim()) flushPara();
-          else buf.push(line);
-        }
-      }
-      flushPara();
-      if (cur) chapters.push(cur);
-      return chapters;
-    }
-
-    $('bookEditSave').addEventListener('click', function () {
-      var title = $('editBookTitle').value.trim();
-      var author = $('editBookAuthor').value.trim();
-      var desc = $('editBookDesc').value.trim();
-      var cover = $('editBookCover').value.trim() || 'linear-gradient(135deg, #1a3a5c, #5b8ce0)';
-      var chapText = $('editBookChapters').value;
-      if (!title) { alert('请填写书名'); return; }
-      var chapters = parseChapters(chapText);
-      if (!chapters.length) { alert('请至少填写一章内容'); return; }
-
-      if (editingBookId) {
-        var b = getBook(editingBookId);
-        if (b) { b.title = title; b.author = author; b.desc = desc; b.cover = cover; b.chapters = chapters; }
-      } else {
-        books.unshift({ id: uid(), title: title, author: author, desc: desc, cover: cover, chapters: chapters });
-      }
-      save(LS_BOOKS, books);
-      renderShelf();
-      renderDevBookList();
-      closeBookEdit();
     });
 
     /* =========================================================
