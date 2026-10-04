@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>我的留言历史 · 星空</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff4fd8'/%3E%3Cstop offset='1' stop-color='%2300AEEC'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230a0e16'/%3E%3Cpath d='M32 8 L37 27 L56 32 L37 37 L32 56 L27 37 L8 32 L27 27 Z' fill='url(%23g)'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@900&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #edf1f7;
+      --text: #0f1b2b;
+      --text-muted: #6a819a;
+      --brand: #00AEEC;
+      --nav-bg: #0a0e16;
+      --nav-text: #f0f2f6;
+      --glass-bg: linear-gradient(155deg,
+          rgba(255, 255, 255, .86) 0%,
+          rgba(255, 255, 255, .62) 45%,
+          rgba(255, 255, 255, .78) 100%);
+      --glass-border: rgba(255, 255, 255, .95);
+      --glass-shadow: 0 26px 60px -30px rgba(20, 45, 90, .42);
+      --glass-inset: inset 0 1px 0 rgba(255, 255, 255, .95);
+      --glass-head-border: rgba(15, 27, 43, .10);
+      --glass-title: #0f1b2b;
+      --glass-sub: rgba(60, 90, 130, .55);
+      --glass-item-bg: rgba(255, 255, 255, .60);
+      --glass-item-border: rgba(15, 27, 43, .10);
+      --glass-item-text: #0f1b2b;
+      --glass-item-desc: rgba(60, 90, 130, .68);
+      --sky-bg: radial-gradient(ellipse at 50% 100%,
+          #143d5c 0%, #0a1d3a 35%, #050a14 70%, #010306 100%);
+    }
+
+    html[data-user-color-scheme="dark"] {
+      --bg: #111b2c;
+      --text: #e8eaf0;
+      --text-muted: #8b9bb4;
+      --glass-bg: linear-gradient(155deg,
+          rgba(255, 255, 255, .18) 0%,
+          rgba(255, 255, 255, .07) 45%,
+          rgba(255, 255, 255, .12) 100%);
+      --glass-border: rgba(255, 255, 255, .24);
+      --glass-shadow: 0 30px 70px -26px rgba(0, 0, 0, .85);
+      --glass-inset: inset 0 1px 0 rgba(255, 255, 255, .42);
+      --glass-head-border: rgba(255, 255, 255, .14);
+      --glass-title: #ffffff;
+      --glass-sub: rgba(210, 226, 255, .55);
+      --glass-item-bg: rgba(255, 255, 255, .06);
+      --glass-item-border: rgba(255, 255, 255, .12);
+      --glass-item-text: #eef4ff;
+      --glass-item-desc: rgba(200, 218, 245, .60);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+      transition: background .35s ease, color .35s ease;
+    }
+
+    .sky {
+      position: fixed;
+      inset: -10%;
+      z-index: 0;
+      background: var(--sky-bg);
+      pointer-events: none;
+      transition: background .5s ease;
+    }
+
+    /* ===== 顶部导航 ===== */
+    .sub-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 20px;
+      background: var(--nav-bg);
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--nav-text);
+      text-decoration: none;
+      font-size: .9rem;
+      padding: 7px 14px;
+      border-radius: 9px;
+      opacity: .85;
+      transition: background .2s ease, opacity .2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .back-link:hover {
+      background: rgba(255, 255, 255, .10);
+      opacity: 1;
+    }
+
+    .nav-title {
+      color: #ffffff;
+      font-weight: 700;
+      font-size: .95rem;
+      letter-spacing: .14em;
+    }
+
+    .color-toggle-btn {
+      width: 38px;
+      height: 38px;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      transition: background .25s ease, transform .25s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .color-toggle-btn:hover {
+      background: rgba(255, 255, 255, .12);
+      transform: scale(1.08);
+    }
+
+    .color-toggle-btn svg {
+      display: none;
+      width: 22px;
+      height: 22px;
+    }
+
+    html[data-user-color-scheme="dark"] .icon-moon { display: block; }
+    html[data-user-color-scheme="light"] .icon-sun { display: block; }
+
+    /* ===== 内容区 ===== */
+    .page-wrap {
+      position: relative;
+      z-index: 2;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 44px 20px 80px;
+    }
+
+    .glass-card {
+      position: relative;
+      padding: 28px 26px 26px;
+      border-radius: 28px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow), var(--glass-inset);
+      -webkit-backdrop-filter: blur(26px) saturate(180%);
+      backdrop-filter: blur(26px) saturate(180%);
+      animation: cardIn .7s cubic-bezier(.2, .7, .3, 1) both;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(20px) scale(.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .glass-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 2px 6px 18px;
+      border-bottom: 1px solid var(--glass-head-border);
+      margin-bottom: 20px;
+    }
+
+    .glass-title {
+      font-family: "Noto Sans SC", sans-serif;
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: .22em;
+      color: var(--glass-title);
+    }
+
+    html[data-user-color-scheme="dark"] .glass-title {
+      text-shadow: 0 0 22px rgba(130, 180, 255, .55);
+    }
+
+    .glass-sub {
+      font-size: .66rem;
+      letter-spacing: .26em;
+      color: var(--glass-sub);
+      text-transform: uppercase;
+    }
+
+    /* ===== 留言列表 ===== */
+    .msg-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .msg {
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: var(--glass-item-bg);
+      border: 1px solid var(--glass-item-border);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16);
+      transition: border-color .3s ease, box-shadow .3s ease;
+    }
+
+    .msg:hover {
+      border-color: rgba(0, 174, 236, .45);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .22),
+        0 14px 28px -22px rgba(0, 174, 236, .8);
+    }
+
+    .msg-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: .7rem;
+      letter-spacing: .08em;
+      color: var(--glass-item-desc);
+    }
+
+    .msg-content {
+      font-size: .94rem;
+      line-height: 1.62;
+      color: var(--glass-item-text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .msg-reply {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--glass-item-border);
+      font-size: .9rem;
+      line-height: 1.62;
+      color: var(--glass-item-text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .msg-reply b {
+      color: var(--brand);
+      font-weight: 800;
+    }
+
+    .msg-empty,
+    .msg-loading {
+      padding: 44px 12px;
+      text-align: center;
+      font-size: .88rem;
+      letter-spacing: .06em;
+      color: var(--glass-item-desc);
+      line-height: 1.8;
+    }
+
+    .msg-empty a {
+      color: var(--brand);
+      text-decoration: none;
+    }
+
+    .msg-empty a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 520px) {
+      .page-wrap { padding: 24px 12px 60px; }
+      .glass-card { padding: 20px 16px 18px; border-radius: 22px; }
+      .glass-title { font-size: 1.15rem; }
+      .sub-nav { padding: 0 12px; }
+      .nav-title { font-size: .88rem; letter-spacing: .10em; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="sky" aria-hidden="true"></div>
+
+  <header class="sub-nav">
+    <a class="back-link" href="index.html">← 返回首页</a>
+    <span class="nav-title">我的留言历史</span>
+    <button class="color-toggle-btn" id="colorToggleBtn" type="button" aria-label="切换日夜模式">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.9"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20.2 14.6A8.6 8.6 0 0 1 9.4 3.8a8.6 8.6 0 1 0 10.8 10.8z" fill="#ffffff" stroke="none" />
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.1"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.6" fill="#ffffff" stroke="none" />
+        <line x1="12" y1="1.8" x2="12" y2="4.2" />
+        <line x1="12" y1="19.8" x2="12" y2="22.2" />
+        <line x1="1.8" y1="12" x2="4.2" y2="12" />
+        <line x1="19.8" y1="12" x2="22.2" y2="12" />
+      </svg>
+    </button>
+  </header>
+
+  <main class="page-wrap">
+    <section class="glass-card">
+      <div class="glass-head">
+        <h1 class="glass-title">留言历史</h1>
+        <span class="glass-sub">My Messages</span>
+      </div>
+      <div id="msgList" class="msg-list">
+        <div class="msg-loading">加载中...</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      var SUPABASE_URL = 'https://icjptvrlmmnxamgnemvz.supabase.co';
+      var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanB0dnJsbW1ueGFtZ25lbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5OTY5NDAsImV4cCI6MjEwNjU3Mjk0MH0.2PiF0gJet82QnQpHd8Il_6bvTPLtBeypVOYRHG_W9YU';
+
+      var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      /* ---------- 日夜模式 ---------- */
+      (function () {
+        var root = document.documentElement;
+        var btn = document.getElementById('colorToggleBtn');
+        var KEY = 'Fluid_Color_Scheme';
+
+        function apply() {
+          var v = 'dark';
+          try { v = localStorage.getItem(KEY) || 'dark'; } catch (e) { }
+          if (v !== 'dark' && v !== 'light') v = 'dark';
+          root.setAttribute('data-user-color-scheme', v);
+        }
+
+        function toggle() {
+          var cur = root.getAttribute('data-user-color-scheme') || 'dark';
+          var next = (cur === 'dark') ? 'light' : 'dark';
+          try { localStorage.setItem(KEY, next); } catch (e) { }
+          apply();
+        }
+
+        apply();
+        if (btn) btn.addEventListener('click', toggle);
+      })();
+
+      /* ---------- 工具 ---------- */
+      function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+        });
+      }
+
+      function formatTime(t) {
+        if (!t) return '';
+        try {
+          var d = new Date(t);
+          var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+          return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+            + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+        } catch (e) { return ''; }
+      }
+
+      /* ---------- 渲染 ---------- */
+      function renderList(listEl, items) {
+        if (!items || items.length === 0) {
+          listEl.innerHTML =
+            '<div class="msg-empty">你还没有留言哦～<br>' +
+            '去首页的留言板写一条吧<br><br>' +
+            '<a href="index.html">← 返回首页</a>' +
+            '</div>';
+          return;
+        }
+
+        listEl.innerHTML = items.map(function (msg) {
+          var replyHtml = msg.reply
+            ? '<div class="msg-reply"><b>开发者回复：</b>' + escapeHtml(msg.reply) + '</div>'
+            : '<div class="msg-reply" style="color:var(--glass-item-desc);"><b style="color:var(--glass-item-desc);">暂无回复</b>，请耐心等待～</div>';
+
+          return '<div class="msg">' +
+            '<div class="msg-head">' +
+              '<span>我的留言</span>' +
+              '<span>' + formatTime(msg.created_at) + '</span>' +
+            '</div>' +
+            '<div class="msg-content">' + escapeHtml(msg.content) + '</div>' +
+            replyHtml +
+            '</div>';
+        }).join('');
+      }
+
+      /* ---------- 加载数据 ---------- */
+      async function load() {
+        var listEl = document.getElementById('msgList');
+
+        var { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          listEl.innerHTML =
+            '<div class="msg-empty">请先回首页登录后再查看<br><br>' +
+            '<a href="index.html">← 返回首页登录</a>' +
+            '</div>';
+          return;
+        }
+
+        var { data, error } = await supabase.from('messages')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          listEl.innerHTML =
+            '<div class="msg-empty" style="color:#ff8a8a;">加载失败：' +
+            escapeHtml(error.message) + '</div>';
+          return;
+        }
+
+        renderList(listEl, data || []);
+      }
+
+      load();
+    })();
+  </script>
+
+</body>
+</html>

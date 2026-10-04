@@ -1927,219 +1927,6 @@
       }
     }
 
-        /* ===================== 站长收件箱 ===================== */
-    .admin-mask {
-      position: fixed;
-      inset: 0;
-      z-index: 999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(4, 8, 16, .8);
-      -webkit-backdrop-filter: blur(15px);
-      backdrop-filter: blur(15px);
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity .3s ease, visibility .3s ease;
-    }
-    .admin-mask.show {
-      opacity: 1;
-      visibility: visible;
-    }
-    .admin-card {
-      width: min(95vw, 700px); /* 大尺寸 */
-      max-height: 88vh;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      box-shadow: var(--glass-shadow);
-      border-radius: 24px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      color: var(--glass-item-text);
-    }
-    .admin-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--glass-head-border);
-      margin-bottom: 16px;
-    }
-    .admin-head h3 {
-      font-size: 1.3rem;
-      font-weight: 900;
-      margin: 0;
-      color: var(--glass-title);
-    }
-    .admin-close {
-      background: transparent;
-      border: none;
-      font-size: 1.5rem;
-      color: var(--glass-item-desc);
-      cursor: pointer;
-    }
-    .admin-tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    .admin-tab-btn {
-      flex: 1;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid var(--glass-item-border);
-      background: transparent;
-      color: var(--glass-item-desc);
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .admin-tab-btn.active {
-      background: var(--bili);
-      color: white;
-      border-color: var(--bili);
-    }
-        .admin-body {
-      flex: 1;
-      overflow-y: auto;
-      padding-right: 5px;
-    }
-    .admin-body::-webkit-scrollbar {
-      width: 6px;
-    }
-    .admin-body::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 3px;
-    }
-
-    /* ---------- 站长收件箱：留言卡片样式 ---------- */
-    .admin-msg {
-      padding: 16px 18px;
-      border-radius: 16px;
-      background: var(--glass-item-bg);
-      border: 1px solid var(--glass-item-border);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16);
-      transition: border-color .3s ease, box-shadow .3s ease;
-    }
-    .admin-msg:hover {
-      border-color: rgba(0, 174, 236, .55);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, .22),
-        0 16px 32px -20px rgba(0, 174, 236, .9);
-    }
-    .admin-msg--pending {
-      border-left: 3px solid var(--bili);
-    }
-    .admin-msg-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .admin-msg-user {
-      font-size: .8rem;
-      font-weight: 800;
-      letter-spacing: .04em;
-      color: var(--bili);
-    }
-    .admin-msg-time {
-      font-size: .68rem;
-      letter-spacing: .06em;
-      color: var(--glass-item-desc);
-      white-space: nowrap;
-    }
-    .admin-msg-content {
-      font-size: .94rem;
-      line-height: 1.62;
-      color: var(--glass-item-text);
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-    .admin-msg-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 14px;
-    }
-    .admin-reply-input {
-      flex: 1;
-      min-width: 0;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid var(--glass-item-border);
-      background: rgba(255, 255, 255, .06);
-      color: var(--glass-item-text);
-      font-family: inherit;
-      font-size: .88rem;
-      outline: none;
-      transition: border-color .25s ease, box-shadow .25s ease;
-    }
-    .admin-reply-input::placeholder {
-      color: var(--glass-item-desc);
-    }
-    .admin-reply-input:focus {
-      border-color: rgba(0, 174, 236, .8);
-      box-shadow: 0 0 0 3px rgba(0, 174, 236, .16);
-    }
-    .admin-reply-btn {
-      flex: 0 0 auto;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #8fdcff, #00AEEC 55%, #3f7bff);
-      color: #04121c;
-      font-family: inherit;
-      font-size: .86rem;
-      font-weight: 800;
-      letter-spacing: .06em;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: transform .25s ease, box-shadow .25s ease, filter .25s ease;
-    }
-    .admin-reply-btn:hover {
-      transform: translateY(-2px);
-      filter: brightness(1.06);
-      box-shadow: 0 14px 26px -14px rgba(0, 174, 236, 1);
-    }
-    .admin-reply-btn:active {
-      transform: translateY(0) scale(.97);
-    }
-    .admin-reply-btn[disabled] {
-      opacity: .55;
-      cursor: not-allowed;
-      transform: none;
-      filter: none;
-    }
-    .admin-reply-shown {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px dashed var(--glass-item-border);
-      font-size: .88rem;
-      line-height: 1.6;
-      color: var(--glass-item-text);
-      word-break: break-word;
-    }
-    .admin-reply-shown b {
-      color: var(--bili);
-      font-weight: 800;
-    }
-    .admin-empty {
-      padding: 40px 12px;
-      text-align: center;
-      font-size: .86rem;
-      letter-spacing: .08em;
-      color: var(--glass-item-desc);
-    }
-
-    @media (max-width: 760px) {
-      .admin-msg-actions {
-        flex-direction: column;
-      }
-      .admin-reply-btn {
-        width: 100%;
-      }
-    }
-
   </style>
 </head>
 
@@ -2368,6 +2155,14 @@
       </ul>
 
       <div class="nav-actions">
+        <!-- 站长收件箱入口（仅站长登录后显示） -->
+        <button class="nav-user" id="adminBoxNavBtn" type="button" aria-label="站长收件箱" style="display: none;">
+          <svg class="nav-user-ico" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <path d="M3 7l9 6 9-6" />
+          </svg>
+        </button>
+
         <!-- 账号 / 设置按钮 -->
         <button class="nav-user" id="navUser" type="button" aria-label="登录 / 注册">
           <svg class="nav-user-ico" viewBox="0 0 24 24" aria-hidden="true">
@@ -2602,29 +2397,6 @@
   </main>
 
   <!-- ===================== 账号 / 设置面板 ===================== -->
-  <!-- ===================== 站长专用收件箱 ===================== -->
-  <div class="admin-mask" id="adminMask" aria-hidden="true">
-    <div class="admin-card">
-      <div class="admin-head">
-        <h3>📬 站长收件箱</h3>
-        <button class="admin-close" id="adminClose" type="button">✕</button>
-      </div>
-      
-      <div class="admin-tabs">
-        <button class="admin-tab-btn active" data-admin-tab="pending">📥 待回复</button>
-        <button class="admin-tab-btn" data-admin-tab="replied">✅ 已回复</button>
-      </div>
-
-      <div class="admin-body">
-        <div class="admin-tab-pane" id="admin-tab-pending">
-          <div id="adminPendingList" style="display: flex; flex-direction: column; gap: 12px;">加载中...</div>
-        </div>
-        <div class="admin-tab-pane" id="admin-tab-replied" style="display: none;">
-          <div id="adminRepliedList" style="display: flex; flex-direction: column; gap: 12px;">加载中...</div>
-        </div>
-      </div>
-    </div>
-  </div>
   <div class="auth-mask" id="authMask" aria-hidden="true">
     <div class="auth-card" role="dialog" aria-modal="true" aria-label="账号">
 
@@ -2818,23 +2590,18 @@
               <span style="color: var(--bili);">前往 ></span>
             </a>
 
-                        <div class="setting-row" style="flex-direction: column; align-items: flex-start;">
+            <div class="setting-row" style="flex-direction: column; align-items: flex-start;">
               <div class="setting-info">
                 <span class="setting-name">我的留言历史</span>
-                <span class="setting-desc">开发者回复</span>
+                <span class="setting-desc">只展示最新一条</span>
               </div>
               <div id="myMessagesList" style="width: 100%; margin-top: 10px; font-size: 0.8rem; color: var(--glass-item-text); display: flex; flex-direction: column; gap: 10px;">
                 数据同步中...
               </div>
-            </div>
-              <!-- 站长专属收件箱（只有站长登录才显示） -->
-            <div id="adminInbox" style="display: none; flex-direction: column; align-items: flex-start; margin-top: 14px;">
-              <div class="setting-info" style="margin-bottom: 10px;">
-                <span class="setting-name">站长收件箱</span>
-                <span class="setting-desc">有全新的未回复留言</span>
-              </div>
-              <!-- 这个按钮用来打开全屏大弹窗 -->
-              <button class="auth-submit" id="openAdminBoxBtn" style="width: 100%; padding: 8px; font-size: 0.8rem;">打开站长专用收件箱</button>
+              <a class="auth-submit ghost" id="allMessagesLink" href="留言历史.html"
+                 style="display: block; margin-top: 10px; padding: 8px; font-size: 0.8rem; text-align: center; text-decoration: none; box-sizing: border-box;">
+                查看更多
+              </a>
             </div>
           </div>
         </div>  
@@ -3815,34 +3582,49 @@
         }
       }
 
-      async function checkAdminRole() {
+            async function checkAdminRole() {
         var { data: { user } } = await supabase.auth.getUser();
-        var adminInbox = document.getElementById('adminInbox');
-        if (!adminInbox) return;
+        var navBtn = document.getElementById('adminBoxNavBtn');
+        if (!navBtn) return;
         if (user && user.email === 'piao022400@qq.com') {
-          adminInbox.style.display = 'flex';
-          loadAdminMessages();
+          navBtn.style.display = 'flex';
         } else {
-          adminInbox.style.display = 'none';
+          navBtn.style.display = 'none';
         }
       }
        
-      async function loadMyMessages() {
+            async function loadMyMessages() {
         var listEl = document.getElementById('myMessagesList');
+        var moreLink = document.getElementById('allMessagesLink');
         if (!listEl) return;
         
         var { data: { user } } = await supabase.auth.getUser();
-        if (!user) { listEl.textContent = '请先登录'; return; }
+        if (!user) {
+          listEl.textContent = '请先登录';
+          if (moreLink) moreLink.style.display = 'none';
+          return;
+        }
 
+        // 只取最新一条
         var { data, error } = await supabase.from('messages')
           .select('*')
           .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(1);
 
-        if (error) { listEl.textContent = '加载失败'; return; }
-        if (data.length === 0) { listEl.textContent = '你还没有留言哦'; return; }
+        if (error) {
+          listEl.textContent = '加载失败';
+          if (moreLink) moreLink.style.display = 'none';
+          return;
+        }
+        if (!data || data.length === 0) {
+          listEl.textContent = '你还没有留言哦';
+          if (moreLink) moreLink.style.display = 'none';
+          return;
+        }
 
-                listEl.innerHTML = data.map(msg => `
+        var msg = data[0];
+        listEl.innerHTML = `
           <div style="background: var(--glass-item-bg); padding: 10px; border-radius: 10px; border: 1px solid var(--glass-item-border);">
             <div style="color: var(--glass-item-desc); font-size: 0.7rem; margin-bottom: 4px;">你的留言：</div>
             <div style="margin-bottom: 6px;">${escapeHtml(msg.content)}</div>
@@ -3853,7 +3635,8 @@
                </div>` :
               `<div style="color: #a9a196; font-size: 0.7rem; border-top: 1px dashed var(--glass-item-border); padding-top: 6px;">暂无回复</div>`}
           </div>
-        `).join('');
+        `;
+        if (moreLink) moreLink.style.display = 'block';
       }
 
       document.getElementById('saveBaziBtn').addEventListener('click', async () => {
@@ -3919,145 +3702,12 @@
         }
       });
 
-      // ========== 站长收件箱逻辑 ==========
-            async function loadAdminMessages() {
-        var pendingListEl = document.getElementById('adminPendingList');
-        var repliedListEl = document.getElementById('adminRepliedList');
-        if (!pendingListEl || !repliedListEl) return;
-        
-        // 站长拉取所有留言
-        var { data, error } = await supabase.from('messages')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error || !data) {
-          pendingListEl.innerHTML = '<div style="color: #a9a196;">加载失败。</div>';
-          return;
-        }
-
-        // 过滤数据
-        var pendingMsgs = data.filter(msg => !msg.reply);
-        var repliedMsgs = data.filter(msg => msg.reply);
-
-        // 渲染待回复列表
-        if (pendingMsgs.length === 0) {
-          pendingListEl.innerHTML = '<div style="color: #79dfb4;">暂无待回复留言，全部处理完毕！</div>';
-        } else {
-          pendingListEl.innerHTML = pendingMsgs.map(msg => `
-            <div class="admin-msg admin-msg--pending">
-              <div class="admin-msg-head">
-                <span class="admin-msg-user">👤 ${escapeHtml(msg.username || '匿名用户')}</span>
-                <span class="admin-msg-time">${formatTime(msg.created_at)}</span>
-              </div>
-              <div class="admin-msg-content">${escapeHtml(msg.content)}</div>
-              <div class="admin-msg-actions">
-                <input type="text" class="admin-reply-input" data-id="${msg.id}" placeholder="输入你的回复...">
-                <button class="admin-reply-btn" data-id="${msg.id}" type="button">发送回复</button>
-              </div>
-            </div>
-          `).join('');
-        }
-
-         // 渲染已回复列表
-        if (repliedMsgs.length === 0) {
-          repliedListEl.innerHTML = '<div class="admin-empty">暂无已回复留言。</div>';
-        } else {
-          repliedListEl.innerHTML = repliedMsgs.map(msg => `
-            <div class="admin-msg">
-              <div class="admin-msg-head">
-                <span class="admin-msg-user">👤 ${escapeHtml(msg.username || '匿名用户')}</span>
-                <span class="admin-msg-time">${formatTime(msg.created_at)}</span>
-              </div>
-              <div class="admin-msg-content">${escapeHtml(msg.content)}</div>
-              <div class="admin-reply-shown">
-                <b>你已回复：</b>${escapeHtml(msg.reply)}
-              </div>
-            </div>
-          `).join('');
-        }
-      }
-        
-
-       // 发送回复
-       async function sendAdminReply(msgId, btnEl) {
-       var inputEl = document.querySelector('.admin-reply-input[data-id="' + msgId + '"]');
-       if (!inputEl) return;
-       var replyText = inputEl.value.trim();
-       if (!replyText) { alert('请输入回复内容'); return; }
-
-       if (btnEl) { btnEl.disabled = true; btnEl.textContent = '发送中...'; }
-
-       var { error } = await supabase.from('messages')
-        .update({ reply: replyText })
-        .eq('id', msgId);
-
-       if (error) {
-        alert('回复失败: ' + error.message);
-        if (btnEl) { btnEl.disabled = false; btnEl.textContent = '发送回复'; }
-       } else {
-        alert('回复成功！');
-        loadAdminMessages(); // 刷新列表
-       }
-      }
-
-      (function bindAdminReplyDelegation() {
-        var pendingListEl = document.getElementById('adminPendingList');
-        var repliedListEl = document.getElementById('adminRepliedList');
-        [pendingListEl, repliedListEl].forEach(function (listEl) {
-          if (!listEl || listEl.dataset.replyBound === '1') return;
-          listEl.dataset.replyBound = '1';
-          listEl.addEventListener('click', function (e) {
-            var btn = e.target.closest('.admin-reply-btn');
-            if (!btn) return;
-            sendAdminReply(btn.dataset.id, btn);
-          });
+      var adminBoxNavBtn = document.getElementById('adminBoxNavBtn');
+      if (adminBoxNavBtn) {
+        adminBoxNavBtn.addEventListener('click', function () {
+          window.location.href = '站长收件箱.html';
         });
-      })();
-
-      // 打开大收件箱
-      var adminMaskEl = document.getElementById('adminMask');
-
-      function openAdminBox() {
-        adminMaskEl.classList.add('show');
-        adminMaskEl.setAttribute('aria-hidden', 'false');
-        loadAdminMessages();
       }
-      function closeAdminBox() {
-        adminMaskEl.classList.remove('show');
-        adminMaskEl.setAttribute('aria-hidden', 'true');
-      }
-
-      document.getElementById('openAdminBoxBtn').addEventListener('click', openAdminBox);
-      document.getElementById('adminClose').addEventListener('click', closeAdminBox);
-      adminMaskEl.addEventListener('click', function (e) {
-        if (e.target === adminMaskEl) closeAdminBox();
-      });
-
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && adminMaskEl.classList.contains('show')) closeAdminBox();
-      });
-
-      // 收件箱内 Tab 切换
-      document.querySelectorAll('.admin-tab-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-          document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
-          this.classList.add('active');
-          
-          document.querySelectorAll('.admin-tab-pane').forEach(p => p.style.display = 'none');
-          document.getElementById('admin-tab-' + this.dataset.adminTab).style.display = 'block';
-        });
-      });
-
-      document.addEventListener('DOMContentLoaded', function () {
-        renderUser();
-
-        if (musicOn()) {
-          document.addEventListener('click', function once() {
-            document.removeEventListener('click', once);
-            if (musicOn()) playBgm();
-          }, { once: true });
-        }
-      });
 
     })();
   </script>
