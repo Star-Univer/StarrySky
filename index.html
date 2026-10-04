@@ -2926,11 +2926,7 @@
         }
 
         // ===== 2. 如果登录失败（说明没注册过），走你原有的注册逻辑 =====
-        // 设备限制检查（完全保留你的逻辑）
-        if (isDeviceRegistered()) { 
-          setMsg('该设备已注册过账号，请直接登录', 'error'); 
-          return; 
-        }
+        
         // 邀请码检查（完全保留你的逻辑）
         if (code !== DEFAULT_INVITE_CODE) { 
           setMsg('邀请码不正确', 'error'); 
