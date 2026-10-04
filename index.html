@@ -3028,7 +3028,14 @@
         });
 
         if (loginError) {
-          setMsg('快捷登录失败：' + loginError.message, 'error');
+          // 如果本地存的账号在云端不存在，自动清理掉旧记录
+          if (loginError.message.includes('Invalid login credentials')) {
+            localStorage.removeItem('sky_quick_login_data'); // 抹掉错误记忆
+            setMsg('之前保存的账号已失效，请重新输入账号密码登录', 'error');
+            checkQuickLoginAvailable(); // 刷新按钮，此时按钮会自动消失
+          } else {
+            setMsg('快捷登录失败：' + loginError.message, 'error');
+          }
           return;
         }
 
