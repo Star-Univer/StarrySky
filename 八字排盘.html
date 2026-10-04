@@ -2094,10 +2094,73 @@ function renderAnalysis(res){
  *  九、启动
  * ============================================================ */
 
-initUI();
-tryRestoreFromLink();
 
-</script>
+
+</script>/* ---------- 从 URL 参数读取并自动填充 ---------- */
+function applyUrlParams() {
+  const params = new URLSearchParams(window.location.search);
+  const birth = params.get('birth');
+  const time = params.get('time');
+  const gender = params.get('gender');
+
+  if (!birth || !gender) return false; // 必须有生日和性别
+
+  // 解析生日
+  const birthParts = birth.split('-');
+  if (birthParts.length !== 3) return false;
+  const y = parseInt(birthParts[0]);
+  const m = parseInt(birthParts[1]);
+  const d = parseInt(birthParts[2]);
+
+  // 解析时间
+  let h = 12; // 默认中午12点
+  if (time) {
+    const timeParts = time.split(':');
+    if (timeParts.length >= 2) {
+      h = parseInt(timeParts[0]);
+    }
+  }
+
+  // 设置性别
+  const genderBtn = document.querySelector(`.gender-btn[data-gender="${gender}"]`);
+  if (genderBtn) genderBtn.click();
+  else return false; // 性别参数无效
+
+  // 设置年份
+  const yIdx = yearItems.findIndex(it => it.value === y);
+  if (yIdx >= 0) yearWheel.setIndex(yIdx, false);
+
+  // 设置月份
+  if (m >= 1 && m <= 12) monthWheel.setIndex(m, false);
+
+  // 重建并设置日期
+  rebuildDayWheel(0);
+  if (d >= 1 && d <= dayItems.length - 1) dayWheel.setIndex(d, false);
+
+  // 设置时辰
+  if (h >= 0 && h <= 23) hourWheel.setIndex(h + 1, false);
+
+  // 数据都填好后，如果满足排盘条件，自动触发排盘
+  if (state.gender && monthWheel.index > 0 && dayWheel.index > 0 && hourWheel.index > 0) {
+    // 延迟一点点，等待滚轮状态同步，然后自动排盘
+    setTimeout(() => {
+      onConfirm();
+    }, 350);
+    return true;
+  }
+  return false;
+}
+
+/* ---------- 启动 ---------- */
+initUI();
+
+// 先尝试读取 URL 参数，如果有，自动填好并排盘
+const urlApplied = applyUrlParams();
+
+// 如果 URL 没参数（比如用户自己点进来的），再尝试从 sessionStorage 恢复上次现场
+if (!urlApplied) {
+  tryRestoreFromLink();
+}
 
 </body>
 </html>

@@ -2528,15 +2528,7 @@
 
         <!-- 3.3 安全 -->
         <div class="tab-pane" id="tab-security" style="display: none;">
-          <div class="setting-list">
-            <div class="setting-row">
-              <div class="setting-info">
-                <span class="setting-name">修改邮箱</span>
-              </div>
-              <input id="editEmailInput" type="email" style="width: 120px; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;" placeholder="新邮箱">
-            </div>
-            <button class="auth-submit ghost" id="updateEmailBtn" style="margin-top: 8px; padding: 8px; font-size: 0.8rem;">更新邮箱</button>
-            
+          <div class="setting-list">          
             <div class="setting-row" style="margin-top: 14px;">
               <div class="setting-info">
                 <span class="setting-name">修改密码</span>
@@ -2550,13 +2542,49 @@
         <!-- 3.4 数据 -->
         <div class="tab-pane" id="tab-data" style="display: none;">
           <div class="setting-list">
-            <a class="setting-row" href="八字排盘.html" style="text-decoration: none; color: inherit; cursor: pointer;">
+            <!-- 八字记录区 -->
+            <div class="setting-row" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+              <div class="setting-info">
+                <span class="setting-name">生辰八字记录</span>
+                <span class="setting-desc">填写后自动同步到日历</span>
+              </div>
+              <div style="display: flex; gap: 6px; width: 100%;">
+                <input type="date" id="baziDate" style="flex: 1; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;">
+                <input type="time" id="baziTime" style="width: 80px; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;">
+              </div>
+              <select id="baziGender" style="width: 100%; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;">
+                <option value="male">男</option>
+                <option value="female">女</option>
+              </select>
+              <button class="auth-submit ghost" id="saveBaziBtn" style="width: 100%; margin-top: 4px; padding: 6px; font-size: 0.8rem;">保存八字记录</button>
+            </div>
+
+            <!-- 跳转按钮（点击时带参数） -->
+            <a class="setting-row" id="baziLink" href="#" style="text-decoration: none; color: inherit; cursor: pointer;">
               <div class="setting-info">
                 <span class="setting-name">生辰八字日历</span>
-                <span class="setting-desc">去记录你的八字信息</span>
+                <span class="setting-desc">跳转查看已填写的八字信息</span>
+              </div>
+              <div style="display: flex; gap: 6px; width: 100%;">
+                <input type="date" id="baziDate" style="flex: 1; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;">
+                <input type="time" id="baziTime" style="width: 80px; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;">
+              </div>
+              <select id="baziGender" style="width: 100%; padding: 6px; border-radius: 8px; border:1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;">
+                <option value="male">男</option>
+                <option value="female">女</option>
+              </select>
+              <button class="auth-submit ghost" id="saveBaziBtn" style="width: 100%; margin-top: 4px; padding: 6px; font-size: 0.8rem;">保存八字记录</button>
+            </div>
+
+            <!-- 跳转按钮（点击时带参数） -->
+            <a class="setting-row" id="baziLink" href="#" style="text-decoration: none; color: inherit; cursor: pointer;">
+              <div class="setting-info">
+                <span class="setting-name">生辰八字日历</span>
+                <span class="setting-desc">跳转查看已填写的八字信息</span>
               </div>
               <span style="color: var(--bili);">前往 ></span>
             </a>
+           
             <div class="setting-row">
               <div class="setting-info">
                 <span class="setting-name">我的留言历史</span>
@@ -3478,13 +3506,6 @@
       applyPreferences();
 
       // 5. 安全：修改邮箱、密码、退出所有设备
-      document.getElementById('updateEmailBtn').addEventListener('click', async () => {
-        var newEmail = document.getElementById('editEmailInput').value.trim();
-        if (!newEmail) return alert('请输入新邮箱');
-        var { error } = await supabase.auth.updateUser({ email: newEmail });
-        if (error) alert('更新邮箱失败: ' + error.message);
-        else alert('确认邮件已发送到新邮箱，请查收！');
-      });
       document.getElementById('updatePasswordBtn').addEventListener('click', async () => {
         var newPassword = document.getElementById('editPasswordInput').value.trim();
         if (newPassword.length < 6) return alert('密码至少 6 位');
@@ -3511,8 +3532,41 @@
         if (meta.signature) document.getElementById('userSignature').textContent = meta.signature;
         document.getElementById('editNameInput').value = meta.username || '';
         document.getElementById('editSignInput').value = meta.signature || '';
+      
+        if (meta.bazi) {
+          document.getElementById('baziDate').value = meta.bazi.date || '';
+          document.getElementById('baziTime').value = meta.bazi.time || '';
+          document.getElementById('baziGender').value = meta.bazi.gender || 'male';
+        }
       }
       
+      document.getElementById('saveBaziBtn').addEventListener('click', async () => {
+        var date = document.getElementById('baziDate').value;
+        var time = document.getElementById('baziTime').value;
+        var gender = document.getElementById('baziGender').value;
+        
+        if (!date) return alert('请选择出生日期');
+
+        var baziData = { date: date, time: time || '12:00', gender: gender };
+        var { error } = await supabase.auth.updateUser({ data: { bazi: baziData } });
+        
+        if (error) { alert('保存八字失败: ' + error.message); return; }
+        alert('八字记录已保存！现在可以点击下方按钮跳转查看了。');
+      });
+
+      document.getElementById('baziLink').addEventListener('click', function(e) {
+        e.preventDefault();
+        var date = document.getElementById('baziDate').value;
+        var time = document.getElementById('baziTime').value;
+        var gender = document.getElementById('baziGender').value;
+        
+        var url = '八字排盘.html';
+        if (date) {
+          url += '?birth=' + encodeURIComponent(date) + '&time=' + encodeURIComponent(time || '12:00') + '&gender=' + encodeURIComponent(gender);
+        }
+        window.location.href = url;
+      });
+     
       document.addEventListener('DOMContentLoaded', function () {
         renderUser();
 
