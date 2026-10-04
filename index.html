@@ -2903,8 +2903,9 @@
         if (!password) { setMsg('请输入密码', 'error'); return; }
         if (password.length < 6) { setMsg('密码至少 6 位', 'error'); return; }
 
-        // 将名字转成 Supabase 可以识别的“邮箱”格式，但用户根本不需要去查收邮件
-        var email = name.includes('@') ? name : (name + '@starrysky.local');
+        // 将名字转成合法的英文邮箱（自动将中文转换为编码，避免格式报错）
+        var safeName = encodeURIComponent(name).replace(/%/g, '');
+        var email = name.includes('@') ? name : (safeName + '@starrysky.local');
 
         // ===== 1. 尝试登录 =====
         var { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
