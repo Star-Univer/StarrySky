@@ -1216,7 +1216,6 @@
     .tag-btn:hover {
       opacity: 1;
       transform: translate(-50%, -50%) scale(1.12);
-      color: var(--bili);
     }
 
     .tag-btn:active {
@@ -1231,12 +1230,10 @@
     .tag-btn--xs { font-size: 1.05rem; }
 
     html[data-user-color-scheme="dark"] .tag-btn {
-      color: var(--glass-item-text);
       opacity: .70;
     }
 
     html[data-user-color-scheme="dark"] .tag-btn:hover {
-      color: #7fdcff;
       opacity: 1;
     }
 
@@ -3816,9 +3813,9 @@
         //   radius      = 到圆心的半径，单位 %（相对正方形画布）
         //   startAngle  = 起始角度（度）。0=右，-90=上，90=下，180=左
         var layers = [
-          { start: 0, end: 1, size: 0, radius: 0,  startAngle: 0 },    // 大号：圆心
-          { start: 1, end: 6, size: 2, radius: 30, startAngle: -90 },  // 中号：5 个，中圈
-          { start: 6, end: 8, size: 3, radius: 46, startAngle: 90 }    // 小号：2 个，外圈
+          { start: 0, end: 1, size: 0, radius: 0,  startAngle: 0,   color: '#00AEEC' },  // 大号：天蓝
+          { start: 1, end: 6, size: 2, radius: 30, startAngle: -90, color: '#7CC8EC' },  // 中号：淡蓝
+          { start: 6, end: 8, size: 3, radius: 46, startAngle: 90,  color: '#FFB8D8' }   // 小号：淡粉
         ];
 
         var html = '';
@@ -3839,7 +3836,7 @@
 
             html += '<a class="tag-btn ' + sizeClasses[layer.size] + '"' +
               ' href="' + (tag.url || '#') + '"' +
-              ' style="left:' + x.toFixed(2) + '%;top:' + y.toFixed(2) + '%;"' +
+              ' style="left:' + x.toFixed(2) + '%;top:' + y.toFixed(2) + '%;color:' + layer.color + ';"' +
               ' data-index="' + (layer.start + i) + '">' +
               tag.text +
               '</a>';
