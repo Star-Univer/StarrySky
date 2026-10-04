@@ -2270,39 +2270,67 @@
           <path d="M6 6l12 12M18 6L6 18" />
         </svg>
       </button>
-
-      <!-- ===== 未登录：登录 / 注册（一个键） ===== -->
+             <!-- ===== 未登录：登录 / 注册 ===== -->
       <div class="auth-view" id="authView">
         <div class="auth-head">
-          <h3 class="auth-title">登录 / 注册</h3>
+          <h3 class="auth-title" id="authTitle">登录</h3>
         </div>
 
-        <form class="auth-form" id="authForm" autocomplete="off" novalidate>
+        <!-- 登录表单 -->
+        <form class="auth-form" id="loginForm" autocomplete="off" novalidate>
           <label class="auth-field">
             <span class="auth-label">名字</span>
-            <input id="authName" name="name" type="text" maxlength="16" placeholder="给自己起个名字" autocomplete="off"
+            <input id="loginName" name="name" type="text" maxlength="16" placeholder="请输入你的名字" autocomplete="off"
               spellcheck="false" />
           </label>
 
           <label class="auth-field">
             <span class="auth-label">密码</span>
-            <input id="authPassword" name="password" type="password" maxlength="32" placeholder="设置登录密码"
+            <input id="loginPassword" name="password" type="password" maxlength="32" placeholder="请输入密码"
+              autocomplete="current-password" spellcheck="false" />
+          </label>
+
+          <p class="auth-msg" id="loginMsg" role="alert"></p>
+
+          <button class="auth-submit" id="loginSubmit" type="submit">登录</button>
+          <!-- 一键登录按钮（登录表单专属） -->
+          <button class="auth-submit ghost" id="quickLoginBtn" type="button" style="display:none; margin-top: 10px;">一键登录</button>
+          
+          <div style="text-align: center; margin-top: 14px;">
+            <a href="#" id="switchToRegister" style="color: var(--bili); font-size: 0.8rem; text-decoration: none;">没有账号？去注册</a>
+          </div>
+        </form>
+
+        <!-- 注册表单（默认隐藏） -->
+        <form class="auth-form" id="registerForm" style="display: none;" autocomplete="off" novalidate>
+          <label class="auth-field">
+            <span class="auth-label">名字</span>
+            <input id="regName" name="name" type="text" maxlength="16" placeholder="给自己起个名字" autocomplete="off"
+              spellcheck="false" />
+          </label>
+
+          <label class="auth-field">
+            <span class="auth-label">密码</span>
+            <input id="regPassword" name="password" type="password" maxlength="32" placeholder="设置登录密码"
               autocomplete="new-password" spellcheck="false" />
           </label>
 
           <label class="auth-field">
             <span class="auth-label">邀请码</span>
-            <input id="authCode" name="code" type="text" maxlength="32" placeholder="请输入邀请码" autocomplete="off"
+            <input id="regCode" name="code" type="text" maxlength="32" placeholder="请输入邀请码" autocomplete="off"
               spellcheck="false" />
           </label>
 
-          <p class="auth-msg" id="authMsg" role="alert"></p>
+          <p class="auth-msg" id="regMsg" role="alert"></p>
 
-          <button class="auth-submit" id="authSubmit" type="submit">进入</button>
-          <!--  新增的一键登录按钮（默认隐藏，有记录时才显示） -->
-          <button class="auth-submit ghost" id="quickLoginBtn" type="button" style="display:none; margin-top: 10px;">一键登录</button>
+          <button class="auth-submit" id="regSubmit" type="submit">注册</button>
+
+          <div style="text-align: center; margin-top: 14px;">
+            <a href="#" id="switchToLogin" style="color: var(--bili); font-size: 0.8rem; text-decoration: none;">已有账号？去登录</a>
+          </div>
         </form>
       </div>
+      
 
       <!-- ===== 已登录：设置 ===== -->
       <div class="auth-view" id="userView" hidden>
@@ -2722,11 +2750,10 @@
       var closeBtn = document.getElementById('authClose');
       var authView = document.getElementById('authView');
       var userView = document.getElementById('userView');
-      var form = document.getElementById('authForm');
-      var nameInput = document.getElementById('authName');
-      var passwordInput = document.getElementById('authPassword');
-      var codeInput = document.getElementById('authCode');
-      var msgEl = document.getElementById('authMsg');
+      var loginForm = document.getElementById('loginForm');
+      var registerForm = document.getElementById('registerForm');
+      var loginMsgEl = document.getElementById('loginMsg');
+      var regMsgEl = document.getElementById('regMsg');
       var userNameEl = document.getElementById('userName');
       var userAvatar = document.getElementById('userAvatar');
       var musicBtn = document.getElementById('musicSwitch');
@@ -2736,7 +2763,7 @@
       var logo = document.getElementById('navLogo');
       var bgm = document.getElementById('bgm');
 
-      if (!mask || !form) return;
+      if (!mask || !loginForm || !registerForm) return;
 
       /* ---------- 本地存储读写 ---------- */
       function readUsers() {
@@ -2786,8 +2813,11 @@
 
       /* ---------- 提示信息 ---------- */
       function setMsg(text, type) {
-        msgEl.textContent = text || '';
-        msgEl.className = 'auth-msg' + (type ? ' ' + type : '');
+        var className = 'auth-msg' + (type ? ' ' + type : '');
+        loginMsgEl.textContent = text || '';
+        loginMsgEl.className = className;
+        regMsgEl.textContent = text || '';
+        regMsgEl.className = className;
       }
 
       /* ---------- 表单校验 ---------- */
@@ -2882,122 +2912,20 @@
 
       // 1. 初始化 Supabase 客户端
       var SUPABASE_URL = 'https://icjptvrlmmnxamgnemvz.supabase.co';
-      // ⚠️ 如果注册失败提示 Invalid URL 或 Key，请检查下面这行 Key 是否完整（注意不要有换行和空格）
       var SUPABASE_ANON_KEY = 'sb_publishable_CXkeX5ESKgC5WKQaXjvnrQ_8bJi__c-';
       console.log('我设置的URL是:', SUPABASE_URL);
       var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
       // 默认邀请码
       var DEFAULT_INVITE_CODE = "090224";
 
-      form.addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        // 获取你原有的输入框数据
-        var name = (nameInput.value || '').trim();
-        var password = (passwordInput.value || '').trim();
-        var code = (codeInput.value || '').trim();
-
-        // 你原有的基础校验
-        if (!name) { setMsg('请输入名字', 'error'); return; }
-        if (!password) { setMsg('请输入密码', 'error'); return; }
-        if (password.length < 6) { setMsg('密码至少 6 位', 'error'); return; }
-
-        // 将名字转成合法的英文邮箱（自动将中文转换为编码，避免格式报错）
-        var safeName = encodeURIComponent(name).replace(/%/g, '');
-        var email = name.includes('@') ? name : (safeName + '@qq.com');
-
-        // ===== 1. 尝试登录 =====
-        var { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-          email: email,
-          password: password,
-        });
-
-        // 如果登录成功，直接进入面板
-        if (!loginError && loginData.user) {
-          setSession(name); 
-          // 新增：保存快捷登录凭证
-          saveQuickLoginData(name, password); 
-          checkQuickLoginAvailable();
-
-          setMsg('欢迎回来，' + name, 'ok');
-          showUserView(name);
-          renderUser();
-          return;
-        }
-
-        // ===== 2. 如果登录失败（说明没注册过），走你原有的注册逻辑 =====
-        
-        // 邀请码检查（完全保留你的逻辑）
-        if (code !== DEFAULT_INVITE_CODE) { 
-          setMsg('邀请码不正确', 'error'); 
-          return; 
-        }
-
-        // ===== 3. 调用 Supabase 进行无感知注册 =====
-        var { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: email,
-          password: password,
-          options: {
-            data: { username: name, full_name:name } // 把名字存进用户资料
-          }
-        });
-
-        if (signUpError) {
-          setMsg('注册失败: ' + signUpError.message, 'error'); 
-          return;
-        }
-
-        // ===== 4. 注册成功，自动登录（免邮箱验证） =====
-        if (signUpData && signUpData.session) {
-          // 如果 Supabase 直接返回了 session，说明已登录
-          markDeviceRegistered();
-          setSession(name);
-          saveQuickLoginData(name, password);
-          checkQuickLoginAvailable();
-          setMsg('注册成功，已自动登录！', 'ok');
-          showUserView(name);
-          renderUser();
-        } else {
-          // 如果没返回（可能是 Supabase 还在后台发邮件），强制用密码登录一次
-          var { data: forceLogin } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password,
-          });
-          if (forceLogin && forceLogin.user) {
-            markDeviceRegistered();
-            setSession(name);
-            saveQuickLoginData(name, password);
-          checkQuickLoginAvailable();
-            setMsg('注册成功，已自动登录！', 'ok');
-            showUserView(name);
-            renderUser();
-          } else {
-            setMsg('注册成功，但自动登录失败，请手动尝试登录。', 'ok');
-          }
-         } 
-        });
-  
-
-      /* ---------- 快捷登录（记住上次账号） ---------- */
+      /* ---------- 快捷登录存储 ---------- */
       var QUICK_LOGIN_KEY = 'sky_quick_login_data';
-
-      // 保存凭证
       function saveQuickLoginData(name, password) {
-        try {
-          localStorage.setItem(QUICK_LOGIN_KEY, JSON.stringify({ name: name, password: password }));
-        } catch (e) { }
+        try { localStorage.setItem(QUICK_LOGIN_KEY, JSON.stringify({ name: name, password: password })); } catch (e) { }
       }
-
-      // 读取凭证
       function getQuickLoginData() {
-        try {
-          var raw = localStorage.getItem(QUICK_LOGIN_KEY);
-          return raw ? JSON.parse(raw) : null;
-        } catch (e) { return null; }
+        try { var raw = localStorage.getItem(QUICK_LOGIN_KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
       }
-
-      // 检查是否有凭证，决定按钮是否显示
       function checkQuickLoginAvailable() {
         var btn = document.getElementById('quickLoginBtn');
         var data = getQuickLoginData();
@@ -3010,41 +2938,132 @@
         }
       }
 
-      // 一键登录点击事件
-      document.getElementById('quickLoginBtn').addEventListener('click', async function () {
-        var data = getQuickLoginData();
-        if (!data || !data.name || !data.password) {
-          setMsg('没有找到快捷登录记录', 'error');
+      // --- 切换 登录 / 注册 视图 ---
+      document.getElementById('switchToRegister').addEventListener('click', function(e) {
+        e.preventDefault();
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'flex';
+        document.getElementById('authTitle').textContent = '注册';
+      });
+      document.getElementById('switchToLogin').addEventListener('click', function(e) {
+        e.preventDefault();
+        registerForm.style.display = 'none';
+        loginForm.style.display = 'flex';
+        document.getElementById('authTitle').textContent = '登录';
+      });
+
+      loginForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        var name = (document.getElementById('loginName').value || '').trim();
+        var password = (document.getElementById('loginPassword').value || '').trim();
+
+        if (!name) { setMsg('请输入名字', 'error'); return; }
+        if (!password) { setMsg('请输入密码', 'error'); return; }
+
+        // 将名字转成合法的英文邮箱（自动将中文转换为编码，避免格式报错）
+        var safeName = encodeURIComponent(name).replace(/%/g, '');
+        var email = name.includes('@') ? name : (safeName + '@qq.com');
+
+        loginMsgEl.textContent = '正在登录...'; loginMsgEl.className = 'auth-msg';
+
+        var { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+
+        if (loginError) {
+          loginMsgEl.textContent = '登录失败：账号不存在或密码错误'; loginMsgEl.className = 'auth-msg error';
           return;
         }
 
-        var email = data.name.includes('@') ? data.name : (data.name + '@starrysky.local');
-        
-        setMsg('正在自动登录...', 'ok');
-        
-        var { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+        setSession(name);
+        saveQuickLoginData(name, password); // 登录成功才保存
+        checkQuickLoginAvailable();
+        loginMsgEl.textContent = '欢迎回来，' + name; loginMsgEl.className = 'auth-msg ok';
+        showUserView(name);
+        renderUser();
+      });
+
+      /* ---------- 2. 注册逻辑 ---------- */
+      registerForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var name = (document.getElementById('regName').value || '').trim();
+        var password = (document.getElementById('regPassword').value || '').trim();
+        var code = (document.getElementById('regCode').value || '').trim();
+
+        if (!name) { regMsgEl.textContent = '请输入名字'; regMsgEl.className = 'auth-msg error'; return; }
+        if (!password || password.length < 6) { regMsgEl.textContent = '密码至少 6 位'; regMsgEl.className = 'auth-msg error'; return; }
+        if (code !== DEFAULT_INVITE_CODE) { regMsgEl.textContent = '邀请码不正确'; regMsgEl.className = 'auth-msg error'; return; }
+
+        var safeName = encodeURIComponent(name).replace(/%/g, '');
+        var email = name.includes('@') ? name : (safeName + '@qq.com');
+
+        regMsgEl.textContent = '正在注册...'; regMsgEl.className = 'auth-msg';
+
+        var { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: email,
-          password: data.password,
+          password: password,
+          options: { data: { username: name } }
         });
 
-        if (loginError) {
-          // 如果本地存的账号在云端不存在，自动清理掉旧记录
-          if (loginError.message.includes('Invalid login credentials')) {
-            localStorage.removeItem('sky_quick_login_data'); // 抹掉错误记忆
-            setMsg('之前保存的账号已失效，请重新输入账号密码登录', 'error');
-            checkQuickLoginAvailable(); // 刷新按钮，此时按钮会自动消失
+        if (signUpError) {
+          if (signUpError.message.includes('already registered')) {
+            regMsgEl.textContent = '该账号已被注册，请去登录'; regMsgEl.className = 'auth-msg error';
           } else {
-            setMsg('快捷登录失败：' + loginError.message, 'error');
+            regMsgEl.textContent = '注册失败：' + signUpError.message; regMsgEl.className = 'auth-msg error';
           }
           return;
         }
 
+        // 注册成功，自动登录
+        if (signUpData && signUpData.session) {
+          setSession(name);
+          saveQuickLoginData(name, password);
+          checkQuickLoginAvailable();
+          regMsgEl.textContent = '注册成功，已自动登录！'; regMsgEl.className = 'auth-msg ok';
+          showUserView(name);
+          renderUser();
+        } else {
+          // 强制登录一次（防止 Supabase 没返回 session）
+          var { data: forceLogin } = await supabase.auth.signInWithPassword({ email, password });
+          if (forceLogin && forceLogin.user) {
+            setSession(name);
+            saveQuickLoginData(name, password);
+            checkQuickLoginAvailable();
+            regMsgEl.textContent = '注册成功，已自动登录！'; regMsgEl.className = 'auth-msg ok';
+            showUserView(name);
+            renderUser();
+          } else {
+            regMsgEl.textContent = '注册成功，请手动去登录'; regMsgEl.className = 'auth-msg error';
+            document.getElementById('switchToLogin').click(); // 自动切到登录页
+          }
+        }
+      });
+
+      /* ---------- 一键登录按钮点击 ---------- */
+      document.getElementById('quickLoginBtn').addEventListener('click', async function () {
+        var data = getQuickLoginData();
+        if (!data || !data.name || !data.password) { setMsg('没有找到快捷登录记录', 'error'); return; }
+
+        var safeName = encodeURIComponent(data.name).replace(/%/g, '');
+        var email = data.name.includes('@') ? data.name : (safeName + '@qq.com');
+
+        loginMsgEl.textContent = '正在自动登录...'; loginMsgEl.className = 'auth-msg ok';
+
+        var { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email: email, password: data.password });
+
+        if (loginError) {
+          // 如果本地存的账号在云端不存在（比如之前注册失败了），自动清理掉旧记录
+          localStorage.removeItem('sky_quick_login_data');
+          checkQuickLoginAvailable(); // 自动隐藏按钮
+          loginMsgEl.textContent = '之前保存的账号已失效，请重新登录或注册'; loginMsgEl.className = 'auth-msg error';
+          return;
+        }
+
         setSession(data.name);
-        setMsg('一键登录成功，欢迎回来！', 'ok');
+        loginMsgEl.textContent = '一键登录成功，欢迎回来！'; loginMsgEl.className = 'auth-msg ok';
         showUserView(data.name);
         renderUser();
       });
-
+        
       /* ---------- 退出登录 ---------- */
       logoutBtn.addEventListener('click', function () {
         clearSession();
