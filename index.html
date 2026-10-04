@@ -2891,54 +2891,84 @@
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        // 2. 新的云端注册/登录逻辑
+        // 获取你原有的输入框数据
         var name = (nameInput.value || '').trim();
         var password = (passwordInput.value || '').trim();
         var code = (codeInput.value || '').trim();
 
+        // 你原有的基础校验
         if (!name) { setMsg('请输入名字', 'error'); return; }
         if (!password) { setMsg('请输入密码', 'error'); return; }
-        if (password.length < 4) { setMsg('密码至少 4 位', 'error'); return; }
+        if (password.length < 6) { setMsg('密码至少 6 位', 'error'); return; }
 
-        // --- 查询云端用户是否存在 ---
-        const { data: existingUser, error: selectError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('name', name)
-          .single();
+        // 将名字转成 Supabase 可以识别的“邮箱”格式，但用户根本不需要去查收邮件
+        var email = name.includes('@') ? name : (name + '@starrysky.local');
 
-        // 处理查询报错（PGRST116 表示没找到，属于正常情况，不报错）
-        if (selectError && selectError.code !== 'PGRST116') {
-          setMsg('数据库连接错误: ' + selectError.message, 'error'); return;
-        }
+        // ===== 1. 尝试登录 =====
+        var { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password,
+        });
 
-        if (existingUser) {
-          // ===== 云端登录逻辑 =====
-          if (existingUser.password !== password) {
-            setMsg('密码不正确', 'error'); return;
-          }
-          setSession(name);
+        // 如果登录成功，直接进入面板
+        if (!loginError && loginData.user) {
+          setSession(name); // 这里保存的是用户最初输入的名字
           setMsg('欢迎回来，' + name, 'ok');
           showUserView(name);
-        } else {
-          // ===== 云端注册逻辑 =====
-          if (isDeviceRegistered()) { setMsg('该设备已注册过账号，请直接登录', 'error'); return; }
-          if (code !== DEFAULT_INVITE_CODE) { setMsg('邀请码不正确', 'error'); return; }
+          renderUser();
+          return;
+        }
 
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert([{ name: name, password: password, invite_code: code }]);
+        // ===== 2. 如果登录失败（说明没注册过），走你原有的注册逻辑 =====
+        // 设备限制检查（完全保留你的逻辑）
+        if (isDeviceRegistered()) { 
+          setMsg('该设备已注册过账号，请直接登录', 'error'); 
+          return; 
+        }
+        // 邀请码检查（完全保留你的逻辑）
+        if (code !== DEFAULT_INVITE_CODE) { 
+          setMsg('邀请码不正确', 'error'); 
+          return; 
+        }
 
-          if (insertError) {
-            setMsg('注册失败: ' + insertError.message, 'error'); return;
+        // ===== 3. 调用 Supabase 进行无感知注册 =====
+        var { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: email,
+          password: password,
+          options: {
+            data: { username: name } // 把名字存进用户资料
           }
+        });
 
+        if (signUpError) {
+          setMsg('注册失败: ' + signUpError.message, 'error'); 
+          return;
+        }
+
+        // ===== 4. 注册成功，自动登录（免邮箱验证） =====
+        if (signUpData && signUpData.session) {
+          // 如果 Supabase 直接返回了 session，说明已登录
           markDeviceRegistered();
           setSession(name);
-          setMsg('注册成功，欢迎来到星空', 'ok');
+          setMsg('注册成功，已自动登录！', 'ok');
           showUserView(name);
+          renderUser();
+        } else {
+          // 如果没返回（可能是 Supabase 还在后台发邮件），强制用密码登录一次
+          var { data: forceLogin } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password,
+          });
+          if (forceLogin && forceLogin.user) {
+            markDeviceRegistered();
+            setSession(name);
+            setMsg('注册成功，已自动登录！', 'ok');
+            showUserView(name);
+            renderUser();
+          } else {
+            setMsg('注册成功，但自动登录失败，请手动尝试登录。', 'ok');
+          }
         }
-        renderUser();
       });
 
       /* ---------- 音乐开关 ---------- */
@@ -2983,6 +3013,13 @@
 
       /* ---------- 初始化 ---------- */
       renderUser();
+      supabase.auth.getSession().then(function({ data: { session } }) {
+        if (session && session.user) {
+          var savedName = session.user.user_metadata.username || session.user.email;
+          setSession(savedName);
+          renderUser(); // 再次渲染，恢复右上角头像
+        }
+      });
 
       musicBtn.setAttribute('aria-checked', musicOn() ? 'true' : 'false');
 
