@@ -1926,6 +1926,220 @@
         font-size: 1.32rem;
       }
     }
+
+        /* ===================== 站长收件箱 ===================== */
+    .admin-mask {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(4, 8, 16, .8);
+      -webkit-backdrop-filter: blur(15px);
+      backdrop-filter: blur(15px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .3s ease, visibility .3s ease;
+    }
+    .admin-mask.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .admin-card {
+      width: min(95vw, 700px); /* 大尺寸 */
+      max-height: 88vh;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      color: var(--glass-item-text);
+    }
+    .admin-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--glass-head-border);
+      margin-bottom: 16px;
+    }
+    .admin-head h3 {
+      font-size: 1.3rem;
+      font-weight: 900;
+      margin: 0;
+      color: var(--glass-title);
+    }
+    .admin-close {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--glass-item-desc);
+      cursor: pointer;
+    }
+    .admin-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .admin-tab-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-item-border);
+      background: transparent;
+      color: var(--glass-item-desc);
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .admin-tab-btn.active {
+      background: var(--bili);
+      color: white;
+      border-color: var(--bili);
+    }
+        .admin-body {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    .admin-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .admin-body::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+
+    /* ---------- 站长收件箱：留言卡片样式 ---------- */
+    .admin-msg {
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: var(--glass-item-bg);
+      border: 1px solid var(--glass-item-border);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16);
+      transition: border-color .3s ease, box-shadow .3s ease;
+    }
+    .admin-msg:hover {
+      border-color: rgba(0, 174, 236, .55);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .22),
+        0 16px 32px -20px rgba(0, 174, 236, .9);
+    }
+    .admin-msg--pending {
+      border-left: 3px solid var(--bili);
+    }
+    .admin-msg-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .admin-msg-user {
+      font-size: .8rem;
+      font-weight: 800;
+      letter-spacing: .04em;
+      color: var(--bili);
+    }
+    .admin-msg-time {
+      font-size: .68rem;
+      letter-spacing: .06em;
+      color: var(--glass-item-desc);
+      white-space: nowrap;
+    }
+    .admin-msg-content {
+      font-size: .94rem;
+      line-height: 1.62;
+      color: var(--glass-item-text);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .admin-msg-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .admin-reply-input {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-item-border);
+      background: rgba(255, 255, 255, .06);
+      color: var(--glass-item-text);
+      font-family: inherit;
+      font-size: .88rem;
+      outline: none;
+      transition: border-color .25s ease, box-shadow .25s ease;
+    }
+    .admin-reply-input::placeholder {
+      color: var(--glass-item-desc);
+    }
+    .admin-reply-input:focus {
+      border-color: rgba(0, 174, 236, .8);
+      box-shadow: 0 0 0 3px rgba(0, 174, 236, .16);
+    }
+    .admin-reply-btn {
+      flex: 0 0 auto;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #8fdcff, #00AEEC 55%, #3f7bff);
+      color: #04121c;
+      font-family: inherit;
+      font-size: .86rem;
+      font-weight: 800;
+      letter-spacing: .06em;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .25s ease, box-shadow .25s ease, filter .25s ease;
+    }
+    .admin-reply-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+      box-shadow: 0 14px 26px -14px rgba(0, 174, 236, 1);
+    }
+    .admin-reply-btn:active {
+      transform: translateY(0) scale(.97);
+    }
+    .admin-reply-btn[disabled] {
+      opacity: .55;
+      cursor: not-allowed;
+      transform: none;
+      filter: none;
+    }
+    .admin-reply-shown {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--glass-item-border);
+      font-size: .88rem;
+      line-height: 1.6;
+      color: var(--glass-item-text);
+      word-break: break-word;
+    }
+    .admin-reply-shown b {
+      color: var(--bili);
+      font-weight: 800;
+    }
+    .admin-empty {
+      padding: 40px 12px;
+      text-align: center;
+      font-size: .86rem;
+      letter-spacing: .08em;
+      color: var(--glass-item-desc);
+    }
+
+    @media (max-width: 760px) {
+      .admin-msg-actions {
+        flex-direction: column;
+      }
+      .admin-reply-btn {
+        width: 100%;
+      }
+    }
+
   </style>
 </head>
 
@@ -2388,6 +2602,29 @@
   </main>
 
   <!-- ===================== 账号 / 设置面板 ===================== -->
+  <!-- ===================== 站长专用收件箱 ===================== -->
+  <div class="admin-mask" id="adminMask" aria-hidden="true">
+    <div class="admin-card">
+      <div class="admin-head">
+        <h3>📬 站长收件箱</h3>
+        <button class="admin-close" id="adminClose" type="button">✕</button>
+      </div>
+      
+      <div class="admin-tabs">
+        <button class="admin-tab-btn active" data-admin-tab="pending">📥 待回复</button>
+        <button class="admin-tab-btn" data-admin-tab="replied">✅ 已回复</button>
+      </div>
+
+      <div class="admin-body">
+        <div class="admin-tab-pane" id="admin-tab-pending">
+          <div id="adminPendingList" style="display: flex; flex-direction: column; gap: 12px;">加载中...</div>
+        </div>
+        <div class="admin-tab-pane" id="admin-tab-replied" style="display: none;">
+          <div id="adminRepliedList" style="display: flex; flex-direction: column; gap: 12px;">加载中...</div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="auth-mask" id="authMask" aria-hidden="true">
     <div class="auth-card" role="dialog" aria-modal="true" aria-label="账号">
 
@@ -2590,13 +2827,14 @@
                 数据同步中...
               </div>
             </div>
-            <!-- 站长专属收件箱（只有站长登录才显示） -->
+              <!-- 站长专属收件箱（只有站长登录才显示） -->
             <div id="adminInbox" style="display: none; flex-direction: column; align-items: flex-start; margin-top: 14px;">
               <div class="setting-info" style="margin-bottom: 10px;">
                 <span class="setting-name">站长收件箱</span>
-                <span class="setting-desc">在这里直接回复所有用户</span>
+                <span class="setting-desc">有全新的未回复留言</span>
               </div>
-              <div id="adminMessagesList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
+              <!-- 这个按钮用来打开全屏大弹窗 -->
+              <button class="auth-submit" id="openAdminBoxBtn" style="width: 100%; padding: 8px; font-size: 0.8rem;">打开站长专用收件箱</button>
             </div>
           </div>
         </div>  
@@ -3046,6 +3284,23 @@
       /* 默认音乐文件：把音乐放进 music/bgm.mp3 即可 */
       var DEFAULT_BGM = 'music/bgm.mp3';
 
+      /* ---------- 通用工具函数 ---------- */
+      function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+        });
+      }
+
+      function formatTime(t) {
+        if (!t) return '';
+        try {
+          var d = new Date(t);
+          var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+          return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+            + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+        } catch (e) { return ''; }
+      } 
+
       /* ---------- DOM ---------- */
       var mask = document.getElementById('authMask');
       var closeBtn = document.getElementById('authClose');
@@ -3286,6 +3541,7 @@
         loginMsgEl.textContent = '欢迎回来，' + name; loginMsgEl.className = 'auth-msg ok';
         showUserView(name);
         renderUser();
+        checkAdminRole();
       });
 
       /* ---------- 2. 注册逻辑 ---------- */
@@ -3327,6 +3583,7 @@
           regMsgEl.textContent = '注册成功，已自动登录！'; regMsgEl.className = 'auth-msg ok';
           showUserView(name);
           renderUser();
+          checkAdminRole();
         } else {
           // 强制登录一次（防止 Supabase 没返回 session）
           var { data: forceLogin } = await supabase.auth.signInWithPassword({ email, password });
@@ -3337,6 +3594,7 @@
             regMsgEl.textContent = '注册成功，已自动登录！'; regMsgEl.className = 'auth-msg ok';
             showUserView(name);
             renderUser();
+            checkAdminRole();
           } else {
             regMsgEl.textContent = '注册成功，请手动去登录'; regMsgEl.className = 'auth-msg error';
             document.getElementById('switchToLogin').click(); // 自动切到登录页
@@ -3368,10 +3626,16 @@
         loginMsgEl.textContent = '一键登录成功，欢迎回来！'; loginMsgEl.className = 'auth-msg ok';
         showUserView(data.name);
         renderUser();
+        checkAdminRole();
       });
         
       /* ---------- 退出登录 ---------- */
-      logoutBtn.addEventListener('click', function () {
+      logoutBtn.addEventListener('click', async function () {
+        try {
+          await supabase.auth.signOut();
+        } catch (e) {
+          console.warn('signOut 失败：', e);
+        }
         clearSession();
         renderUser();
         setMusic(false, true);
@@ -3413,14 +3677,15 @@
         if (e.key === 'Escape' && mask.classList.contains('show')) closePanel();
       });
 
-      /* ---------- 初始化 ---------- */
+       /* ---------- 初始化 ---------- */
       renderUser();
       supabase.auth.getSession().then(function({ data: { session } }) {
         if (session && session.user) {
           var savedName = session.user.user_metadata.username || session.user.email;
           setSession(savedName);
-          renderUser(); // 再次渲染，恢复右上角头像
+          renderUser();
         }
+        checkAdminRole(); // 关键：无论登录与否都检查一次
       });
 
       musicBtn.setAttribute('aria-checked', musicOn() ? 'true' : 'false');
@@ -3543,20 +3808,24 @@
         document.getElementById('editNameInput').value = meta.username || '';
         document.getElementById('editSignInput').value = meta.signature || '';
       
-        if (meta.bazi) {
+       if (meta.bazi) {
           document.getElementById('baziDate').value = meta.bazi.date || '';
           document.getElementById('baziTime').value = meta.bazi.time || '';
           document.getElementById('baziGender').value = meta.bazi.gender || 'male';
         }
+      }
 
-        if (user.email === 'piao022400@qq.com') {
-          var adminInbox = document.getElementById('adminInbox');
-          if (adminInbox) {
-            adminInbox.style.display = 'flex';
-            loadAdminMessages(); // 立刻加载所有留言
-          }
+      async function checkAdminRole() {
+        var { data: { user } } = await supabase.auth.getUser();
+        var adminInbox = document.getElementById('adminInbox');
+        if (!adminInbox) return;
+        if (user && user.email === 'piao022400@qq.com') {
+          adminInbox.style.display = 'flex';
+          loadAdminMessages();
+        } else {
+          adminInbox.style.display = 'none';
         }
-      } 
+      }
        
       async function loadMyMessages() {
         var listEl = document.getElementById('myMessagesList');
@@ -3573,15 +3842,15 @@
         if (error) { listEl.textContent = '加载失败'; return; }
         if (data.length === 0) { listEl.textContent = '你还没有留言哦'; return; }
 
-        listEl.innerHTML = data.map(msg => `
+                listEl.innerHTML = data.map(msg => `
           <div style="background: var(--glass-item-bg); padding: 10px; border-radius: 10px; border: 1px solid var(--glass-item-border);">
             <div style="color: var(--glass-item-desc); font-size: 0.7rem; margin-bottom: 4px;">你的留言：</div>
-            <div style="margin-bottom: 6px;">${msg.content}</div>
-            ${msg.reply ? 
+            <div style="margin-bottom: 6px;">${escapeHtml(msg.content)}</div>
+            ${msg.reply ?
               `<div style="border-top: 1px dashed var(--glass-item-border); padding-top: 6px;">
                  <div style="color: var(--bili); font-size: 0.7rem; margin-bottom: 2px;">开发者回复：</div>
-                 <div>${msg.reply}</div>
-               </div>` : 
+                 <div>${escapeHtml(msg.reply)}</div>
+               </div>` :
               `<div style="color: #a9a196; font-size: 0.7rem; border-top: 1px dashed var(--glass-item-border); padding-top: 6px;">暂无回复</div>`}
           </div>
         `).join('');
@@ -3635,7 +3904,10 @@
         statusEl.textContent = '正在发送...'; 
         statusEl.style.color = '#a9a196';
 
-        var { error } = await supabase.from('messages').insert([{ user_id: user.id, content: content }]);
+        var { error } = await supabase.from('messages').insert([
+          { 
+            user_id: user.id, content: content, username: user.user_metadata.username || user.email
+          }]);
         
         if (error) {
           statusEl.textContent = '发送失败: ' + error.message;
@@ -3648,56 +3920,133 @@
       });
 
       // ========== 站长收件箱逻辑 ==========
-      async function loadAdminMessages() {
-        var listEl = document.getElementById('adminMessagesList');
-        if (!listEl) return;
+            async function loadAdminMessages() {
+        var pendingListEl = document.getElementById('adminPendingList');
+        var repliedListEl = document.getElementById('adminRepliedList');
+        if (!pendingListEl || !repliedListEl) return;
         
         // 站长拉取所有留言
         var { data, error } = await supabase.from('messages')
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (error || !data || data.length === 0) {
-          listEl.innerHTML = '<div style="color: #a9a196; font-size: 0.8rem; padding: 10px;">目前还没有留言。</div>';
+        if (error || !data) {
+          pendingListEl.innerHTML = '<div style="color: #a9a196;">加载失败。</div>';
           return;
         }
 
-        listEl.innerHTML = data.map(msg => `
-          <div style="background: var(--glass-item-bg); padding: 12px; border-radius: 10px; border: 1px solid var(--glass-item-border);">
-            <div style="color: var(--glass-item-desc); font-size: 0.7rem; margin-bottom: 4px;">用户 ${msg.user_id.substring(0, 6)} 说：</div>
-            <div style="margin-bottom: 10px;">${msg.content}</div>
-            
-            ${msg.reply ? 
-              `<div style="border-top: 1px dashed var(--glass-item-border); padding-top: 8px;">
-                 <div style="color: var(--bili); font-size: 0.75rem;">你已回复：${msg.reply}</div>
-               </div>` 
-              : 
-              `<div style="display: flex; gap: 6px; width: 100%; margin-top: 6px;">
-                 <input type="text" id="reply-input-${msg.id}" placeholder="输入你的回复..." style="flex: 1; padding: 6px; border-radius: 6px; border: 1px solid var(--glass-item-border); background: transparent; color: var(--glass-item-text); font-size: 0.8rem;">
-                 <button onclick="sendAdminReply('${msg.id}')" style="padding: 6px 12px; border-radius: 6px; border: none; background: var(--bili); color: white; cursor: pointer; font-size: 0.8rem;">回复</button>
-               </div>`}
-          </div>
-        `).join('');
-      }
+        // 过滤数据
+        var pendingMsgs = data.filter(msg => !msg.reply);
+        var repliedMsgs = data.filter(msg => msg.reply);
 
-      // 发送回复
-      async function sendAdminReply(msgId) {
-        var inputEl = document.getElementById('reply-input-' + msgId);
-        if (!inputEl) return;
-        var replyText = inputEl.value.trim();
-        if (!replyText) return alert('请输入回复内容');
-
-        var { error } = await supabase.from('messages')
-          .update({ reply: replyText })
-          .eq('id', msgId);
-
-        if (error) {
-          alert('回复失败: ' + error.message);
+        // 渲染待回复列表
+        if (pendingMsgs.length === 0) {
+          pendingListEl.innerHTML = '<div style="color: #79dfb4;">暂无待回复留言，全部处理完毕！</div>';
         } else {
-          alert('回复成功！');
-          loadAdminMessages(); // 刷新列表
+          pendingListEl.innerHTML = pendingMsgs.map(msg => `
+            <div class="admin-msg admin-msg--pending">
+              <div class="admin-msg-head">
+                <span class="admin-msg-user">👤 ${escapeHtml(msg.username || '匿名用户')}</span>
+                <span class="admin-msg-time">${formatTime(msg.created_at)}</span>
+              </div>
+              <div class="admin-msg-content">${escapeHtml(msg.content)}</div>
+              <div class="admin-msg-actions">
+                <input type="text" class="admin-reply-input" data-id="${msg.id}" placeholder="输入你的回复...">
+                <button class="admin-reply-btn" data-id="${msg.id}" type="button">发送回复</button>
+              </div>
+            </div>
+          `).join('');
+        }
+
+         // 渲染已回复列表
+        if (repliedMsgs.length === 0) {
+          repliedListEl.innerHTML = '<div class="admin-empty">暂无已回复留言。</div>';
+        } else {
+          repliedListEl.innerHTML = repliedMsgs.map(msg => `
+            <div class="admin-msg">
+              <div class="admin-msg-head">
+                <span class="admin-msg-user">👤 ${escapeHtml(msg.username || '匿名用户')}</span>
+                <span class="admin-msg-time">${formatTime(msg.created_at)}</span>
+              </div>
+              <div class="admin-msg-content">${escapeHtml(msg.content)}</div>
+              <div class="admin-reply-shown">
+                <b>你已回复：</b>${escapeHtml(msg.reply)}
+              </div>
+            </div>
+          `).join('');
         }
       }
+        
+
+       // 发送回复
+       async function sendAdminReply(msgId, btnEl) {
+       var inputEl = document.querySelector('.admin-reply-input[data-id="' + msgId + '"]');
+       if (!inputEl) return;
+       var replyText = inputEl.value.trim();
+       if (!replyText) { alert('请输入回复内容'); return; }
+
+       if (btnEl) { btnEl.disabled = true; btnEl.textContent = '发送中...'; }
+
+       var { error } = await supabase.from('messages')
+        .update({ reply: replyText })
+        .eq('id', msgId);
+
+       if (error) {
+        alert('回复失败: ' + error.message);
+        if (btnEl) { btnEl.disabled = false; btnEl.textContent = '发送回复'; }
+       } else {
+        alert('回复成功！');
+        loadAdminMessages(); // 刷新列表
+       }
+      }
+
+      (function bindAdminReplyDelegation() {
+        var pendingListEl = document.getElementById('adminPendingList');
+        var repliedListEl = document.getElementById('adminRepliedList');
+        [pendingListEl, repliedListEl].forEach(function (listEl) {
+          if (!listEl || listEl.dataset.replyBound === '1') return;
+          listEl.dataset.replyBound = '1';
+          listEl.addEventListener('click', function (e) {
+            var btn = e.target.closest('.admin-reply-btn');
+            if (!btn) return;
+            sendAdminReply(btn.dataset.id, btn);
+          });
+        });
+      })();
+
+      // 打开大收件箱
+      var adminMaskEl = document.getElementById('adminMask');
+
+      function openAdminBox() {
+        adminMaskEl.classList.add('show');
+        adminMaskEl.setAttribute('aria-hidden', 'false');
+        loadAdminMessages();
+      }
+      function closeAdminBox() {
+        adminMaskEl.classList.remove('show');
+        adminMaskEl.setAttribute('aria-hidden', 'true');
+      }
+
+      document.getElementById('openAdminBoxBtn').addEventListener('click', openAdminBox);
+      document.getElementById('adminClose').addEventListener('click', closeAdminBox);
+      adminMaskEl.addEventListener('click', function (e) {
+        if (e.target === adminMaskEl) closeAdminBox();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && adminMaskEl.classList.contains('show')) closeAdminBox();
+      });
+
+      // 收件箱内 Tab 切换
+      document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          
+          document.querySelectorAll('.admin-tab-pane').forEach(p => p.style.display = 'none');
+          document.getElementById('admin-tab-' + this.dataset.adminTab).style.display = 'block';
+        });
+      });
 
       document.addEventListener('DOMContentLoaded', function () {
         renderUser();
