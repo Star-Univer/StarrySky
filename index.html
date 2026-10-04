@@ -2367,11 +2367,16 @@
       <!-- ---------- 6 留言板 ---------- -->
       <section class="page" data-page="message">
         <div class="page-inner">
-          <h2 class="page-title">留言板</h2>
+          <h2 class="page-title">给开发者留言</h2>
           <p class="page-sub">GUESTBOOK</p>
+          
+          <div style="width: 100%; max-width: 500px; margin-top: 20px;">
+            <textarea id="msgContent" placeholder="在这里写下你想对开发者说的话..." style="width: 100%; height: 120px; padding: 12px; border-radius: 12px; border: 1px solid var(--glass-item-border); background: var(--glass-item-bg); color: var(--glass-item-text); font-size: 0.95rem; resize: vertical;"></textarea>
+            <p id="msgStatus" style="font-size: 0.75rem; color: #79dfb4; min-height: 20px; text-align: center; margin-top: 8px;"></p>
+            <button class="auth-submit" id="sendMsgBtn" style="margin-top: 10px;">发送留言</button>
+          </div>
         </div>
-      </section>
-
+      </section>      
     </div>
   </main>
 
@@ -2569,13 +2574,15 @@
               <span style="color: var(--bili);">前往 ></span>
             </a>
 
-            <div class="setting-row">
+                        <div class="setting-row" style="flex-direction: column; align-items: flex-start;">
               <div class="setting-info">
                 <span class="setting-name">我的留言历史</span>
-                <span class="setting-desc">数据同步中...</span>
+                <span class="setting-desc">开发者回复</span>
+              </div>
+              <div id="myMessagesList" style="width: 100%; margin-top: 10px; font-size: 0.8rem; color: var(--glass-item-text); display: flex; flex-direction: column; gap: 10px;">
+                数据同步中...
               </div>
             </div>
-
           </div>
         </div>  
 
@@ -3149,6 +3156,7 @@
         if (name) { 
           showUserView(name);          
           loadUserProfile(); 
+          loadMyMessages();
         } else { showAuthView(); }
         mask.classList.add('show');
         mask.setAttribute('aria-hidden', 'false');
@@ -3525,7 +3533,36 @@
           document.getElementById('baziGender').value = meta.bazi.gender || 'male';
         }
       }
-      
+
+      async function loadMyMessages() {
+        var listEl = document.getElementById('myMessagesList');
+        if (!listEl) return;
+        
+        var { data: { user } } = await supabase.auth.getUser();
+        if (!user) { listEl.textContent = '请先登录'; return; }
+
+        var { data, error } = await supabase.from('messages')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) { listEl.textContent = '加载失败'; return; }
+        if (data.length === 0) { listEl.textContent = '你还没有留言哦'; return; }
+
+        listEl.innerHTML = data.map(msg => `
+          <div style="background: var(--glass-item-bg); padding: 10px; border-radius: 10px; border: 1px solid var(--glass-item-border);">
+            <div style="color: var(--glass-item-desc); font-size: 0.7rem; margin-bottom: 4px;">你的留言：</div>
+            <div style="margin-bottom: 6px;">${msg.content}</div>
+            ${msg.reply ? 
+              `<div style="border-top: 1px dashed var(--glass-item-border); padding-top: 6px;">
+                 <div style="color: var(--bili); font-size: 0.7rem; margin-bottom: 2px;">开发者回复：</div>
+                 <div>${msg.reply}</div>
+               </div>` : 
+              `<div style="color: #a9a196; font-size: 0.7rem; border-top: 1px dashed var(--glass-item-border); padding-top: 6px;">暂无回复</div>`}
+          </div>
+        `).join('');
+      }
+
       document.getElementById('saveBaziBtn').addEventListener('click', async () => {
         var date = document.getElementById('baziDate').value;
         var time = document.getElementById('baziTime').value;
@@ -3553,6 +3590,39 @@
         window.location.href = url;
       });
      
+      /* ========== 留言板发送逻辑 ========== */
+      document.getElementById('sendMsgBtn').addEventListener('click', async function() {
+        var content = document.getElementById('msgContent').value.trim();
+        var statusEl = document.getElementById('msgStatus');
+        
+        if (!content) { 
+          statusEl.textContent = '请输入留言内容'; 
+          statusEl.style.color = '#ff8a8a'; 
+          return; 
+        }
+
+        var { data: { user } } = await supabase.auth.getUser();
+        if (!user) { 
+          statusEl.textContent = '请先登录后再留言'; 
+          statusEl.style.color = '#ff8a8a'; 
+          return; 
+        }
+
+        statusEl.textContent = '正在发送...'; 
+        statusEl.style.color = '#a9a196';
+
+        var { error } = await supabase.from('messages').insert([{ user_id: user.id, content: content }]);
+        
+        if (error) {
+          statusEl.textContent = '发送失败: ' + error.message;
+          statusEl.style.color = '#ff8a8a';
+        } else {
+          statusEl.textContent = '留言已成功发送，开发者会尽快回复你！';
+          statusEl.style.color = '#79dfb4';
+          document.getElementById('msgContent').value = '';
+        }
+      });
+
       document.addEventListener('DOMContentLoaded', function () {
         renderUser();
 
