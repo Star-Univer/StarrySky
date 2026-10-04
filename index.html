@@ -2299,6 +2299,8 @@
           <p class="auth-msg" id="authMsg" role="alert"></p>
 
           <button class="auth-submit" id="authSubmit" type="submit">进入</button>
+          <!--  新增的一键登录按钮（默认隐藏，有记录时才显示） -->
+          <button class="auth-submit ghost" id="quickLoginBtn" type="button" style="display:none; margin-top: 10px;">一键登录</button>
         </form>
       </div>
 
@@ -2912,7 +2914,11 @@
 
         // 如果登录成功，直接进入面板
         if (!loginError && loginData.user) {
-          setSession(name); // 这里保存的是用户最初输入的名字
+          setSession(name); 
+          // 新增：保存快捷登录凭证
+          saveQuickLoginData(name, password); 
+          checkQuickLoginAvailable();
+
           setMsg('欢迎回来，' + name, 'ok');
           showUserView(name);
           renderUser();
@@ -2950,6 +2956,8 @@
           // 如果 Supabase 直接返回了 session，说明已登录
           markDeviceRegistered();
           setSession(name);
+          saveQuickLoginData(name, password);
+          checkQuickLoginAvailable();
           setMsg('注册成功，已自动登录！', 'ok');
           showUserView(name);
           renderUser();
@@ -2962,6 +2970,8 @@
           if (forceLogin && forceLogin.user) {
             markDeviceRegistered();
             setSession(name);
+            saveQuickLoginData(name, password);
+          checkQuickLoginAvailable();
             setMsg('注册成功，已自动登录！', 'ok');
             showUserView(name);
             renderUser();
@@ -2985,6 +2995,67 @@
         showAuthView();
         setMsg('已退出登录', 'ok');
       });
+      /* ---------- 快捷登录（记住上次账号） ---------- */
+      var QUICK_LOGIN_KEY = 'sky_quick_login_data';
+
+      // 保存凭证
+      function saveQuickLoginData(name, password) {
+        try {
+          localStorage.setItem(QUICK_LOGIN_KEY, JSON.stringify({ name: name, password: password }));
+        } catch (e) { }
+      }
+
+      // 读取凭证
+      function getQuickLoginData() {
+        try {
+          var raw = localStorage.getItem(QUICK_LOGIN_KEY);
+          return raw ? JSON.parse(raw) : null;
+        } catch (e) { return null; }
+      }
+
+      // 检查是否有凭证，决定按钮是否显示
+      function checkQuickLoginAvailable() {
+        var btn = document.getElementById('quickLoginBtn');
+        var data = getQuickLoginData();
+        if (!btn) return;
+        if (data && data.name) {
+          btn.style.display = 'block';
+          btn.textContent = '一键登录 (' + data.name + ')';
+        } else {
+          btn.style.display = 'none';
+        }
+      }
+
+      // 一键登录点击事件
+      document.getElementById('quickLoginBtn').addEventListener('click', async function () {
+        var data = getQuickLoginData();
+        if (!data || !data.name || !data.password) {
+          setMsg('没有找到快捷登录记录', 'error');
+          return;
+        }
+
+        var email = data.name.includes('@') ? data.name : (data.name + '@starrysky.local');
+        
+        setMsg('正在自动登录...', 'ok');
+        
+        var { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: data.password,
+        });
+
+        if (loginError) {
+          setMsg('快捷登录失败：' + loginError.message, 'error');
+          return;
+        }
+
+        setSession(data.name);
+        setMsg('一键登录成功，欢迎回来！', 'ok');
+        showUserView(data.name);
+        renderUser();
+      });
+
+      // 在页面加载/初始化时，检查一次按钮状态
+      checkQuickLoginAvailable();
 
       /* ---------- 打开面板：Logo + 右上角图标 ---------- */
       function bindOpen(el) {
