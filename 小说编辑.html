@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>开发者 · 星空</title>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff4fd8'/%3E%3Cstop offset='1' stop-color='%2300AEEC'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230a0e16'/%3E%3Cpath d='M32 8 L37 27 L56 32 L37 37 L32 56 L27 37 L8 32 L27 27 Z' fill='url(%23g)'/%3E%3C/svg%3E">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@400;700;900&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #edf1f7;
+      --text: #0f1b2b;
+      --text-muted: #6a819a;
+      --brand: #00AEEC;
+      --nav-bg: #0a0e16;
+      --nav-text: #f0f2f6;
+      --sky: radial-gradient(ellipse at 50% 100%, #143d5c 0%, #0a1d3a 35%, #050a14 70%, #010306 100%);
+      --card-bg: rgba(255, 255, 255, .86);
+      --card-border: rgba(15, 27, 43, .10);
+      --chip-bg: rgba(15, 27, 43, .05);
+      --chip-border: rgba(15, 27, 43, .12);
+      --danger: #e74c3c;
+      --ok: #17916a;
+    }
+    html[data-user-color-scheme="dark"] {
+      --bg: #111b2c;
+      --text: #e8eaf0;
+      --text-muted: #8b9bb4;
+      --card-bg: rgba(20, 30, 46, .78);
+      --card-border: rgba(255, 255, 255, .12);
+      --chip-bg: rgba(255, 255, 255, .06);
+      --chip-border: rgba(255, 255, 255, .14);
+      --ok: #79dfb4;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      padding-top: 56px;
+      -webkit-font-smoothing: antialiased;
+      transition: background .35s ease, color .35s ease;
+    }
+    [hidden] { display: none !important; }
+
+    /* 星空 */
+    .sky { position: fixed; inset: -10%; z-index: 0; background: var(--sky); pointer-events: none; }
+    .nebula {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 12% 22%, rgba(30, 80, 160, .25), transparent 42%),
+        radial-gradient(circle at 80% 60%, rgba(70, 50, 150, .20), transparent 48%),
+        radial-gradient(circle at 40% 90%, rgba(20, 120, 180, .18), transparent 45%);
+      filter: blur(24px);
+      animation: nebulaDrift 60s ease-in-out infinite alternate;
+    }
+    @keyframes nebulaDrift {
+      0% { transform: translate3d(0,0,0) scale(1); }
+      100% { transform: translate3d(-2%, 1.5%, 0) scale(1.06); }
+    }
+    .stars { position: absolute; inset: 0; overflow: hidden; }
+    .star {
+      position: absolute; width: 2px; height: 2px; border-radius: 50%;
+      background: #fff; animation: starTwinkle 4.5s ease-in-out infinite alternate;
+    }
+    @keyframes starTwinkle { 0% { opacity: .25; } 100% { opacity: .95; } }
+
+    /* 顶部导航 */
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 56px; display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; padding: 0 20px;
+      background: var(--nav-bg); border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .back-link {
+      color: var(--nav-text); text-decoration: none; font-size: .9rem;
+      padding: 7px 14px; border-radius: 9px; opacity: .85;
+      transition: background .2s ease, opacity .2s ease;
+    }
+    .back-link:hover { background: rgba(255,255,255,.1); opacity: 1; }
+    .nav-title { color: #fff; font-weight: 700; font-size: .95rem; letter-spacing: .14em; }
+    .nav-icon-btn {
+      width: 38px; height: 38px; border: none; border-radius: 50%;
+      background: transparent; color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .25s ease, transform .25s ease;
+    }
+    .nav-icon-btn:hover { background: rgba(255,255,255,.12); transform: scale(1.08); }
+    .nav-icon-btn svg { width: 22px; height: 22px; display: none; }
+    html[data-user-color-scheme="dark"] .icon-moon { display: block; }
+    html[data-user-color-scheme="light"] .icon-sun { display: block; }
+
+    /* 打字机 */
+    .hero-mini {
+      position: relative; z-index: 2; text-align: center;
+      padding: 50px 24px 20px; pointer-events: none;
+    }
+    .hero-mini h1 {
+      font-family: "Noto Sans SC", sans-serif;
+      font-weight: 900; font-size: clamp(1.9rem, 6.5vw, 3rem);
+      letter-spacing: .14em;
+      background: linear-gradient(180deg, #ffffff 0%, #a9c6ff 55%, #5b8ce0 100%);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 30px rgba(110, 160, 255, .42));
+      min-height: 1.2em;
+    }
+    .typed-cursor {
+      display: inline-block; margin-left: 2px; font-weight: 400;
+      animation: blink 1.2s step-end infinite;
+      color: #7fb0ff; -webkit-text-fill-color: #7fb0ff;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* 主容器 */
+    .wrap { position: relative; z-index: 2; max-width: 900px; margin: 0 auto; padding: 20px 20px 120px; }
+
+    /* 卡片 */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 22px;
+      backdrop-filter: blur(20px) saturate(160%);
+      box-shadow: 0 24px 60px -30px rgba(0,0,0,.5);
+      margin-bottom: 20px;
+    }
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; margin-bottom: 16px;
+    }
+    .card-head h2 {
+      font-size: 1.05rem; font-weight: 900; letter-spacing: .14em;
+    }
+    .card-head .sub { font-size: .72rem; letter-spacing: .14em; color: var(--text-muted); }
+
+    /* 登录 */
+    .login-box { max-width: 380px; margin: 30px auto; }
+    .login-box .field { margin-bottom: 14px; }
+    .login-box label {
+      display: block; font-size: .74rem; letter-spacing: .14em;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .input-text {
+      width: 100%; padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--chip-border);
+      background: var(--chip-bg);
+      color: var(--text); font-family: inherit; font-size: .9rem;
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .input-text:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(0, 174, 236, .18);
+    }
+
+    /* 按钮 */
+    .btn {
+      padding: 10px 18px; border: none; border-radius: 10px;
+      background: linear-gradient(135deg, #8fdcff, #00AEEC 55%, #3f7bff);
+      color: #04121c; font-family: inherit; font-size: .85rem;
+      font-weight: 800; letter-spacing: .06em; cursor: pointer;
+      transition: transform .2s ease, filter .2s ease;
+      white-space: nowrap;
+    }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.06); }
+    .btn:active { transform: translateY(0) scale(.97); }
+    .btn.full { width: 100%; }
+    .btn.ghost {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--chip-border);
+    }
+    .btn.ghost:hover { background: var(--chip-bg); }
+    .btn.danger {
+      background: transparent; color: var(--danger);
+      border: 1px solid rgba(231, 76, 60, .35);
+    }
+    .btn.danger:hover { background: rgba(231, 76, 60, .1); }
+    .btn.small { padding: 6px 12px; font-size: .76rem; }
+
+    /* Tab 切换 */
+    .tabs {
+      display: flex; gap: 6px;
+      padding: 4px; margin-bottom: 20px;
+      background: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      border-radius: 14px;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tabs button {
+      flex: 1; min-width: 90px;
+      padding: 10px 12px;
+      border: none; border-radius: 10px;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit; font-size: .82rem;
+      font-weight: 700; letter-spacing: .06em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .25s ease, color .25s ease;
+    }
+    .tabs button.active {
+      background: linear-gradient(135deg, rgba(0,174,236,.9), rgba(63,123,255,.9));
+      color: #fff;
+      box-shadow: 0 10px 24px -14px rgba(0,174,236,1);
+    }
+
+    /* 书籍行 */
+    .book-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px;
+      border-radius: 14px;
+      background: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      margin-bottom: 10px;
+      transition: border-color .25s ease;
+    }
+    .book-row:hover { border-color: rgba(0,174,236,.5); }
+    .book-row .cover {
+      flex: 0 0 auto;
+      width: 48px; height: 64px;
+      border-radius: 8px;
+      box-shadow: 0 8px 18px -10px rgba(0,0,0,.6);
+      background-size: cover;
+      background-position: center;
+      position: relative; overflow: hidden;
+    }
+    .book-row .cover::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(160deg, rgba(255,255,255,.2), transparent 50%);
+    }
+    .book-row .info { flex: 1; min-width: 0; }
+    .book-row .info b {
+      display: block; font-size: .95rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .book-row .info .meta {
+      font-size: .72rem; color: var(--text-muted);
+      margin-top: 3px;
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .book-row .info .badge {
+      padding: 1px 8px; border-radius: 999px;
+      background: rgba(0,174,236,.18); color: var(--brand);
+      font-size: .64rem; font-weight: 800; letter-spacing: .06em;
+    }
+    .book-row .info .badge.draft {
+      background: rgba(255, 152, 0, .18); color: #ff9800;
+    }
+    .book-row .actions {
+      display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end;
+    }
+
+    /* 章节行 */
+    .chapter-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      margin-bottom: 8px;
+    }
+    .chapter-row .idx {
+      flex: 0 0 auto;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: rgba(0,174,236,.15); color: var(--brand);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; font-weight: 800;
+    }
+    .chapter-row .title {
+      flex: 1; min-width: 0;
+      font-size: .88rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .chapter-row .wc {
+      font-size: .7rem; color: var(--text-muted); flex: 0 0 auto;
+    }
+    .chapter-row .acts {
+      display: flex; gap: 4px; flex: 0 0 auto;
+    }
+    .icon-action {
+      width: 30px; height: 30px;
+      border: none; border-radius: 8px;
+      background: transparent; color: var(--text-muted);
+      cursor: pointer; font-size: .9rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s ease, color .2s ease;
+    }
+    .icon-action:hover { background: var(--chip-bg); color: var(--text); }
+    .icon-action.danger:hover { color: var(--danger); }
+
+    /* 评论行 */
+    .comment-row {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--chip-bg);
+      border: 1px solid var(--chip-border);
+      margin-bottom: 10px;
+    }
+    .comment-row .chead {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      font-size: .7rem; color: var(--text-muted); margin-bottom: 6px;
+    }
+    .comment-row .chead b { color: var(--brand); font-weight: 800; }
+    .comment-row .ctext {
+      font-size: .85rem; line-height: 1.6;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .comment-row .cpreview {
+      font-size: .72rem; color: var(--text-muted);
+      padding: 6px 10px; border-radius: 8px;
+      background: rgba(127,127,127,.08);
+      margin-bottom: 8px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* 弹窗（编辑书籍/章节） */
+    .modal {
+      position: fixed; inset: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(14px);
+      opacity: 0; visibility: hidden;
+      transition: opacity .3s ease, visibility .3s ease;
+    }
+    .modal.show { opacity: 1; visibility: visible; }
+    .modal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      width: min(96vw, 620px);
+      max-height: 88vh;
+      display: flex; flex-direction: column;
+      transform: translateY(20px) scale(.96);
+      transition: transform .35s cubic-bezier(.2,.7,.3,1);
+      box-shadow: 0 30px 80px -20px rgba(0,0,0,.7);
+    }
+    .modal.show .modal-card { transform: translateY(0) scale(1); }
+    .modal-head {
+      padding: 18px 22px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .modal-head h3 { font-size: 1rem; letter-spacing: .14em; font-weight: 900; }
+    .modal-close {
+      width: 32px; height: 32px; border: none; border-radius: 50%;
+      background: transparent; color: var(--text-muted);
+      font-size: 1.1rem; cursor: pointer;
+    }
+    .modal-close:hover { background: var(--chip-bg); color: var(--text); }
+    .modal-body {
+      flex: 1; overflow-y: auto;
+      padding: 20px 22px;
+    }
+    .modal-foot {
+      padding: 14px 22px 18px;
+      display: flex; gap: 10px;
+      border-top: 1px solid var(--card-border);
+    }
+
+    /* 字段 */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; font-size: .74rem; letter-spacing: .14em;
+      color: var(--text-muted); margin-bottom: 6px;
+    }
+    .field textarea {
+      width: 100%; min-height: 120px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--chip-border);
+      background: var(--chip-bg);
+      color: var(--text); font-family: inherit;
+      font-size: .88rem; line-height: 1.6;
+      outline: none; resize: vertical;
+    }
+    .field textarea:focus { border-color: var(--brand); }
+    .field .hint {
+      font-size: .68rem; color: var(--text-muted);
+      margin-top: 4px; line-height: 1.5;
+    }
+
+    /* 封面预览 */
+    .cover-preview {
+      width: 100px; height: 133px;
+      border-radius: 10px;
+      box-shadow: 0 12px 26px -12px rgba(0,0,0,.6);
+      background-size: cover; background-position: center;
+      margin: 0 auto 12px;
+      position: relative; overflow: hidden;
+    }
+    .cover-preview::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(160deg, rgba(255,255,255,.2), transparent 50%);
+    }
+    .cover-preview .cp-title {
+      position: absolute; left: 8px; right: 8px; top: 12px;
+      color: #fff; font-family: "Noto Serif SC", serif;
+      font-weight: 900; font-size: .78rem; line-height: 1.3;
+      text-shadow: 0 2px 6px rgba(0,0,0,.5);
+      word-break: break-word;
+      z-index: 1;
+    }
+
+    /* 颜色样本行 */
+    .preset-covers {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .preset-cover {
+      width: 36px; height: 46px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform .2s ease, border-color .2s ease;
+      box-shadow: 0 4px 10px -4px rgba(0,0,0,.4);
+    }
+    .preset-cover:hover { transform: scale(1.08); }
+    .preset-cover.active { border-color: var(--brand); }
+
+    /* 空状态 */
+    .empty {
+      padding: 50px 20px; text-align: center;
+      color: var(--text-muted); font-size: .86rem;
+      letter-spacing: .08em; line-height: 2;
+    }
+
+    /* 导出框 */
+    .export-box {
+      width: 100%; min-height: 180px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--chip-border);
+      background: var(--chip-bg);
+      color: var(--text); font-family: monospace;
+      font-size: .72rem; line-height: 1.5;
+      outline: none; resize: vertical;
+      white-space: pre; overflow: auto;
+    }
+
+    /* 提示条 */
+    .toast {
+      position: fixed; left: 50%; bottom: 40px;
+      transform: translateX(-50%) translateY(20px);
+      z-index: 400;
+      padding: 12px 22px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.85); color: #fff;
+      font-size: .86rem; letter-spacing: .04em;
+      opacity: 0; visibility: hidden;
+      transition: opacity .3s ease, visibility .3s ease, transform .3s ease;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1; visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast.ok { background: rgba(23, 145, 106, .92); }
+    .toast.err { background: rgba(231, 76, 60, .92); }
+
+    @media (max-width: 640px) {
+      .wrap { padding: 12px 12px 100px; }
+      .card { padding: 16px; border-radius: 16px; }
+      .site-nav { padding: 0 12px; }
+      .hero-mini { padding: 30px 16px 10px; }
+      .book-row { flex-wrap: wrap; }
+      .book-row .actions { width: 100%; justify-content: flex-start; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="sky" aria-hidden="true">
+    <div class="nebula"></div>
+    <div class="stars" id="stars"></div>
+  </div>
+
+  <nav class="site-nav">
+    <a class="back-link" href="index.html">← 返回首页</a>
+    <span class="nav-title">开发者</span>
+    <button class="nav-icon-btn" id="colorToggleBtn" type="button" aria-label="切换日夜模式">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.9"
+        stroke-linecap="round" stroke-linejoin="round"><path
+          d="M20.2 14.6A8.6 8.6 0 0 1 9.4 3.8a8.6 8.6 0 1 0 10.8 10.8z" fill="#ffffff" stroke="none" /></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.1" stroke-linecap="round"
+        stroke-linejoin="round">
+        <circle cx="12" cy="12" r="4.6" fill="#ffffff" stroke="none" />
+        <line x1="12" y1="2" x2="12" y2="4" /><line x1="12" y1="20" x2="12" y2="22" />
+        <line x1="2" y1="12" x2="4" y2="12" /><line x1="20" y1="12" x2="22" y2="12" />
+      </svg>
+    </button>
+  </nav>
+
+  <header class="hero-mini">
+    <h1><span id="typedText"></span><span class="typed-cursor">_</span></h1>
+  </header>
+
+  <main class="wrap">
+
+    <!-- 登录 -->
+    <section class="card login-box" id="loginCard">
+      <div class="card-head">
+        <h2>🔒 开发者登录</h2>
+        <span class="sub">仅站长可进入</span>
+      </div>
+      <div class="field">
+        <label>管理密码</label>
+        <input type="password" class="input-text" id="pwdInput" placeholder="请输入开发者密码" maxlength="32">
+      </div>
+      <button class="btn full" id="loginBtn" type="button">进入</button>
+    </section>
+
+    <!-- 主面板 -->
+    <div id="mainPanel" hidden>
+      <div class="tabs" id="tabs">
+        <button data-tab="books" class="active" type="button">📚 书籍管理</button>
+        <button data-tab="comments" type="button">💬 评论管理</button>
+        <button data-tab="data" type="button">💾 数据管理</button>
+        <button data-tab="settings" type="button">⚙️ 全局设置</button>
+      </div>
+
+      <!-- ========== Tab 1：书籍管理 ========== -->
+      <section data-pane="books">
+        <div class="card">
+          <div class="card-head">
+            <h2>书籍列表</h2>
+            <div style="display:flex;gap:6px;">
+              <input type="text" class="input-text" id="searchInput" placeholder="搜索书名/作者" style="width:150px;padding:8px 12px;font-size:.82rem;">
+              <button class="btn small" id="addBookBtn" type="button">+ 新书</button>
+            </div>
+          </div>
+          <div id="bookList"></div>
+        </div>
+      </section>
+
+      <!-- ========== Tab 2：评论管理 ========== -->
+      <section data-pane="comments" hidden>
+        <div class="card">
+          <div class="card-head">
+            <h2>评论管理</h2>
+            <div style="display:flex;gap:6px;">
+              <select class="input-text" id="commentBookFilter" style="width:150px;padding:8px 12px;font-size:.82rem;">
+                <option value="">全部书籍</option>
+              </select>
+              <button class="btn danger small" id="clearAllCommentsBtn" type="button">清空全部</button>
+            </div>
+          </div>
+          <div id="commentList"></div>
+        </div>
+      </section>
+
+      <!-- ========== Tab 3：数据管理 ========== -->
+      <section data-pane="data" hidden>
+        <div class="card">
+          <div class="card-head">
+            <h2>备份 / 恢复</h2>
+            <span class="sub">导出为 JSON 文件</span>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+            <button class="btn" id="exportAllBtn" type="button">📤 导出全部数据</button>
+            <button class="btn ghost" id="importBtn" type="button">📥 从文件导入</button>
+            <input type="file" id="importFile" accept=".json,application/json" style="display:none;">
+          </div>
+          <textarea class="export-box" id="exportBox" placeholder="导出后 JSON 会显示在这里，也可以直接粘贴 JSON 后点下方导入按钮"></textarea>
+          <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+            <button class="btn ghost small" id="importFromBoxBtn" type="button">从上方文本框导入</button>
+            <button class="btn ghost small" id="copyExportBtn" type="button">复制 JSON</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>清理</h2>
+            <span class="sub">请谨慎操作</span>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn ghost small" id="resetProgressBtn" type="button">🔄 重置阅读进度</button>
+            <button class="btn ghost small" id="clearBooksBtn" type="button">🗑️ 清空所有书籍</button>
+            <button class="btn ghost small" id="clearCommentsBtn2" type="button">🗑️ 清空所有评论</button>
+            <button class="btn danger small" id="resetAllBtn" type="button">⚠️ 恢复出厂</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== Tab 4：全局设置 ========== -->
+      <section data-pane="settings" hidden>
+        <div class="card">
+          <div class="card-head">
+            <h2>阅读偏好（默认值）</h2>
+            <span class="sub">影响所有读者</span>
+          </div>
+          <div class="field">
+            <label>书架标题</label>
+            <input type="text" class="input-text" id="shelfTitleInput" placeholder="书架" maxlength="20">
+          </div>
+          <div class="field">
+            <label>书架简介</label>
+            <input type="text" class="input-text" id="shelfDescInput" placeholder="写给读者的一句话" maxlength="60">
+          </div>
+          <div class="field">
+            <label>默认阅读主题色</label>
+            <input type="color" id="brandColorInput" style="width:48px;height:36px;border:none;background:transparent;cursor:pointer;">
+          </div>
+          <button class="btn" id="saveGlobalSettingsBtn" type="button">保存</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ===================== 书籍编辑弹窗 ===================== -->
+  <div class="modal" id="bookModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="bookModalTitle">添加新书</h3>
+        <button class="modal-close" id="bookModalClose" type="button">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="cover-preview" id="coverPreview">
+          <div class="cp-title" id="cpTitle">书名</div>
+        </div>
+
+        <div class="field">
+          <label>封面预设（点击切换）</label>
+          <div class="preset-covers" id="presetCovers"></div>
+        </div>
+
+        <div class="field">
+          <label>封面（CSS 渐变 或 图片URL）</label>
+          <input type="text" class="input-text" id="bookCover" placeholder="linear-gradient(135deg, #1a3a5c, #5b8ce0) 或 https://...jpg">
+          <div class="hint">支持 linear-gradient(...) / radial-gradient(...) / url(https://...)</div>
+        </div>
+
+        <div class="field">
+          <label>书名 *</label>
+          <input type="text" class="input-text" id="bookTitle" maxlength="40" placeholder="例：星空之上">
+        </div>
+
+        <div class="field">
+          <label>作者</label>
+          <input type="text" class="input-text" id="bookAuthor" maxlength="20" placeholder="例：玄寂">
+        </div>
+
+        <div class="field">
+          <label>简介</label>
+          <input type="text" class="input-text" id="bookDesc" maxlength="60" placeholder="一句话简介">
+        </div>
+
+        <div class="field">
+          <label>状态</label>
+          <select class="input-text" id="bookStatus">
+            <option value="published">已发布</option>
+            <option value="draft">草稿（不在书架显示）</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn ghost" id="bookModalCancel" type="button" style="flex:1;">取消</button>
+        <button class="btn" id="bookModalSave" type="button" style="flex:2;">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== 章节编辑弹窗 ===================== -->
+  <div class="modal" id="chapterModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="chapterModalTitle">编辑章节</h3>
+        <button class="modal-close" id="chapterModalClose" type="button">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>章节标题 *</label>
+          <input type="text" class="input-text" id="chapterTitle" maxlength="60" placeholder="第一章 启程">
+        </div>
+        <div class="field">
+          <label>正文 *（段落之间空一行）</label>
+          <textarea id="chapterContent" placeholder="第一段内容...&#10;&#10;第二段内容...&#10;&#10;第三段内容..."></textarea>
+          <div class="hint" id="chapterWordCount">0 字</div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn ghost" id="chapterModalCancel" type="button" style="flex:1;">取消</button>
+        <button class="btn" id="chapterModalSave" type="button" style="flex:2;">保存章节</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== 书籍详情（章节管理）弹窗 ===================== -->
+  <div class="modal" id="detailModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="detailTitle">章节管理</h3>
+        <button class="modal-close" id="detailClose" type="button">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <span style="font-size:.82rem;color:var(--text-muted);" id="detailSub"></span>
+          <button class="btn small" id="addChapterBtn" type="button">+ 添加章节</button>
+        </div>
+        <div id="chapterList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    "use strict";
+
+    /* =========================================================
+       常量（与小说.html 完全一致）
+       ========================================================= */
+    var LS_BOOKS = 'novel_books_v2';
+    var LS_SETTINGS = 'novel_settings_v2';
+    var LS_COMMENTS = 'novel_comments_v2';
+    var LS_PROGRESS = 'novel_progress_v2';
+    var LS_GLOBAL = 'novel_global_v2';
+
+    var DEV_PASSWORD = '090224';
+
+    var PRESET_COVERS = [
+      'linear-gradient(135deg, #1a3a5c 0%, #5b8ce0 100%)',
+      'linear-gradient(135deg, #2a2a35 0%, #6b8aa8 100%)',
+      'linear-gradient(135deg, #4a3020 0%, #a87858 100%)',
+      'linear-gradient(135deg, #3a1e2c 0%, #a85878 100%)',
+      'linear-gradient(135deg, #1a3c2a 0%, #4ea868 100%)',
+      'linear-gradient(135deg, #3a2a5c 0%, #7c5bcc 100%)',
+      'linear-gradient(135deg, #4a3a1c 0%, #c8a850 100%)',
+      'linear-gradient(135deg, #1f1f1f 0%, #4a4a4a 100%)',
+      'linear-gradient(135deg, #2c1810 0%, #8c4a2a 100%)',
+      'linear-gradient(160deg, #ff8a3c 0%, #ff4fd8 55%, #5b8ce0 100%)'
+    ];
+
+    /* =========================================================
+       工具
+       ========================================================= */
+    function $(id) { return document.getElementById(id); }
+    function load(k, fb) {
+      try { var r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; }
+      catch (e) { return fb; }
+    }
+    function save(k, v) {
+      try { localStorage.setItem(k, JSON.stringify(v)); return true; }
+      catch (e) { return false; }
+    }
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+      });
+    }
+    function uid() {
+      return 'x_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    }
+    function wc(text) {
+      if (!text) return 0;
+      return String(text).replace(/\s/g, '').length;
+    }
+    function fmtTime(t) {
+      if (!t) return '';
+      try {
+        var d = new Date(t);
+        var p = function (n) { return n < 10 ? '0' + n : '' + n; };
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
+          + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+      } catch (e) { return ''; }
+    }
+    function toast(msg, type) {
+      var el = $('toast');
+      el.textContent = msg;
+      el.className = 'toast show' + (type ? ' ' + type : '');
+      clearTimeout(el._timer);
+      el._timer = setTimeout(function () { el.className = 'toast'; }, 2200);
+    }
+
+    /* =========================================================
+       星空 + 打字机
+       ========================================================= */
+    (function initStars() {
+      var wrap = $('stars');
+      var html = '';
+      for (var i = 0; i < 80; i++) {
+        var x = Math.random() * 100, y = Math.random() * 100;
+        var s = 0.6 + Math.random() * 1.6;
+        var d = 3 + Math.random() * 4;
+        html += '<span class="star" style="left:' + x + '%;top:' + y + '%;width:' + s + 'px;height:' + s + 'px;animation-duration:' + d + 's;"></span>';
+      }
+      wrap.innerHTML = html;
+    })();
+
+    (function initTyped() {
+      var el = $('typedText');
+      var text = '开发者';
+      var i = 0;
+      function type() {
+        if (i < text.length) {
+          el.textContent += text.charAt(i);
+          i++;
+          setTimeout(type, 220 + Math.random() * 80);
+        }
+      }
+      setTimeout(type, 400);
+    })();
+
+    /* =========================================================
+       日夜模式
+       ========================================================= */
+    (function initColorToggle() {
+      var root = document.documentElement;
+      var btn = $('colorToggleBtn');
+      var KEY = 'Fluid_Color_Scheme';
+      function apply() {
+        var v = 'dark';
+        try { v = localStorage.getItem(KEY) || 'dark'; } catch (e) { }
+        if (v !== 'dark' && v !== 'light') v = 'dark';
+        root.setAttribute('data-user-color-scheme', v);
+      }
+      function toggle() {
+        var cur = root.getAttribute('data-user-color-scheme') || 'dark';
+        var next = (cur === 'dark') ? 'light' : 'dark';
+        try { localStorage.setItem(KEY, next); } catch (e) { }
+        apply();
+      }
+      apply();
+      btn.addEventListener('click', toggle);
+    })();
+
+    /* =========================================================
+       状态
+       ========================================================= */
+    var books = load(LS_BOOKS, []);
+    var comments = load(LS_COMMENTS, {});
+    var progress = load(LS_PROGRESS, {});
+    var globalSettings = Object.assign({ shelfTitle: '书架', shelfDesc: '', brandColor: '#00AEEC' }, load(LS_GLOBAL, {}));
+
+    var editingBookId = null;
+    var editingChapter = null;   // { bookId, chapterIndex } 编辑章节时用
+
+    /* =========================================================
+       登录
+       ========================================================= */
+    (function initLogin() {
+      $('loginBtn').addEventListener('click', function () {
+        var pwd = $('pwdInput').value;
+        if (pwd !== DEV_PASSWORD) { toast('密码错误', 'err'); return; }
+        $('loginCard').hidden = true;
+        $('mainPanel').hidden = false;
+        loadData();
+        toast('欢迎回来，开发者', 'ok');
+      });
+      $('pwdInput').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') $('loginBtn').click();
+      });
+    })();
+
+    /* =========================================================
+       Tab 切换
+       ========================================================= */
+    (function initTabs() {
+      var tabs = $('tabs').querySelectorAll('button');
+      tabs.forEach(function (b) {
+        b.addEventListener('click', function () {
+          tabs.forEach(function (x) { x.classList.remove('active'); });
+          b.classList.add('active');
+          var name = b.getAttribute('data-tab');
+          document.querySelectorAll('[data-pane]').forEach(function (p) {
+            p.hidden = p.getAttribute('data-pane') !== name;
+          });
+        });
+      });
+    })();
+
+    /* =========================================================
+       加载数据
+       ========================================================= */
+    function loadData() {
+      books = load(LS_BOOKS, []);
+      comments = load(LS_COMMENTS, {});
+      progress = load(LS_PROGRESS, {});
+      globalSettings = Object.assign({ shelfTitle: '书架', shelfDesc: '', brandColor: '#00AEEC' }, load(LS_GLOBAL, {}));
+      renderBookList();
+      renderCommentList();
+      renderSettingsTab();
+      refreshCommentBookFilter();
+    }
+
+    /* =========================================================
+       书籍列表
+       ========================================================= */
+    var searchKeyword = '';
+
+    function renderBookList() {
+      var wrap = $('bookList');
+      var list = books;
+      if (searchKeyword) {
+        var kw = searchKeyword.toLowerCase();
+        list = books.filter(function (b) {
+          return (b.title || '').toLowerCase().indexOf(kw) >= 0
+            || (b.author || '').toLowerCase().indexOf(kw) >= 0;
+        });
+      }
+
+      if (!list.length) {
+        wrap.innerHTML = '<div class="empty">' + (books.length ? '没有匹配的书籍' : '还没有书，点右上角「+ 新书」开始吧 ✨') + '</div>';
+        return;
+      }
+
+      wrap.innerHTML = list.map(function (b) {
+        var chs = b.chapters || [];
+        var totalWords = 0;
+        chs.forEach(function (c) { totalWords += (c.paragraphs || []).join('').length; });
+        var badge = b.status === 'draft'
+          ? '<span class="badge draft">草稿</span>'
+          : '<span class="badge">已发布</span>';
+        var coverStyle = makeCoverStyle(b.cover);
+
+        return '<div class="book-row">' +
+          '<div class="cover" style="' + coverStyle + '"></div>' +
+          '<div class="info">' +
+            '<b>' + escapeHtml(b.title || '未命名') + '</b>' +
+            '<div class="meta">' +
+              badge +
+              '<span>' + escapeHtml(b.author || '佚名') + '</span>' +
+              '<span>' + chs.length + ' 章</span>' +
+              '<span>' + totalWords + ' 字</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="actions">' +
+            '<button class="btn small" data-act="chapters" data-id="' + escapeHtml(b.id) + '">章节</button>' +
+            '<button class="btn ghost small" data-act="edit" data-id="' + escapeHtml(b.id) + '">编辑</button>' +
+            '<button class="btn ghost small" data-act="toggle" data-id="' + escapeHtml(b.id) + '">' + (b.status === 'draft' ? '发布' : '下架') + '</button>' +
+            '<button class="btn danger small" data-act="del" data-id="' + escapeHtml(b.id) + '">删除</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      wrap.querySelectorAll('button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var act = btn.getAttribute('data-act');
+          var id = btn.getAttribute('data-id');
+          if (act === 'edit') openBookModal(id);
+          else if (act === 'chapters') openDetailModal(id);
+          else if (act === 'toggle') toggleBookStatus(id);
+          else if (act === 'del') deleteBook(id);
+        });
+      });
+    }
+
+    function makeCoverStyle(cover) {
+      if (!cover) cover = PRESET_COVERS[0];
+      // 图片 URL 或 CSS 渐变
+      if (/^(https?:|data:|blob:|\/)/.test(cover.trim()) || /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(cover.trim())) {
+        return 'background-image:url(' + escapeHtml(cover.trim()) + ');background-size:cover;background-position:center;';
+      }
+      return 'background:' + cover + ';';
+    }
+
+    function toggleBookStatus(id) {
+      var b = books.find(function (x) { return x.id === id; });
+      if (!b) return;
+      b.status = b.status === 'draft' ? 'published' : 'draft';
+      save(LS_BOOKS, books);
+      renderBookList();
+      toast(b.status === 'draft' ? '已下架' : '已发布', 'ok');
+    }
+
+    function deleteBook(id) {
+      var b = books.find(function (x) { return x.id === id; });
+      if (!b) return;
+      if (!confirm('确定删除《' + (b.title || '未命名') + '》吗？\n该书的评论也会一并删除。')) return;
+      // 删除评论
+      var newComments = {};
+      Object.keys(comments).forEach(function (k) {
+        if (k.indexOf(id + ':') !== 0) newComments[k] = comments[k];
+      });
+      comments = newComments;
+      save(LS_COMMENTS, comments);
+      books = books.filter(function (x) { return x.id !== id; });
+      save(LS_BOOKS, books);
+      delete progress[id];
+      save(LS_PROGRESS, progress);
+      renderBookList();
+      renderCommentList();
+      refreshCommentBookFilter();
+      toast('已删除', 'ok');
+    }
+
+    $('searchInput').addEventListener('input', function () {
+      searchKeyword = this.value.trim();
+      renderBookList();
+    });
+
+    /* =========================================================
+       书籍编辑弹窗
+       ========================================================= */
+    (function initPresetCovers() {
+      var wrap = $('presetCovers');
+      wrap.innerHTML = PRESET_COVERS.map(function (c, i) {
+        return '<div class="preset-cover" data-idx="' + i + '" style="background:' + c + ';"></div>';
+      }).join('');
+      wrap.querySelectorAll('.preset-cover').forEach(function (el) {
+        el.addEventListener('click', function () {
+          var idx = parseInt(el.getAttribute('data-idx'), 10);
+          $('bookCover').value = PRESET_COVERS[idx];
+          updateCoverPreview();
+          wrap.querySelectorAll('.preset-cover').forEach(function (x) { x.classList.remove('active'); });
+          el.classList.add('active');
+        });
+      });
+    })();
+
+    function updateCoverPreview() {
+      var cover = $('bookCover').value.trim() || PRESET_COVERS[0];
+      var el = $('coverPreview');
+      el.setAttribute('style', makeCoverStyle(cover));
+      el.style.width = '100px';
+      el.style.height = '133px';
+      el.style.borderRadius = '10px';
+      el.style.boxShadow = '0 12px 26px -12px rgba(0,0,0,.6)';
+      $('cpTitle').textContent = $('bookTitle').value.trim() || '书名';
+    }
+
+    $('bookCover').addEventListener('input', updateCoverPreview);
+    $('bookTitle').addEventListener('input', updateCoverPreview);
+
+    function openBookModal(id) {
+      editingBookId = id;
+      var b = id ? books.find(function (x) { return x.id === id; }) : null;
+      $('bookModalTitle').textContent = id ? '编辑书籍' : '添加新书';
+      $('bookTitle').value = b ? (b.title || '') : '';
+      $('bookAuthor').value = b ? (b.author || '') : '';
+      $('bookDesc').value = b ? (b.desc || '') : '';
+      $('bookCover').value = b ? (b.cover || PRESET_COVERS[0]) : PRESET_COVERS[0];
+      $('bookStatus').value = b && b.status === 'draft' ? 'draft' : 'published';
+      updateCoverPreview();
+      // 高亮预设
+      var current = $('bookCover').value;
+      $('presetCovers').querySelectorAll('.preset-cover').forEach(function (el) {
+        var idx = parseInt(el.getAttribute('data-idx'), 10);
+        el.classList.toggle('active', PRESET_COVERS[idx] === current);
+      });
+      $('bookModal').classList.add('show');
+      $('bookModal').setAttribute('aria-hidden', 'false');
+    }
+
+    function closeBookModal() {
+      $('bookModal').classList.remove('show');
+      $('bookModal').setAttribute('aria-hidden', 'true');
+    }
+
+    $('bookModalClose').addEventListener('click', closeBookModal);
+    $('bookModalCancel').addEventListener('click', closeBookModal);
+    $('bookModal').addEventListener('click', function (e) {
+      if (e.target === this) closeBookModal();
+    });
+
+    $('bookModalSave').addEventListener('click', function () {
+      var title = $('bookTitle').value.trim();
+      if (!title) { toast('请填写书名', 'err'); return; }
+      var author = $('bookAuthor').value.trim();
+      var desc = $('bookDesc').value.trim();
+      var cover = $('bookCover').value.trim() || PRESET_COVERS[0];
+      var status = $('bookStatus').value;
+
+      if (editingBookId) {
+        var b = books.find(function (x) { return x.id === editingBookId; });
+        if (b) {
+          b.title = title;
+          b.author = author;
+          b.desc = desc;
+          b.cover = cover;
+          b.status = status;
+        }
+      } else {
+        books.unshift({
+          id: uid(),
+          title: title,
+          author: author,
+          desc: desc,
+          cover: cover,
+          status: status,
+          chapters: []
+        });
+      }
+      if (!save(LS_BOOKS, books)) { toast('保存失败，可能存储超限', 'err'); return; }
+      renderBookList();
+      refreshCommentBookFilter();
+      closeBookModal();
+      toast('已保存', 'ok');
+    });
+
+    $('addBookBtn').addEventListener('click', function () { openBookModal(null); });
+
+    /* =========================================================
+       章节管理弹窗
+       ========================================================= */
+    var detailBookId = null;
+
+    function openDetailModal(id) {
+      detailBookId = id;
+      var b = books.find(function (x) { return x.id === id; });
+      if (!b) return;
+      $('detailTitle').textContent = '📖 ' + (b.title || '未命名') + ' · 章节管理';
+      renderChapterList();
+      $('detailModal').classList.add('show');
+      $('detailModal').setAttribute('aria-hidden', 'false');
+    }
+
+    function closeDetailModal() {
+      $('detailModal').classList.remove('show');
+      $('detailModal').setAttribute('aria-hidden', 'true');
+    }
+
+    $('detailClose').addEventListener('click', closeDetailModal);
+    $('detailModal').addEventListener('click', function (e) {
+      if (e.target === this) closeDetailModal();
+    });
+
+    function renderChapterList() {
+      var b = books.find(function (x) { return x.id === detailBookId; });
+      if (!b) return;
+      var chs = b.chapters || [];
+      $('detailSub').textContent = chs.length + ' 章 · ' + chs.reduce(function (a, c) {
+        return a + (c.paragraphs || []).join('').length;
+      }, 0) + ' 字';
+
+      var wrap = $('chapterList');
+      if (!chs.length) {
+        wrap.innerHTML = '<div class="empty">还没有章节，点右上角「+ 添加章节」开始吧</div>';
+        return;
+      }
+
+      wrap.innerHTML = chs.map(function (c, i) {
+        var words = (c.paragraphs || []).join('').length;
+        return '<div class="chapter-row">' +
+          '<div class="idx">' + (i + 1) + '</div>' +
+          '<div class="title">' + escapeHtml(c.title || '未命名章节') + '</div>' +
+          '<div class="wc">' + words + ' 字</div>' +
+          '<div class="acts">' +
+            '<button class="icon-action" data-act="up" data-i="' + i + '" title="上移">↑</button>' +
+            '<button class="icon-action" data-act="down" data-i="' + i + '" title="下移">↓</button>' +
+            '<button class="icon-action" data-act="edit" data-i="' + i + '" title="编辑">✎</button>' +
+            '<button class="icon-action danger" data-act="del" data-i="' + i + '" title="删除">✕</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      wrap.querySelectorAll('button').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var act = btn.getAttribute('data-act');
+          var i = parseInt(btn.getAttribute('data-i'), 10);
+          if (act === 'up') moveChapter(i, -1);
+          else if (act === 'down') moveChapter(i, 1);
+          else if (act === 'edit') openChapterModal(i);
+          else if (act === 'del') deleteChapter(i);
+        });
+      });
+    }
+
+    function moveChapter(i, dir) {
+      var b = books.find(function (x) { return x.id === detailBookId; });
+      if (!b) return;
+      var ni = i + dir;
+      if (ni < 0 || ni >= b.chapters.length) return;
+      var tmp = b.chapters[i];
+      b.chapters[i] = b.chapters[ni];
+      b.chapters[ni] = tmp;
+      save(LS_BOOKS, books);
+      renderChapterList();
+    }
+
+    function deleteChapter(i) {
+      var b = books.find(function (x) { return x.id === detailBookId; });
+      if (!b) return;
+      var c = b.chapters[i];
+      if (!confirm('删除章节「' + (c.title || '未命名') + '」？')) return;
+      b.chapters.splice(i, 1);
+      save(LS_BOOKS, books);
+      // 清理该章评论
+      var prefix = detailBookId + ':';
+      // 简单处理：删除该书的评论重新组织（因为索引会变）
+      // 不改动，让读者承担误差
+      renderChapterList();
+      toast('已删除', 'ok');
+    }
+
+    $('addChapterBtn').addEventListener('click', function () {
+      openChapterModal(-1);
+    });
+
+    function openChapterModal(i) {
+      editingChapter = { bookId: detailBookId, index: i };
+      var b = books.find(function (x) { return x.id === detailBookId; });
+      if (!b) return;
+      if (i >= 0 && b.chapters[i]) {
+        $('chapterModalTitle').textContent = '编辑章节';
+        $('chapterTitle').value = b.chapters[i].title || '';
+        $('chapterContent').value = (b.chapters[i].paragraphs || []).join('\n\n');
+      } else {
+        $('chapterModalTitle').textContent = '添加章节';
+        $('chapterTitle').value = '第' + (b.chapters.length + 1) + '章';
+        $('chapterContent').value = '';
+      }
+      updateChapterWordCount();
+      $('chapterModal').classList.add('show');
+      $('chapterModal').setAttribute('aria-hidden', 'false');
+    }
+
+    function closeChapterModal() {
+      $('chapterModal').classList.remove('show');
+      $('chapterModal').setAttribute('aria-hidden', 'true');
+    }
+
+    $('chapterModalClose').addEventListener('click', closeChapterModal);
+    $('chapterModalCancel').addEventListener('click', closeChapterModal);
+    $('chapterModal').addEventListener('click', function (e) {
+      if (e.target === this) closeChapterModal();
+    });
+
+    function updateChapterWordCount() {
+      var t = $('chapterContent').value;
+      $('chapterWordCount').textContent = wc(t) + ' 字';
+    }
+    $('chapterContent').addEventListener('input', updateChapterWordCount);
+
+    $('chapterModalSave').addEventListener('click', function () {
+      if (!editingChapter) return;
+      var title = $('chapterTitle').value.trim();
+      var content = $('chapterContent').value;
+      if (!title) { toast('请填写章节标题', 'err'); return; }
+      if (!content.trim()) { toast('请填写章节内容', 'err'); return; }
+
+      // 分段
+      var paras = content.split(/\n\s*\n/).map(function (p) { return p.trim(); }).filter(Boolean);
+
+      var b = books.find(function (x) { return x.id === editingChapter.bookId; });
+      if (!b) return;
+
+      if (editingChapter.index >= 0 && b.chapters[editingChapter.index]) {
+        b.chapters[editingChapter.index].title = title;
+        b.chapters[editingChapter.index].paragraphs = paras;
+      } else {
+        b.chapters.push({ title: title, paragraphs: paras });
+      }
+      if (!save(LS_BOOKS, books)) { toast('保存失败', 'err'); return; }
+      renderChapterList();
+      renderBookList();
+      closeChapterModal();
+      toast('已保存', 'ok');
+    });
+
+    /* =========================================================
+       评论管理
+       ========================================================= */
+    function refreshCommentBookFilter() {
+      var sel = $('commentBookFilter');
+      var cur = sel.value;
+      sel.innerHTML = '<option value="">全部书籍</option>' +
+        books.map(function (b) {
+          return '<option value="' + escapeHtml(b.id) + '">' + escapeHtml(b.title || '未命名') + '</option>';
+        }).join('');
+      sel.value = cur;
+    }
+
+    $('commentBookFilter').addEventListener('change', renderCommentList);
+
+    function renderCommentList() {
+      var wrap = $('commentList');
+      var filterBook = $('commentBookFilter').value;
+      var items = [];
+
+      Object.keys(comments).forEach(function (key) {
+        var parts = key.split(':');
+        var bookId = parts[0];
+        var chapterIdx = parseInt(parts[1], 10);
+        if (filterBook && bookId !== filterBook) return;
+        var b = books.find(function (x) { return x.id === bookId; });
+        var bookTitle = b ? (b.title || '未命名') : '（书已删除）';
+        var chapterTitle = b && b.chapters[chapterIdx] ? b.chapters[chapterIdx].title : '第' + (chapterIdx + 1) + '章';
+
+        var data = comments[key];
+        Object.keys(data).forEach(function (paraKey) {
+          var arr = data[paraKey];
+          if (!Array.isArray(arr)) return;
+          var isEnd = paraKey === '_end';
+          var paraText = '';
+          if (!isEnd && b && b.chapters[chapterIdx]) {
+            var idx = parseInt(paraKey, 10);
+            paraText = (b.chapters[chapterIdx].paragraphs || [])[idx] || '';
+          }
+          arr.forEach(function (c, ci) {
+            items.push({
+              bookId: bookId,
+              bookTitle: bookTitle,
+              chapterTitle: chapterTitle,
+              key: key,
+              paraKey: paraKey,
+              paraText: paraText,
+              isEnd: isEnd,
+              index: ci,
+              text: c.text,
+              time: c.time
+            });
+          });
+        });
+      });
+
+      if (!items.length) {
+        wrap.innerHTML = '<div class="empty">暂无评论</div>';
+        return;
+      }
+
+      // 按时间倒序
+      items.sort(function (a, b) {
+        return String(b.time).localeCompare(String(a.time));
+      });
+
+      wrap.innerHTML = items.map(function (it, i) {
+        var loc = it.isEnd ? '章末评论' : '段评';
+        var preview = it.isEnd ? '' : '<div class="cpreview">"' + escapeHtml((it.paraText || '').slice(0, 50)) + (it.paraText.length > 50 ? '...' : '') + '"</div>';
+        return '<div class="comment-row">' +
+          '<div class="chead">' +
+            '<span><b>' + escapeHtml(it.bookTitle) + '</b> · ' + escapeHtml(it.chapterTitle) + ' · ' + loc + '</span>' +
+            '<span>' + escapeHtml(it.time || '') + '</span>' +
+          '</div>' +
+          preview +
+          '<div class="ctext">' + escapeHtml(it.text) + '</div>' +
+          '<div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end;">' +
+            '<button class="btn danger small" data-del="' + i + '">删除</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+      wrap.querySelectorAll('button[data-del]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var idx = parseInt(btn.getAttribute('data-del'), 10);
+          var it = items[idx];
+          if (!it) return;
+          if (!confirm('删除这条评论？')) return;
+          var arr = comments[it.key][it.paraKey];
+          arr.splice(it.index, 1);
+          if (!arr.length) delete comments[it.key][it.paraKey];
+          if (!Object.keys(comments[it.key]).length) delete comments[it.key];
+          save(LS_COMMENTS, comments);
+          renderCommentList();
+          toast('已删除', 'ok');
+        });
+      });
+    }
+
+    $('clearAllCommentsBtn').addEventListener('click', function () {
+      if (!confirm('确定清空所有评论吗？此操作无法撤销。')) return;
+      comments = {};
+      save(LS_COMMENTS, comments);
+      renderCommentList();
+      toast('已清空', 'ok');
+    });
+
+    /* =========================================================
+       数据管理
+       ========================================================= */
+    function buildExport() {
+      return {
+        version: 'v2',
+        exportedAt: new Date().toISOString(),
+        books: books,
+        comments: comments,
+        progress: progress,
+        globalSettings: globalSettings
+      };
+    }
+
+    $('exportAllBtn').addEventListener('click', function () {
+      var data = buildExport();
+      $('exportBox').value = JSON.stringify(data, null, 2);
+      // 触发下载
+      try {
+        var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'novel-backup-' + Date.now() + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        toast('已导出', 'ok');
+      } catch (e) { toast('下载失败，可手动复制', 'err'); }
+    });
+
+    $('importBtn').addEventListener('click', function () { $('importFile').click(); });
+    $('importFile').addEventListener('change', function (e) {
+      var f = e.target.files[0];
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        var txt = ev.target.result;
+        $('exportBox').value = txt;
+        tryImport(txt);
+      };
+      reader.readAsText(f);
+      e.target.value = '';
+    });
+
+    $('importFromBoxBtn').addEventListener('click', function () {
+      tryImport($('exportBox').value);
+    });
+
+    function tryImport(txt) {
+      try {
+        var data = JSON.parse(txt);
+        if (!data || typeof data !== 'object') throw new Error('格式错误');
+        if (!Array.isArray(data.books)) throw new Error('缺少 books 字段');
+        if (!confirm('导入将覆盖当前所有数据，确定继续吗？')) return;
+        books = data.books || [];
+        comments = data.comments || {};
+        progress = data.progress || {};
+        globalSettings = Object.assign({ shelfTitle: '书架', shelfDesc: '', brandColor: '#00AEEC' }, data.globalSettings || {});
+        save(LS_BOOKS, books);
+        save(LS_COMMENTS, comments);
+        save(LS_PROGRESS, progress);
+        save(LS_GLOBAL, globalSettings);
+        loadData();
+        toast('导入成功', 'ok');
+      } catch (e) {
+        toast('导入失败：' + e.message, 'err');
+      }
+    }
+
+    $('copyExportBtn').addEventListener('click', function () {
+      var box = $('exportBox');
+      if (!box.value) { toast('请先导出', 'err'); return; }
+      box.select();
+      try {
+        document.execCommand('copy');
+        toast('已复制', 'ok');
+      } catch (e) { toast('复制失败', 'err'); }
+    });
+
+    $('resetProgressBtn').addEventListener('click', function () {
+      if (!confirm('重置所有阅读进度？')) return;
+      progress = {};
+      save(LS_PROGRESS, progress);
+      toast('已重置', 'ok');
+    });
+
+    $('clearBooksBtn').addEventListener('click', function () {
+      if (!confirm('清空所有书籍？评论也会一并清空。')) return;
+      if (!confirm('再次确认：真的要清空吗？')) return;
+      books = [];
+      comments = {};
+      progress = {};
+      save(LS_BOOKS, books);
+      save(LS_COMMENTS, comments);
+      save(LS_PROGRESS, progress);
+      loadData();
+      toast('已清空', 'ok');
+    });
+
+    $('clearCommentsBtn2').addEventListener('click', function () {
+      if (!confirm('清空所有评论？')) return;
+      comments = {};
+      save(LS_COMMENTS, comments);
+      renderCommentList();
+      toast('已清空', 'ok');
+    });
+
+    $('resetAllBtn').addEventListener('click', function () {
+      if (!confirm('恢复出厂设置？所有数据将被删除！')) return;
+      if (!confirm('最后一次确认：确定吗？')) return;
+      ['novel_books_v2', 'novel_settings_v2', 'novel_comments_v2', 'novel_progress_v2', 'novel_global_v2'].forEach(function (k) {
+        try { localStorage.removeItem(k); } catch (e) { }
+      });
+      location.reload();
+    });
+
+    /* =========================================================
+       全局设置
+       ========================================================= */
+    function renderSettingsTab() {
+      $('shelfTitleInput').value = globalSettings.shelfTitle || '书架';
+      $('shelfDescInput').value = globalSettings.shelfDesc || '';
+      $('brandColorInput').value = globalSettings.brandColor || '#00AEEC';
+    }
+
+    $('saveGlobalSettingsBtn').addEventListener('click', function () {
+      globalSettings.shelfTitle = $('shelfTitleInput').value.trim() || '书架';
+      globalSettings.shelfDesc = $('shelfDescInput').value.trim();
+      globalSettings.brandColor = $('brandColorInput').value;
+      save(LS_GLOBAL, globalSettings);
+      toast('已保存', 'ok');
+    });
+
+  </script>
+
+</body>
+
+</html>

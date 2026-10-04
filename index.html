@@ -3656,16 +3656,21 @@
         }
       }
 
-            async function checkAdminRole() {
-        var { data: { user } } = await supabase.auth.getUser();
+          /* 暴露到全局：让标签云能查询身份 */
+      window.__checkIsAdmin = async function () {
+        try {
+          var { data: { user } } = await supabase.auth.getUser();
+          return !!(user && user.email === 'piao022400@qq.com');
+        } catch (e) { return false; }
+      };
+
+      async function checkAdminRole() {
+        var isAdmin = await window.__checkIsAdmin();
         var navBtn = document.getElementById('adminBoxNavBtn');
         if (!navBtn) return;
-        if (user && user.email === 'piao022400@qq.com') {
-          navBtn.style.display = 'flex';
-        } else {
-          navBtn.style.display = 'none';
-        }
+        navBtn.style.display = isAdmin ? 'flex' : 'none';
       }
+      
        
             async function loadMyMessages() {
         var listEl = document.getElementById('myMessagesList');
@@ -3792,7 +3797,7 @@
 
         // 中号：5 个
         { text: '制作网站', url: '#' },
-        { text: '小说', url: '#' },
+        { text: '小说', url: '@novel' },
         { text: '抚顺', url: '#' },
         { text: '加工', url: '#' },
         { text: '生活', url: '#' },
@@ -3818,7 +3823,7 @@
           { start: 6, end: 8, size: 3, radius: 46, startAngle: 90,  color: '#FFB8D8' }   // 小号：淡粉
         ];
 
-        var html = '';
+             var html = '';
         layers.forEach(function (layer) {
           var count = layer.end - layer.start;
 
@@ -3834,8 +3839,16 @@
               y = 50 + layer.radius * Math.sin(rad);
             }
 
+            var href = tag.url || '#';
+            var specialAttr = '';
+            if (href === '@novel') {
+              href = '小说阅读.html';          // 默认（访客）跳读者界面
+              specialAttr = ' data-special="novel"';
+            }
+
             html += '<a class="tag-btn ' + sizeClasses[layer.size] + '"' +
-              ' href="' + (tag.url || '#') + '"' +
+              ' href="' + href + '"' +
+              specialAttr +
               ' style="left:' + x.toFixed(2) + '%;top:' + y.toFixed(2) + '%;color:' + layer.color + ';"' +
               ' data-index="' + (layer.start + i) + '">' +
               tag.text +
@@ -3844,6 +3857,22 @@
         });
 
         container.innerHTML = html;
+
+        /* 事件委托：处理「小说」按钮的身份分流 */
+        container.addEventListener('click', async function (e) {
+          var a = e.target.closest('.tag-btn[data-special="novel"]');
+          if (!a) return;
+          e.preventDefault();
+
+          var isAdmin = false;
+          try {
+            if (typeof window.__checkIsAdmin === 'function') {
+              isAdmin = await window.__checkIsAdmin();
+            }
+          } catch (err) { isAdmin = false; }
+
+          window.location.href = isAdmin ? '小说编辑.html' : '小说阅读.html';
+        });
       })();
 
     })();
