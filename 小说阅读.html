@@ -7,10 +7,16 @@
   <title>标签-小说 · 星空</title>
   <link rel="icon" type="image/svg+xml"
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff4fd8'/%3E%3Cstop offset='1' stop-color='%2300AEEC'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230a0e16'/%3E%3Cpath d='M32 8 L37 27 L56 32 L37 37 L32 56 L27 37 L8 32 L27 27 Z' fill='url(%23g)'/%3E%3C/svg%3E">
-    <link
+      <link
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@400;700;900&display=swap"
     rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    /* 如果 unpkg 也失败，再兜底 jsdelivr */
+    if (!window.supabase) {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/script>');
+    }
+  </script>
   <style>
     :root {
       --bg: #edf1f7;
@@ -1155,9 +1161,33 @@
     var SUPABASE_URL = 'https://icjptvrlmmnxamgnemvz.supabase.co';
     var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanB0dnJsbW1ueGFtZ25lbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5OTY5NDAsImV4cCI6MjEwNjU3Mjk0MH0.2PiF0gJet82QnQpHd8Il_6bvTPLtBeypVOYRHG_W9YU';
     var supabase = null;
-    try {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } catch (e) { console.warn('Supabase 初始化失败:', e); }
+    function initSupabase() {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        try {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          return true;
+        } catch (e) { console.warn('Supabase 初始化失败:', e); return false; }
+      }
+      return false;
+    }
+    initSupabase();
+
+    /* 如果没加载成功，等 CDN 加载完再重试（最多 15 秒） */
+    if (!supabase) {
+      var __sw = setInterval(function () {
+        if (initSupabase()) {
+          clearInterval(__sw);
+          // 重新拉数据
+          if (typeof fetchBooksFromCloud === 'function') {
+            fetchBooksFromCloud().then(function (list) {
+              books = list;
+              renderShelf();
+            });
+          }
+        }
+      }, 300);
+      setTimeout(function () { clearInterval(__sw); }, 15000);
+    }
 
     async function fetchBooksFromCloud() {
       if (!supabase) return [];
