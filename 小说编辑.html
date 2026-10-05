@@ -918,10 +918,27 @@
       return !error;
     }
 
-       /* =========================================================
+          /* =========================================================
        登录
        ========================================================= */
     (function initLogin() {
+      var ADMIN_EMAIL = 'piao022400@qq.com';
+
+      async function getLoggedUser() {
+        if (!supabase) return null;
+        // getSession 从 localStorage 直接读，比 getUser 稳
+        try {
+          var { data: { session } } = await supabase.auth.getSession();
+          if (session && session.user) return session.user;
+        } catch (e) {}
+        // 兜底 getUser
+        try {
+          var { data: { user } } = await supabase.auth.getUser();
+          if (user) return user;
+        } catch (e) {}
+        return null;
+      }
+
       async function enterPanel() {
         $('loginCard').hidden = true;
         $('mainPanel').hidden = false;
@@ -929,28 +946,47 @@
         toast('欢迎回来，开发者', 'ok');
       }
 
-      // 手动输密码（兜底）
-      $('loginBtn').addEventListener('click', function () {
+      // 手动输密码：既进页面，也顺便登录 Supabase
+      $('loginBtn').addEventListener('click', async function () {
         var pwd = $('pwdInput').value;
         if (pwd !== DEV_PASSWORD) { toast('密码错误', 'err'); return; }
-        enterPanel();
+
+        if (supabase) {
+          var { error } = await supabase.auth.signInWithPassword({
+            email: ADMIN_EMAIL,
+            password: pwd
+          });
+          if (error) {
+            toast('Supabase 登录失败：' + error.message + '（请先到 Supabase 把站长密码改成 ' + DEV_PASSWORD + '）', 'err');
+            // 还是让他进，只是写不了
+          }
+        }
+        await enterPanel();
       });
+
       $('pwdInput').addEventListener('keydown', function (e) {
         if (e.key === 'Enter') $('loginBtn').click();
       });
 
-      // 检查站长身份
-      (async function checkAdmin() {
+      // 打开页面时自动检测
+      (async function autoCheck() {
         if (!supabase) return;
-        try {
-          var { data: { user } } = await supabase.auth.getUser();
-          if (user && user.email === 'piao022400@qq.com') {
-            await enterPanel();
-          } else {
-            toast('请先回首页用站长账号登录', 'err');
-          }
-        } catch (e) { /* 保留密码框 */ }
+        var user = await getLoggedUser();
+        if (user && user.email === ADMIN_EMAIL) {
+          await enterPanel();
+        }
       })();
+
+      // 监听登录态变化：index.html 登录后这个页面也会自动切
+      if (supabase) {
+        supabase.auth.onAuthStateChange(function (event, session) {
+          if (session && session.user && session.user.email === ADMIN_EMAIL) {
+            if ($('loginCard').hidden === false) {
+              enterPanel();
+            }
+          }
+        });
+      }
     })();
 
     /* =========================================================
