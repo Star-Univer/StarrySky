@@ -894,12 +894,10 @@
       };
     }
 
-    async function upsertBookToCloud(book) {
-      var uid = await currentUserId();
-      if (!uid) { toast('请先用站长账号登录', 'err'); return false; }
+       async function upsertBookToCloud(book) {
+      if (!supabase) { toast('Supabase 未加载', 'err'); return false; }
       var row = {
         id: book.id,
-        owner_id: uid,
         title: book.title,
         author: book.author,
         description: book.desc,
@@ -919,74 +917,37 @@
     }
 
           /* =========================================================
-       登录
+       登录（只查密码，不再查 Supabase 身份）
        ========================================================= */
     (function initLogin() {
-      var ADMIN_EMAIL = 'piao022400@qq.com';
-
-      async function getLoggedUser() {
-        if (!supabase) return null;
-        // getSession 从 localStorage 直接读，比 getUser 稳
-        try {
-          var { data: { session } } = await supabase.auth.getSession();
-          if (session && session.user) return session.user;
-        } catch (e) {}
-        // 兜底 getUser
-        try {
-          var { data: { user } } = await supabase.auth.getUser();
-          if (user) return user;
-        } catch (e) {}
-        return null;
-      }
+      // 记住这次已登录（同浏览器同标签页内不再问）
+      var LOGIN_FLAG = 'novel_admin_login_v1';
+      var isLogged = false;
+      try { isLogged = localStorage.getItem(LOGIN_FLAG) === '1'; } catch (e) {}
 
       async function enterPanel() {
         $('loginCard').hidden = true;
         $('mainPanel').hidden = false;
+        try { localStorage.setItem(LOGIN_FLAG, '1'); } catch (e) {}
         await loadData();
-        toast('欢迎回来，开发者', 'ok');
       }
 
-      // 手动输密码：既进页面，也顺便登录 Supabase
+      // 进入页面：本地已标记就直进
+      if (isLogged) {
+        enterPanel();
+        return;
+      }
+
+      // 输密码
       $('loginBtn').addEventListener('click', async function () {
         var pwd = $('pwdInput').value;
         if (pwd !== DEV_PASSWORD) { toast('密码错误', 'err'); return; }
-
-        if (supabase) {
-          var { error } = await supabase.auth.signInWithPassword({
-            email: ADMIN_EMAIL,
-            password: pwd
-          });
-          if (error) {
-            toast('Supabase 登录失败：' + error.message + '（请先到 Supabase 把站长密码改成 ' + DEV_PASSWORD + '）', 'err');
-            // 还是让他进，只是写不了
-          }
-        }
+        toast('欢迎回来，开发者', 'ok');
         await enterPanel();
       });
-
       $('pwdInput').addEventListener('keydown', function (e) {
         if (e.key === 'Enter') $('loginBtn').click();
       });
-
-      // 打开页面时自动检测
-      (async function autoCheck() {
-        if (!supabase) return;
-        var user = await getLoggedUser();
-        if (user && user.email === ADMIN_EMAIL) {
-          await enterPanel();
-        }
-      })();
-
-      // 监听登录态变化：index.html 登录后这个页面也会自动切
-      if (supabase) {
-        supabase.auth.onAuthStateChange(function (event, session) {
-          if (session && session.user && session.user.email === ADMIN_EMAIL) {
-            if ($('loginCard').hidden === false) {
-              enterPanel();
-            }
-          }
-        });
-      }
     })();
 
     /* =========================================================
@@ -1576,14 +1537,10 @@
         }
 
         // 2. 逐本写回云端
-        var uid = await currentUserId();
-        if (!uid) { toast('请先用站长账号登录', 'err'); return; }
-
         for (var i = 0; i < data.books.length; i++) {
           var b = data.books[i];
           var row = {
             id: b.id,
-            owner_id: uid,
             title: b.title,
             author: b.author,
             description: b.desc,
