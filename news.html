@@ -1,0 +1,2078 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme="dark" data-user-color-scheme="dark" data-sky="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>天文新闻 · 星空</title>
+  <meta name="description" content="星空 · 天文新闻：自动检索并排版的天文学 Top 10，含近期热点、中国天文、外国天文与专题栏目，实时更新。" />
+
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff4fd8'/%3E%3Cstop offset='1' stop-color='%2300AEEC'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230a0e16'/%3E%3Cpath d='M32 8 L37 27 L56 32 L37 37 L32 56 L27 37 L8 32 L27 27 Z' fill='url(%23g)'/%3E%3C/svg%3E">
+  <link rel="icon" href="favicon.ico" sizes="any">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@400;600;700&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /* =====================================================================
+       天文新闻 · 独立页
+       ---------------------------------------------------------------------
+       与首页共用同一套设计语言（深空 + 玻璃拟态 + 星野），
+       数据来源见页面底部的 FETCH 说明。
+
+       自动检索 / 自动排版 / 自动更新：
+         · 主源：Spaceflight News API v4（公开、支持跨域）
+         · 备源：rss2json 转 NASA / Universe Today / ESA 等 RSS
+         · 再备：公共跨域代理直读 RSS
+         · 兜底：内置快照 + 手动粘贴 JSON —— 断网也不会白屏
+       ===================================================================== */
+
+      :root {
+        --ink: #e8eaf0;
+        --bg: #0b1220;
+        --bg-soft: rgba(255, 255, 255, .045);
+        --line: rgba(255, 255, 255, .13);
+        --line-strong: rgba(255, 255, 255, .26);
+        --text: #eaf1fb;
+        --text-dim: #9fb0c8;
+        --text-faint: #71839c;
+        --blue: #00AEEC;
+        --blue-soft: rgba(0, 174, 236, .16);
+        --pink: #ff9aec;
+        --gold: #e8b45e;
+        --vermilion: #d9694f;
+        --glass: linear-gradient(155deg, rgba(255, 255, 255, .10) 0%, rgba(255, 255, 255, .04) 48%, rgba(255, 255, 255, .08) 100%);
+        --shadow: 0 30px 70px -34px rgba(0, 0, 0, .92);
+        --ease: cubic-bezier(.2, .7, .3, 1);
+        --nav-h: 56px;
+      }
+
+      html[data-user-color-scheme="light"] {
+        --ink: #0f1b2b;
+        --bg: #e8eef7;
+        --bg-soft: rgba(255, 255, 255, .72);
+        --line: rgba(15, 27, 43, .14);
+        --line-strong: rgba(15, 27, 43, .28);
+        --text: #101d2e;
+        --text-dim: #5b7189;
+        --text-faint: #7e93aa;
+        --glass: linear-gradient(155deg, rgba(255, 255, 255, .92) 0%, rgba(255, 255, 255, .74) 48%, rgba(255, 255, 255, .86) 100%);
+        --shadow: 0 30px 70px -38px rgba(20, 45, 90, .48);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+        padding-top: var(--nav-h);
+        -webkit-font-smoothing: antialiased;
+        transition: background .5s ease, color .5s ease;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        pointer-events: none;
+        background:
+          radial-gradient(ellipse 90% 60% at 12% 4%, rgba(58, 88, 190, .30), transparent 60%),
+          radial-gradient(ellipse 80% 60% at 88% 12%, rgba(150, 70, 200, .24), transparent 62%),
+          radial-gradient(ellipse 120% 70% at 50% 112%, rgba(0, 140, 200, .22), transparent 66%),
+          var(--bg);
+        transition: background .5s ease;
+      }
+
+      html[data-user-color-scheme="light"] body::before {
+        background:
+          radial-gradient(ellipse 90% 60% at 82% 2%, rgba(255, 236, 190, .62), transparent 62%),
+          radial-gradient(ellipse 80% 60% at 10% 8%, rgba(180, 210, 245, .58), transparent 64%),
+          radial-gradient(ellipse 120% 70% at 50% 112%, rgba(150, 195, 240, .42), transparent 66%),
+          var(--bg);
+      }
+
+      /* 静态星点：用极轻的重复径向渐变铺一层，不占用脚本 */
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        opacity: .5;
+        background-image:
+          radial-gradient(1.4px 1.4px at 12% 18%, rgba(255, 255, 255, .9), transparent),
+          radial-gradient(1.2px 1.2px at 27% 62%, rgba(200, 220, 255, .8), transparent),
+          radial-gradient(1.6px 1.6px at 43% 28%, rgba(255, 255, 255, .85), transparent),
+          radial-gradient(1.1px 1.1px at 58% 74%, rgba(190, 215, 255, .75), transparent),
+          radial-gradient(1.5px 1.5px at 71% 36%, rgba(255, 255, 255, .8), transparent),
+          radial-gradient(1.2px 1.2px at 86% 58%, rgba(255, 230, 200, .78), transparent),
+          radial-gradient(1.3px 1.3px at 8% 84%, rgba(255, 255, 255, .7), transparent),
+          radial-gradient(1.1px 1.1px at 94% 88%, rgba(210, 225, 255, .72), transparent),
+          radial-gradient(1.4px 1.4px at 35% 92%, rgba(255, 255, 255, .68), transparent),
+          radial-gradient(1.2px 1.2px at 66% 8%, rgba(230, 240, 255, .8), transparent);
+        background-size: 100% 100%;
+        animation: starDrift 90s linear infinite;
+      }
+
+      @keyframes starDrift {
+        from {
+          transform: translate3d(0, 0, 0);
+        }
+
+        to {
+          transform: translate3d(-2.2%, 0, 0);
+        }
+      }
+
+      ::selection {
+        background: var(--blue);
+        color: #04121c;
+      }
+
+      /* ==================================================== 顶部导航 */
+      .nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        height: var(--nav-h);
+        display: flex;
+        align-items: center;
+        background: rgba(8, 13, 24, .82);
+        border-bottom: 1px solid var(--line);
+        -webkit-backdrop-filter: blur(18px) saturate(150%);
+        backdrop-filter: blur(18px) saturate(150%);
+      }
+
+      html[data-user-color-scheme="light"] .nav {
+        background: rgba(244, 248, 253, .82);
+      }
+
+      .nav::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(120, 175, 255, .6), rgba(255, 154, 236, .4), transparent);
+      }
+
+      .nav-inner {
+        width: 100%;
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .nav-logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        flex-shrink: 0;
+      }
+
+      .nav-logo svg {
+        width: 28px;
+        height: 28px;
+        filter: drop-shadow(0 0 9px rgba(140, 170, 255, .7));
+      }
+
+      .nav-logo span {
+        font-weight: 900;
+        font-size: 1.02rem;
+        letter-spacing: .16em;
+        background: linear-gradient(135deg, #ff9aec, #a9c6ff 50%, #5b8ce0);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        list-style: none;
+        margin-left: auto;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .nav-links::-webkit-scrollbar {
+        display: none;
+      }
+
+      .nav-links a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 13px;
+        border-radius: 9px;
+        font-size: .88rem;
+        font-weight: 500;
+        letter-spacing: .04em;
+        color: var(--text);
+        text-decoration: none;
+        white-space: nowrap;
+        opacity: .85;
+        transition: background .2s ease, opacity .2s ease;
+      }
+
+      .nav-links a:hover {
+        background: rgba(255, 255, 255, .12);
+        opacity: 1;
+      }
+
+      html[data-user-color-scheme="light"] .nav-links a:hover {
+        background: rgba(15, 27, 43, .07);
+      }
+
+      .nav-links a.active {
+        background: rgba(255, 255, 255, .18);
+        opacity: 1;
+        font-weight: 700;
+      }
+
+      .nav-btn {
+        flex-shrink: 0;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--line);
+        border-radius: 50%;
+        background: transparent;
+        color: var(--text);
+        cursor: pointer;
+        transition: background .22s ease, border-color .22s ease, transform .22s ease;
+      }
+
+      .nav-btn:hover {
+        background: rgba(255, 255, 255, .12);
+        border-color: var(--line-strong);
+        transform: scale(1.08);
+      }
+
+      .nav-btn svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.9;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      html[data-user-color-scheme="dark"] .nav-btn .ico-sun {
+        display: block;
+      }
+
+      html[data-user-color-scheme="dark"] .nav-btn .ico-moon {
+        display: none;
+      }
+
+      html[data-user-color-scheme="light"] .nav-btn .ico-sun {
+        display: none;
+      }
+
+      html[data-user-color-scheme="light"] .nav-btn .ico-moon {
+        display: block;
+      }
+
+      /* ==================================================== 页头 */
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      .hero {
+        padding: 46px 0 26px;
+        text-align: center;
+      }
+
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 15px;
+        border-radius: 99px;
+        font-size: .68rem;
+        letter-spacing: .24em;
+        color: var(--text-dim);
+        background: var(--bg-soft);
+        border: 1px solid var(--line);
+        text-transform: uppercase;
+      }
+
+      .hero-badge i {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #58e0a0;
+        box-shadow: 0 0 10px #58e0a0;
+        animation: pulseDot 2s ease-in-out infinite;
+      }
+
+      @keyframes pulseDot {
+
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+
+        50% {
+          opacity: .45;
+          transform: scale(.75);
+        }
+      }
+
+      .hero h1 {
+        margin: 18px 0 12px;
+        font-family: "Noto Serif SC", "Songti SC", "STSong", serif;
+        font-size: clamp(1.9rem, 5.2vw, 3.1rem);
+        font-weight: 700;
+        letter-spacing: .18em;
+        background: linear-gradient(180deg, #ffffff 0%, #cfe0ff 55%, #8fb6f0 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+        filter: drop-shadow(0 0 30px rgba(140, 180, 255, .42));
+      }
+
+      html[data-user-color-scheme="light"] .hero h1 {
+        background: linear-gradient(180deg, #1b3350 0%, #2f5480 60%, #4a7fbe 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        filter: none;
+      }
+
+      .hero p {
+        max-width: 640px;
+        margin: 0 auto;
+        font-size: .86rem;
+        line-height: 1.9;
+        color: var(--text-dim);
+      }
+
+      .hero-meta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 14px;
+        border-radius: 99px;
+        font-size: .72rem;
+        letter-spacing: .06em;
+        color: var(--text-dim);
+        background: var(--bg-soft);
+        border: 1px solid var(--line);
+      }
+
+      .pill b {
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      /* ==================================================== 栏目按钮 */
+      .tabs {
+        position: sticky;
+        top: var(--nav-h);
+        z-index: 60;
+        padding: 14px 0;
+        margin-bottom: 8px;
+        background: linear-gradient(180deg, rgba(8, 13, 24, .92), rgba(8, 13, 24, .68) 70%, transparent);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+      }
+
+      html[data-user-color-scheme="light"] .tabs {
+        background: linear-gradient(180deg, rgba(240, 246, 253, .94), rgba(240, 246, 253, .7) 70%, transparent);
+      }
+
+      .tab-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+      }
+
+      .tab-row::-webkit-scrollbar {
+        display: none;
+      }
+
+      .tab {
+        position: relative;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 99px;
+        border: 1px solid var(--line);
+        background: var(--bg-soft);
+        font-family: inherit;
+        font-size: .86rem;
+        font-weight: 600;
+        letter-spacing: .08em;
+        color: var(--text-dim);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: color .22s ease, border-color .22s ease, background .22s ease, transform .22s ease;
+      }
+
+      .tab:hover {
+        color: var(--text);
+        border-color: var(--line-strong);
+        transform: translateY(-1px);
+      }
+
+      .tab.is-active {
+        color: #04121c;
+        border-color: transparent;
+        background: linear-gradient(135deg, #8fdcff, #00AEEC 60%, #3f7bff);
+        box-shadow: 0 12px 26px -16px rgba(0, 174, 236, .95);
+      }
+
+      .tab .tab-count {
+        padding: 1px 7px;
+        border-radius: 99px;
+        font-size: .62rem;
+        background: rgba(255, 255, 255, .16);
+      }
+
+      .tab.is-active .tab-count {
+        background: rgba(4, 18, 28, .22);
+      }
+
+      .tab-actions {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex: 0 0 auto;
+      }
+
+      /* ==================================================== 通用卡片 */
+      .card {
+        background: var(--glass);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        box-shadow: var(--shadow);
+        -webkit-backdrop-filter: blur(22px) saturate(160%);
+        backdrop-filter: blur(22px) saturate(160%);
+        overflow: hidden;
+      }
+
+      .sec-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .sec-head h2 {
+        font-family: "Noto Serif SC", "Songti SC", serif;
+        font-size: 1.12rem;
+        font-weight: 700;
+        letter-spacing: .18em;
+      }
+
+      .sec-head .sec-sub {
+        font-size: .64rem;
+        letter-spacing: .24em;
+        color: var(--text-faint);
+        text-transform: uppercase;
+      }
+
+      .sec-head .sec-live {
+        margin-left: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .66rem;
+        letter-spacing: .1em;
+        color: var(--text-faint);
+      }
+
+      .sec-head .sec-live i {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #58e0a0;
+      }
+
+      /* ==================================================== Top10 排名表 */
+      .top-list {
+        list-style: none;
+        counter-reset: rank;
+      }
+
+      .top-item {
+        counter-increment: rank;
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px 22px;
+        border-bottom: 1px solid var(--line);
+        transition: background .25s ease;
+      }
+
+      .top-item:last-child {
+        border-bottom: none;
+      }
+
+      .top-item:hover {
+        background: rgba(255, 255, 255, .05);
+      }
+
+      html[data-user-color-scheme="light"] .top-item:hover {
+        background: rgba(15, 27, 43, .035);
+      }
+
+      .top-rank {
+        flex: 0 0 auto;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9px;
+        font-size: .84rem;
+        font-weight: 900;
+        color: var(--text-dim);
+        background: rgba(255, 255, 255, .07);
+        border: 1px solid var(--line);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .top-item:nth-child(1) .top-rank {
+        color: #2b1a00;
+        background: linear-gradient(135deg, #ffe08a, #e8b45e);
+        border-color: transparent;
+      }
+
+      .top-item:nth-child(2) .top-rank {
+        color: #10161f;
+        background: linear-gradient(135deg, #e8eef8, #b6c3d4);
+        border-color: transparent;
+      }
+
+      .top-item:nth-child(3) .top-rank {
+        color: #22120a;
+        background: linear-gradient(135deg, #ffc9a0, #cd8b5a);
+        border-color: transparent;
+      }
+
+      .top-body {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      .top-title {
+        display: block;
+        font-size: 1.0rem;
+        font-weight: 700;
+        line-height: 1.6;
+        letter-spacing: .01em;
+        color: var(--text);
+        text-decoration: none;
+        transition: color .2s ease;
+      }
+
+      .top-title:hover {
+        color: var(--blue);
+      }
+
+      .top-sum {
+        margin-top: 6px;
+        font-size: .8rem;
+        line-height: 1.85;
+        color: var(--text-dim);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .top-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 9px;
+        font-size: .68rem;
+        letter-spacing: .06em;
+        color: var(--text-faint);
+      }
+
+      .tag {
+        padding: 2px 9px;
+        border-radius: 99px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, .05);
+      }
+
+      .tag.is-cn {
+        color: #ffd9a0;
+        border-color: rgba(232, 180, 94, .45);
+        background: rgba(232, 180, 94, .12);
+      }
+
+      .tag.is-hot {
+        color: #ffb0b0;
+        border-color: rgba(217, 105, 79, .5);
+        background: rgba(217, 105, 79, .14);
+      }
+
+      .top-thumb {
+        flex: 0 0 auto;
+        width: 108px;
+        height: 72px;
+        border-radius: 12px;
+        object-fit: cover;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, .05);
+      }
+
+      /* ==================================================== 新闻网格 */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+      }
+
+      .news-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: var(--glass);
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        -webkit-backdrop-filter: blur(18px) saturate(150%);
+        backdrop-filter: blur(18px) saturate(150%);
+        transition: transform .3s var(--ease), border-color .3s ease, box-shadow .3s ease;
+      }
+
+      .news-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(0, 174, 236, .55);
+        box-shadow: 0 24px 48px -28px rgba(0, 174, 236, .6);
+      }
+
+      .news-card .thumb {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        background: rgba(255, 255, 255, .05);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .news-card .body {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 15px 16px 17px;
+      }
+
+      .news-card h3 {
+        font-size: .96rem;
+        font-weight: 700;
+        line-height: 1.62;
+        color: var(--text);
+      }
+
+      .news-card p {
+        font-size: .78rem;
+        line-height: 1.8;
+        color: var(--text-dim);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .news-card .meta {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-size: .66rem;
+        letter-spacing: .06em;
+        color: var(--text-faint);
+      }
+
+      /* ==================================================== 专题栏目 */
+      .topic-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+        gap: 16px;
+      }
+
+      .topic {
+        position: relative;
+        padding: 22px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: var(--glass);
+        -webkit-backdrop-filter: blur(18px) saturate(150%);
+        backdrop-filter: blur(18px) saturate(150%);
+        overflow: hidden;
+        transition: transform .3s var(--ease), border-color .3s ease;
+      }
+
+      .topic:hover {
+        transform: translateY(-4px);
+        border-color: rgba(232, 180, 94, .55);
+      }
+
+      .topic::after {
+        content: '';
+        position: absolute;
+        right: -40px;
+        top: -40px;
+        width: 130px;
+        height: 130px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--topic-glow, rgba(0, 174, 236, .3)), transparent 70%);
+      }
+
+      .topic-year {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 99px;
+        font-size: .64rem;
+        letter-spacing: .16em;
+        font-weight: 700;
+        color: #04121c;
+        background: linear-gradient(135deg, #8fdcff, #00AEEC);
+      }
+
+      .topic h3 {
+        margin: 12px 0 8px;
+        font-family: "Noto Serif SC", "Songti SC", serif;
+        font-size: 1.04rem;
+        font-weight: 700;
+        letter-spacing: .06em;
+        line-height: 1.6;
+      }
+
+      .topic p {
+        font-size: .8rem;
+        line-height: 1.9;
+        color: var(--text-dim);
+      }
+
+      .topic .topic-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .topic .topic-stats span {
+        padding: 4px 10px;
+        border-radius: 99px;
+        font-size: .66rem;
+        letter-spacing: .04em;
+        color: var(--text-dim);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, .05);
+      }
+
+      /* ==================================================== 状态 */
+      .state {
+        padding: 46px 22px;
+        text-align: center;
+        color: var(--text-dim);
+        font-size: .86rem;
+        line-height: 1.9;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 26px;
+        height: 26px;
+        margin-bottom: 14px;
+        border: 2px solid rgba(255, 255, 255, .18);
+        border-top-color: var(--blue);
+        border-radius: 50%;
+        animation: spin .8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .state-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 18px;
+        border-radius: 99px;
+        border: 1px solid var(--line-strong);
+        background: rgba(255, 255, 255, .06);
+        font-family: inherit;
+        font-size: .78rem;
+        font-weight: 600;
+        letter-spacing: .08em;
+        color: var(--text);
+        cursor: pointer;
+        text-decoration: none;
+        transition: background .22s ease, border-color .22s ease, transform .22s ease;
+      }
+
+      .btn:hover {
+        background: rgba(0, 174, 236, .16);
+        border-color: rgba(0, 174, 236, .6);
+        transform: translateY(-1px);
+      }
+
+      .btn svg {
+        width: 14px;
+        height: 14px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .skeleton {
+        padding: 16px 22px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .sk-line {
+        height: 12px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .16), rgba(255, 255, 255, .06));
+        background-size: 200% 100%;
+        animation: sk 1.4s ease-in-out infinite;
+      }
+
+      .sk-line+.sk-line {
+        margin-top: 9px;
+      }
+
+      @keyframes sk {
+        from {
+          background-position: 200% 0;
+        }
+
+        to {
+          background-position: -200% 0;
+        }
+      }
+
+      /* ==================================================== 底部 / 弹层 */
+      .page-foot {
+        margin: 34px 0 46px;
+        text-align: center;
+      }
+
+      .foot-note {
+        font-size: .68rem;
+        line-height: 2;
+        letter-spacing: .06em;
+        color: var(--text-faint);
+      }
+
+      .foot-note a {
+        color: var(--text-dim);
+      }
+
+      .modal-mask {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(3, 6, 14, .74);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity .3s ease, visibility .3s ease;
+      }
+
+      .modal-mask.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal {
+        width: min(94vw, 620px);
+        max-height: calc(100vh - 40px);
+        display: flex;
+        flex-direction: column;
+        border-radius: 22px;
+        border: 1px solid var(--line-strong);
+        background: linear-gradient(160deg, rgba(20, 28, 46, .98), rgba(12, 18, 32, .98));
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      html[data-user-color-scheme="light"] .modal {
+        background: linear-gradient(160deg, #ffffff, #eef3fa);
+      }
+
+      .modal-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .modal-head h3 {
+        font-size: .98rem;
+        font-weight: 700;
+        letter-spacing: .1em;
+      }
+
+      .modal-head .x {
+        margin-left: auto;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--text-dim);
+        cursor: pointer;
+        font-size: 1.1rem;
+        line-height: 1;
+        transition: background .2s ease, transform .2s ease;
+      }
+
+      .modal-head .x:hover {
+        background: rgba(255, 255, 255, .12);
+        transform: rotate(90deg);
+      }
+
+      .modal-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 18px 20px 20px;
+      }
+
+      .modal-body p {
+        font-size: .82rem;
+        line-height: 1.95;
+        color: var(--text-dim);
+        margin-bottom: 12px;
+      }
+
+      .modal-body textarea {
+        width: 100%;
+        min-height: 150px;
+        padding: 12px 13px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, .05);
+        color: var(--text);
+        font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+        font-size: .74rem;
+        line-height: 1.7;
+        resize: vertical;
+        outline: none;
+      }
+
+      html[data-user-color-scheme="light"] .modal-body textarea {
+        background: rgba(15, 27, 43, .04);
+      }
+
+      .modal-foot {
+        display: flex;
+        gap: 10px;
+        padding: 0 20px 20px;
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 28px;
+        z-index: 900;
+        transform: translate(-50%, 20px);
+        padding: 11px 20px;
+        border-radius: 99px;
+        font-size: .78rem;
+        letter-spacing: .06em;
+        color: #04121c;
+        background: linear-gradient(135deg, #8fdcff, #00AEEC);
+        box-shadow: 0 16px 36px -18px rgba(0, 174, 236, .95);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .3s ease, transform .3s var(--ease);
+      }
+
+      .toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      /* ==================================================== 响应式 */
+      @media (max-width: 760px) {
+        .nav-links {
+          display: none;
+        }
+
+        .hero {
+          padding: 28px 0 16px;
+        }
+
+        .top-item {
+          padding: 14px 16px;
+          gap: 12px;
+        }
+
+        .top-thumb {
+          display: none;
+        }
+
+        .tab {
+          padding: 9px 15px;
+          font-size: .8rem;
+        }
+
+        .sec-head {
+          padding: 15px 16px 12px;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+
+        *,
+        *::before,
+        *::after {
+          animation-duration: .001ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: .001ms !important;
+        }
+      }
+  </style>
+</head>
+
+<body>
+
+  <!-- ============================== 导航 ============================== -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="nav-logo" href="index.html">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <defs>
+            <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ff4fd8" />
+              <stop offset="1" stop-color="#00AEEC" />
+            </linearGradient>
+          </defs>
+          <path d="M32 6 L38 26 L58 32 L38 38 L32 58 L26 38 L6 32 L26 26 Z" fill="url(#lg)" />
+        </svg>
+        <span>星空</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="index.html">首页</a></li>
+        <li><a href="news.html" class="active">新闻</a></li>
+        <li><a href="古星图.html">古籍星图</a></li>
+        <li><a href="八字排盘.html">八字排盘</a></li>
+        <li><a href="黄道吉日.html">黄道吉日</a></li>
+        <li><a href="数独推理.html">数独推理</a></li>
+      </ul>
+
+      <button class="nav-btn" id="themeBtn" type="button" aria-label="切换日夜模式" title="切换日夜模式">
+        <svg class="ico-sun" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.4" />
+          <path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7" />
+        </svg>
+        <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.2 14.6A8.6 8.6 0 0 1 9.4 3.8a8.6 8.6 0 1 0 10.8 10.8z" />
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============================== 页头 ============================== -->
+  <header class="hero wrap">
+    <span class="hero-badge"><i></i>Live · 自动检索 · 自动排版</span>
+    <h1>天文新闻</h1>
+    <p>
+      这里的内容不需要人工编辑：打开页面时会自动去公共天文资讯源检索最新消息，
+      按热度与时间排出版面。四个栏目各有自己的取源范围，下拉即换。
+    </p>
+
+    <div class="hero-meta">
+      <span class="pill">今日 <b id="statCount">—</b> 条</span>
+      <span class="pill">来源 <b id="statSrc">—</b> 个</span>
+      <span class="pill">更新于 <b id="statTime">—</b></span>
+    </div>
+  </header>
+
+  <!-- ============================== 栏目按钮 ============================== -->
+  <div class="tabs wrap">
+    <div class="tab-row" id="tabRow" role="tablist">
+      <button class="tab is-active" type="button" role="tab" data-view="hot">
+        近期热点 <span class="tab-count" id="cnt-hot">·</span>
+      </button>
+      <button class="tab" type="button" role="tab" data-view="cn">
+        中国天文 <span class="tab-count" id="cnt-cn">·</span>
+      </button>
+      <button class="tab" type="button" role="tab" data-view="intl">
+        外国天文 <span class="tab-count" id="cnt-intl">·</span>
+      </button>
+      <button class="tab" type="button" role="tab" data-view="topic">
+        专题栏目 <span class="tab-count" id="cnt-topic">·</span>
+      </button>
+
+      <div class="tab-actions">
+        <button class="btn" id="refreshBtn" type="button" title="重新检索">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M20 11a8 8 0 1 0-2.3 5.7" />
+            <path d="M20 4v7h-7" />
+          </svg>
+          刷新
+        </button>
+        <button class="btn" id="pasteBtn" type="button" title="离线时手动粘贴数据">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 4h6v3H9z" />
+            <path d="M6 5h1M17 5h1a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2" />
+            <path d="M8 12h8M8 16h5" />
+          </svg>
+          离线数据
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== 主内容 ============================== -->
+  <main class="wrap" id="main">
+
+    <!-- 近期热点：Top 10 -->
+    <section class="card" id="secHot" style="margin-bottom:22px;">
+      <div class="sec-head">
+        <h2>天文学 Top 10</h2>
+        <span class="sec-sub">Trending</span>
+        <span class="sec-live"><i></i><span id="hotUpdated">检索中…</span></span>
+      </div>
+      <ol class="top-list" id="topList">
+        <!-- 骨架屏 -->
+        <li class="skeleton"><div class="sk-line" style="width:72%"></div><div class="sk-line" style="width:94%"></div><div class="sk-line" style="width:40%"></div></li>
+        <li class="skeleton"><div class="sk-line" style="width:64%"></div><div class="sk-line" style="width:88%"></div><div class="sk-line" style="width:34%"></div></li>
+        <li class="skeleton"><div class="sk-line" style="width:80%"></div><div class="sk-line" style="width:70%"></div><div class="sk-line" style="width:46%"></div></li>
+        <li class="skeleton"><div class="sk-line" style="width:58%"></div><div class="sk-line" style="width:92%"></div><div class="sk-line" style="width:38%"></div></li>
+        <li class="skeleton"><div class="sk-line" style="width:76%"></div><div class="sk-line" style="width:66%"></div><div class="sk-line" style="width:44%"></div></li>
+      </ol>
+    </section>
+
+    <!-- 栏目正文 -->
+    <section class="card" id="secView">
+      <div class="sec-head">
+        <h2 id="viewTitle">近期热点</h2>
+        <span class="sec-sub" id="viewSub">Latest</span>
+        <span class="sec-live"><i></i><span id="viewNote">自动排版</span></span>
+      </div>
+      <div class="state" id="viewState">
+        <div class="spinner"></div>
+        <div>正在检索天文资讯源…</div>
+      </div>
+      <div class="grid" id="viewGrid" style="padding:18px;" hidden></div>
+      <div class="topic-grid" id="topicGrid" style="padding:18px;" hidden></div>
+    </section>
+
+    <p class="page-foot foot-note">
+      数据来自公开天文资讯源（Spaceflight News API、NASA、ESA、Universe Today 等），
+      版权归原作者所有，本页仅作聚合展示与跳转。
+      <br>
+      检索不到时可以使用「离线数据」手动粘贴，或用「刷新」重试。
+    </p>
+  </main>
+
+  <!-- ============================== 弹层 ============================== -->
+  <div class="modal-mask" id="pasteMask" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="离线数据">
+      <div class="modal-head">
+        <h3>离线数据 · 手动粘贴</h3>
+        <button class="x" id="pasteClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="modal-body">
+        <p>
+          没有网络、或者资讯源被墙掉的时候，可以在这里粘贴一段 JSON 当作新闻列表。
+          支持两种格式，任选其一：
+        </p>
+        <p>
+          <b>① 数组</b>：<code>[{ "title": "...", "url": "...", "summary": "...", "source": "...", "published": "2026-01-01T00:00:00Z" }]</code><br>
+          <b>② 对象</b>：<code>{ "results": [ 同上 ] }</code>（即 Spaceflight News API 的原始返回）
+        </p>
+        <textarea id="pasteArea" spellcheck="false"
+          placeholder='[{"title":"韦布望远镜观测到最遥远星系","url":"https://example.com/a","summary":"摘要……","source":"示例源","published":"2026-01-01T00:00:00Z"}]'></textarea>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" id="pasteApply" type="button">载入这段数据</button>
+        <button class="btn" id="pasteCancel" type="button">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    /* =====================================================================
+       天文新闻 · 自动检索 / 自动排版 / 自动更新
+       ---------------------------------------------------------------------
+       设计思路：
+
+         1. 主数据源用 Spaceflight News API v4 —— 公开、无需 key、支持跨域，
+            一次最多取 100 条，客户端再按来源分流到「中国天文 / 外国天文」。
+         2. 备数据源走 rss2json（RSS → JSON，支持跨域），
+            覆盖 NASA / ESA / Universe Today / Phys.org 等。
+         3. 再备一层用公共跨域代理直读 RSS，自己解析 XML。
+         4. 三层都失败时，用内置快照兜底，页面永远有事可看。
+
+         热度怎么算？
+           时间新 + 有配图 + 摘要长 + 来源权重（NASA/ESA/中国官方更高）
+           四项加权求和，再排序取前 10 —— 这就是「自动排版」的依据。
+
+         专题栏目是静态的（近年天文重大事件/突破），
+         因为这类内容不会天天变，写死反而更可靠、更好读。
+       ===================================================================== */
+    (function () {
+      'use strict';
+
+      /* ---------------------------------------------------------- 配置 */
+
+      var SFN = 'https://api.spaceflightnewsapi.net/v4/articles/';
+      var RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+      /* 外国天文：RSS 源 */
+      var FEEDS_INTL = [
+        { url: 'https://www.universetoday.com/feed/', name: 'Universe Today' },
+        { url: 'https://phys.org/rss-feed/space-news/', name: 'Phys.org' },
+        { url: 'https://skyandtelescope.org/feed/', name: 'Sky & Telescope' }
+      ];
+
+      /* 中国天文：RSS 源。部分站点在境外可能访问不了，所以和 SFN 混着用 */
+      var FEEDS_CN = [
+        { url: 'https://www.nao.cas.cn/rss/news.xml', name: '国家天文台' },
+        { url: 'https://www.cas.cn/rss/kj/2016/2020.xml', name: '中科院' },
+        { url: 'https://www.chinadaily.com.cn/rss/china_rss.xml', name: 'China Daily' }
+      ];
+
+      /* 跨域代理：按顺序尝试，谁先通用谁 */
+      var PROXIES = [
+        function (u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); },
+        function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+        function (u) { return 'https://corsproxy.io/?' + encodeURIComponent(u); }
+      ];
+
+      /* 来源权重：越"官方"，热度加成越高 */
+      var SRC_WEIGHT = {
+        'NASA': 1.0, 'ESA': 1.0, 'CNSA': 0.95, '中国国家航天局': 0.95,
+        '国家天文台': 0.95, '中科院': 0.9, '新华社': 0.9, '中国新闻网': 0.85,
+        'SpaceNews': 0.8, 'Universe Today': 0.78, 'Sky & Telescope': 0.8,
+        'Phys.org': 0.75, 'Space.com': 0.75, 'Reuters': 0.8, 'BBC': 0.8,
+        'CGTN': 0.82, 'China Daily': 0.8, '环球网': 0.78, '澎湃新闻': 0.8
+      };
+
+      /* 判断一条新闻是不是"中国天文" */
+      var CN_SRC = ['cnsa', 'china', 'chinadaily', 'cgtn', 'xinhua', '新华社', '中国', '中科院', '国家天文台', '澎湃', '环球'];
+      var CN_WORD = ['中国', '我国', '嫦娥', '天问', '北斗', '鹊桥', '天宫', '神舟', '长征', 'FAST', '郭守敬', '空间站', '祝融', '羲和'];
+
+      /* --------------------------------------------------- 内置快照兜底
+       *  断网 / 源不可用时显示。它同时也让页面"首屏不空白"。
+       * ----------------------------------------------------------------- */
+      var SNAPSHOT = [
+        {
+          title: 'APOD：土星系统全家福 —— 一夜极佳视宁度下的高清影像',
+          url: 'https://science.nasa.gov/apod/',
+          summary: '摄影师利用"幸运成像"技术，把数千张短曝光叠加，得到土星本体、环系与多颗卫星同框的高清影像。',
+          source: 'NASA APOD', published: '', image: ''
+        },
+        {
+          title: '太阳轨道器追踪"磁开关"之谜的起源',
+          url: 'https://www.esa.int/Science_Exploration/Space_Science/Solar_Orbiter',
+          summary: 'Solar Orbiter 穿过太阳风磁场的 S 形扭结，通过粒子"指纹"把它追溯到太阳表面，为理解太阳磁活动提供新线索。',
+          source: 'ESA', published: '', image: ''
+        },
+        {
+          title: '地球与火星可能有着不同的起源',
+          url: 'https://www.universetoday.com/',
+          summary: '新的同位素研究显示火星与地球并非由同一类物质按同一过程形成，这对判断系外行星是否宜居有直接影响。',
+          source: 'Universe Today', published: '', image: ''
+        },
+        {
+          title: '数千个黑洞可能就在我们"后院"，而且你可以帮忙找',
+          url: 'https://www.zooniverse.org/projects/cobalt-lensing/black-hole-hunters',
+          summary: '南安普顿大学发起公民科学项目，靠引力微透镜效应在银河系中搜寻孤立黑洞，目前已发现的黑洞仅约 70 个。',
+          source: 'Universe Today', published: '', image: ''
+        },
+        {
+          title: '月面埋藏的火山暗示月球曾有过发电机式的磁场',
+          url: 'https://www.universetoday.com/',
+          summary: 'ETH 苏黎世与 DLR 的团队通过月海火山样品证明月球早期确实存在磁发电机，为争论数十年的问题给出结论。',
+          source: 'Universe Today', published: '', image: ''
+        },
+        {
+          title: '钱德拉 X 射线望远镜公布银河系中心的新影像',
+          url: 'https://chandra.si.edu/',
+          summary: '在 Sgr A* 之外，这张 X 射线影像揭示了银心区域大量致密天体与高温气体的细节。',
+          source: 'NASA Chandra', published: '', image: ''
+        },
+        {
+          title: '韦布望远镜把"第一批星系"与今天的宇宙连接起来',
+          url: 'https://webb.nasa.gov/',
+          summary: 'MEGATRON 项目用高精度数值模拟追踪第一代恒星与星系，解释今天仍能观测到的宇宙学"指纹"。',
+          source: 'NASA JWST', published: '', image: ''
+        },
+        {
+          title: 'Sentinel-3C 传回首批地球影像',
+          url: 'https://www.esa.int/',
+          summary: '发射两周后，哥白尼 Sentinel-3C 卫星的两台关键载荷开始工作，将用于监测海洋、陆地、冰冻圈与大气。',
+          source: 'ESA', published: '', image: ''
+        },
+        {
+          title: '国际社会呼吁：让天空保持黑暗与安静',
+          url: 'https://www.esa.int/Space_Safety/Clean_Space',
+          summary: '随着在轨卫星数量激增，反射光与射电干扰正在影响专业天文观测和普通人的观星体验。',
+          source: 'ESA', published: '', image: ''
+        },
+        {
+          title: '中国天眼 FAST 持续产出脉冲星发现',
+          url: 'https://fast.bao.ac.cn/',
+          summary: '500 米口径球面射电望远镜在脉冲星搜寻、快速射电暴与中性氢巡天等方向持续发表成果。',
+          source: '国家天文台', published: '', image: ''
+        },
+        {
+          title: '嫦娥六号月背样品研究持续刷新月球演化认知',
+          url: 'https://www.cnsa.gov.cn/',
+          summary: '月球背面南极-艾特肯盆地的样品为月球早期撞击历史与岩浆活动提供了关键证据。',
+          source: '中国国家航天局', published: '', image: ''
+        },
+        {
+          title: '天问系列与小行星探测任务稳步推进',
+          url: 'https://www.cnsa.gov.cn/',
+          summary: '中国深空探测在火星取样返回、小行星伴飞取样等方向公布了新的任务规划与技术验证进展。',
+          source: '中国国家航天局', published: '', image: ''
+        }
+      ];
+
+      /* ------------------------------------------------------- 专题栏目
+       *  近年天文学的重要事件与重大突破。静态内容，长期有效。
+       * ----------------------------------------------------------------- */
+      var TOPICS = [
+        {
+          year: '2021', glow: 'rgba(0, 174, 236, .34)',
+          title: '詹姆斯·韦布空间望远镜发射',
+          text: '2021 年 12 月 25 日升空，2022 年 1 月抵达日地 L2 点。6.5 米口径、被动+主动制冷到 40K 以下，' +
+            '让人类第一次在红外波段看清宇宙最早的星系。它重新点燃了"早期宇宙为何成熟得这么快"这个难题。',
+          stats: ['口径 6.5 m', 'L2 点', '红外波段', '造价约 100 亿美元']
+        },
+        {
+          year: '2019', glow: 'rgba(217, 105, 79, .34)',
+          title: '第一张黑洞照片',
+          text: '事件视界望远镜（EHT）把全球八台毫米波望远镜连成一台"地球大小的望远镜"，' +
+            '拍下 M87 星系中心超大质量黑洞的剪影。2022 年，同一团队公布了银河系中心 Sgr A* 的影像。',
+          stats: ['M87*', 'Sgr A*', '8 台望远镜', 'VLBI 干涉']
+        },
+        {
+          year: '2015', glow: 'rgba(150, 110, 220, .34)',
+          title: '引力波被直接探测到',
+          text: 'LIGO 在 2015 年 9 月 14 日捕捉到两个黑洞并合的引力波信号 GW150914，' +
+            '2016 年 2 月公布。这验证了广义相对论百年前的预言，也开启了"引力波天文学"这个全新的观测窗口。',
+          stats: ['GW150914', '双黑洞并合', '2017 诺贝尔物理学奖']
+        },
+        {
+          year: '2019', glow: 'rgba(232, 180, 94, .34)',
+          title: '嫦娥四号首次着陆月球背面',
+          text: '2019 年 1 月 3 日，嫦娥四号在冯·卡门撞击坑着陆，人类探测器第一次站上月球背面。' +
+            '鹊桥中继星解决了背面无法直接通信的问题，玉兔二号随后开展了长期巡视探测。',
+          stats: ['月球背面首次软着陆', '鹊桥中继', '玉兔二号']
+        },
+        {
+          year: '2024', glow: 'rgba(0, 174, 236, .34)',
+          title: '嫦娥六号带回月背样品',
+          text: '2024 年 6 月，嫦娥六号完成人类首次月球背面采样返回，取回南极-艾特肯盆地的样品。' +
+            '这些样品对理解月球早期撞击历史、月幔物质组成具有不可替代的价值。',
+          stats: ['月背采样返回', '南极-艾特肯盆地', '1935.3 g']
+        },
+        {
+          year: '2021', glow: 'rgba(255, 154, 236, .34)',
+          title: '帕克太阳探测器"触摸"太阳',
+          text: '2021 年 4 月，帕克太阳探测器首次穿过日冕的阿尔文临界面，' +
+            '真正进入太阳大气内部采样。它不断刷新"最快人造物体"纪录，也在解开日冕为何比表面更热的谜题。',
+          stats: ['穿越日冕', '阿尔文面', '最快人造物体']
+        },
+        {
+          year: '2020', glow: 'rgba(0, 174, 236, .34)',
+          title: '金星大气中的磷化氢之争',
+          text: '2020 年有团队报告在金星云层中探测到磷化氢，一度被视为潜在生物标志。' +
+            '后续观测与再分析对此提出质疑。这场争论本身推动了行星大气化学与探测技术的进步。',
+          stats: ['潜在生物标志', '争议未决', '金星探测热']
+        },
+        {
+          year: '2022', glow: 'rgba(150, 110, 220, .34)',
+          title: 'DART 撞击小行星改轨',
+          text: '2022 年 9 月，DART 探测器主动撞上小行星卫星 Dimorphos，' +
+            '成功把它的公转周期缩短了约 32 分钟。这是人类第一次实测改变天体轨道，' +
+            '为行星防御提供了真实数据。',
+          stats: ['首次行星防御实测', 'Dimorphos', '周期缩短 32 分钟']
+        },
+        {
+          year: '2023', glow: 'rgba(232, 180, 94, .34)',
+          title: '纳赫兹引力波背景的证据',
+          text: '多国脉冲星计时阵列在 2023 年同时报告探测到纳赫兹引力波背景的强证据，' +
+            '很可能来自遍布宇宙的超大质量黑洞双星并合。中国天眼 FAST 与 CPTA 也参与了这一国际协作。',
+          stats: ['脉冲星计时阵列', '纳赫兹频段', '超大质量黑洞双星']
+        },
+        {
+          year: '2024', glow: 'rgba(0, 174, 236, .34)',
+          title: '星舰与可重复使用重型运载',
+          text: '星舰在 2024 年多次试飞中实现助推器"筷子"回收与再入，' +
+            '把超重型运载的复用从概念推进到工程验证阶段。这直接关系到未来大型空间望远镜与载人深空任务的成本。',
+          stats: ['超重型复用', '在轨加注', '深空运输']
+        },
+        {
+          year: '2023', glow: 'rgba(255, 154, 236, .34)',
+          title: '木星冰卫星探测器 JUICE 启程',
+          text: 'ESA 的 JUICE 于 2023 年 4 月发射，将在 2031 年抵达木星系统，' +
+            '重点研究木卫三、木卫四与木卫二的冰壳与内部海洋。它与 NASA 的 Europa Clipper 共同构成冰卫星探测的新阶段。',
+          stats: ['目标 2031', '木卫三/四/二', '冰下海洋']
+        },
+        {
+          year: '2025', glow: 'rgba(0, 174, 236, .34)',
+          title: '鲁宾天文台开启时域巡天',
+          text: '薇拉·鲁宾天文台（原 LSST）用 3.2 吉像素相机每三夜扫描一遍南天，' +
+            '十年内将积累数百万次瞬变事件记录。它可能彻底改变我们对太阳系小天体、超新星与暗物质的认识方式。',
+          stats: ['3.2 吉像素', '每 3 夜全天', '十年巡天']
+        }
+      ];
+
+      /* ---------------------------------------------------------- 状态 */
+      var state = {
+        all: [],
+        view: 'hot',
+        loading: false,
+        fromCache: false,
+        sourceCount: 0
+      };
+
+      /* ------------------------------------------------------- 小工具 */
+      var $ = function (id) { return document.getElementById(id); };
+
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+          return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
+        });
+      }
+
+      function stripTags(s) {
+        return String(s || '')
+          .replace(/<script[\s\S]*?<\/script>/gi, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      /** 任意时间格式 → 相对时间（刚刚 / 3 小时前 / 2 天前） */
+      function relTime(t) {
+        if (!t) return '';
+        var d = new Date(t);
+        if (isNaN(d.getTime())) return '';
+        var diff = (Date.now() - d.getTime()) / 1000;
+        if (diff < 0) diff = 0;
+        if (diff < 90) return '刚刚';
+        if (diff < 3600) return Math.round(diff / 60) + ' 分钟前';
+        if (diff < 86400) return Math.round(diff / 3600) + ' 小时前';
+        if (diff < 86400 * 30) return Math.round(diff / 86400) + ' 天前';
+        return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+      }
+
+      function toast(msg) {
+        var el = $('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(el.__t);
+        el.__t = setTimeout(function () { el.classList.remove('show'); }, 2400);
+      }
+
+      /** 带超时的 fetch */
+      function fetchT(url, ms) {
+        var ctrl = ('AbortController' in window) ? new AbortController() : null;
+        var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, ms || 12000);
+        var opt = ctrl ? { signal: ctrl.signal } : {};
+        return fetch(url, opt).then(function (r) {
+          clearTimeout(timer);
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r;
+        }, function (e) { clearTimeout(timer); throw e; });
+      }
+
+      /* -------------------------------------------------- 规范化一条新闻 */
+      function normalize(x) {
+        var title = stripTags(x.title || x.name || '');
+        var url = x.url || x.link || x.permalink || '';
+        var summary = stripTags(x.summary || x.description || x.content || x.excerpt || '');
+        var source = x.source || x.news_site || x.feed || x.author || '';
+        if (typeof source === 'string' && source.indexOf('(') > 0) source = source.split('(')[0].trim();
+        var published = x.published || x.published_at || x.pubDate || x.date || x.pub_date || x.updated_at || '';
+        var image = x.image_url || x.image || x.thumbnail || x.enclosure || '';
+        if (image && typeof image === 'object') image = image.link || '';
+        if (!title || !url) return null;
+        if (summary.length > 320) summary = summary.slice(0, 318) + '…';
+        return {
+          title: title,
+          url: url,
+          summary: summary,
+          source: String(source || '未知来源').slice(0, 28),
+          published: published,
+          image: String(image || ''),
+          ts: published ? (new Date(published).getTime() || 0) : 0
+        };
+      }
+
+      function dedupe(list) {
+        var seen = {};
+        var out = [];
+        list.forEach(function (n) {
+          if (!n) return;
+          var key = n.title.replace(/\s+/g, '').slice(0, 40).toLowerCase();
+          if (seen[key]) return;
+          seen[key] = 1;
+          out.push(n);
+        });
+        return out;
+      }
+
+      /* -------------------------------------------------- 分类与热度打分 */
+
+      function isCN(n) {
+        var s = (n.source || '').toLowerCase();
+        var t = n.title + ' ' + n.summary;
+        for (var i = 0; i < CN_SRC.length; i++) if (s.indexOf(CN_SRC[i].toLowerCase()) >= 0) return true;
+        for (var j = 0; j < CN_WORD.length; j++) if (t.indexOf(CN_WORD[j]) >= 0) return true;
+        /* 含大量中文字符也算中文报道 */
+        var cn = (n.title.match(/[\u4e00-\u9fa5]/g) || []).length;
+        return cn >= 6;
+      }
+
+      function heat(n, idx) {
+        var score = 0;
+        /* 时间：越新越高（48 小时以内给满分） */
+        if (n.ts) {
+          var hours = (Date.now() - n.ts) / 3600000;
+          score += Math.max(0, 26 - Math.min(26, hours / 2));
+        } else {
+          score += 6;
+        }
+        /* 摘要长度：说明信息量 */
+        score += Math.min(14, n.summary.length / 16);
+        /* 配图 */
+        if (n.image) score += 8;
+        /* 来源权重 */
+        score += (SRC_WEIGHT[n.source] || 0.6) * 16;
+        /* 中文来源略加（本站读者更关心） */
+        if (isCN(n)) score += 5;
+        /* 原始顺序作为微调，避免同分抖动 */
+        score += Math.max(0, 4 - idx * 0.05);
+        return score;
+      }
+
+      /* ---------------------------------------------------------- 取数 */
+
+      /** 主源：Spaceflight News API v4 */
+      function loadSFN() {
+        var url = SFN + '?limit=100&ordering=-published_at';
+        return fetchT(url, 13000).then(function (r) { return r.json(); }).then(function (j) {
+          var arr = (j && (j.results || j)) || [];
+          if (!Array.isArray(arr)) throw new Error('返回格式异常');
+          return arr.map(function (a) {
+            return normalize({
+              title: a.title,
+              url: a.url,
+              summary: a.summary,
+              source: a.news_site,
+              published: a.published_at,
+              image: a.image_url
+            });
+          });
+        });
+      }
+
+      /** 备源：rss2json 读 RSS */
+      function loadViaRss2Json(feed) {
+        var url = RSS2JSON + encodeURIComponent(feed.url);
+        return fetchT(url, 13000).then(function (r) { return r.json(); }).then(function (j) {
+          if (!j || j.status !== 'ok' || !Array.isArray(j.items)) throw new Error('rss2json 失败');
+          return j.items.map(function (it) {
+            return normalize({
+              title: it.title,
+              url: it.link,
+              summary: it.description || it.content,
+              source: feed.name,
+              published: it.pubDate,
+              image: it.thumbnail || (it.enclosure && it.enclosure.link) || ''
+            });
+          });
+        });
+      }
+
+      /** 再备：跨域代理直读 RSS，自己解析 */
+      function parseRssXml(text, feedName) {
+        var doc = new DOMParser().parseFromString(text, 'application/xml');
+        if (doc.querySelector('parsererror')) throw new Error('XML 解析失败');
+        var nodes = doc.querySelectorAll('item');
+        if (!nodes.length) nodes = doc.querySelectorAll('entry');
+        var out = [];
+        Array.prototype.forEach.call(nodes, function (it) {
+          var get = function (tag) {
+            var n = it.getElementsByTagName(tag)[0];
+            if (!n) return '';
+            if (tag === 'link' && n.getAttribute) {
+              var href = n.getAttribute('href');
+              if (href) return href;
+            }
+            return n.textContent || '';
+          };
+          out.push(normalize({
+            title: get('title'),
+            url: get('link'),
+            summary: get('description') || get('summary') || get('content'),
+            source: feedName,
+            published: get('pubDate') || get('published') || get('updated') || get('dc:date'),
+            image: ''
+          }));
+        });
+        return out;
+      }
+
+      function loadViaProxy(feed) {
+        var chain = PROXIES.reduce(function (p, fn) {
+          return p.catch(function () {
+            return fetchT(fn(feed.url), 14000).then(function (r) { return r.text(); });
+          });
+        }, Promise.reject(new Error('start')));
+        return chain.then(function (text) { return parseRssXml(text, feed.name); });
+      }
+
+      /** 组装：主源 + 若干 RSS 并发，谁成功算谁的 */
+      function loadAll() {
+        var jobs = [];
+
+        jobs.push(loadSFN().catch(function (e) {
+          console.warn('[新闻] SFN 主源失败：', e.message);
+          return [];
+        }));
+
+        FEEDS_INTL.concat(FEEDS_CN).forEach(function (feed) {
+          jobs.push(
+            loadViaRss2Json(feed).catch(function () {
+              return loadViaProxy(feed);
+            }).catch(function (e) {
+              console.warn('[新闻] RSS 失败：' + feed.name, e.message);
+              return [];
+            })
+          );
+        });
+
+        return Promise.all(jobs).then(function (groups) {
+          var list = [];
+          groups.forEach(function (g) { if (Array.isArray(g)) list = list.concat(g); });
+          return dedupe(list);
+        });
+      }
+
+      /* ------------------------------------------------------ 缓存 */
+      var CACHE_KEY = 'sky_news_cache_v1';
+
+      function saveCache(list) {
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), list: list.slice(0, 120) }));
+        } catch (e) { }
+      }
+
+      function readCache() {
+        try {
+          var raw = localStorage.getItem(CACHE_KEY);
+          if (!raw) return null;
+          var j = JSON.parse(raw);
+          if (!j || !Array.isArray(j.list) || !j.list.length) return null;
+          /* 缓存超过 12 小时就当过期，但仍然拿来做首屏 */
+          return j;
+        } catch (e) { return null; }
+      }
+
+      /* ------------------------------------------------------ 渲染 */
+
+      function rankIcon(i) { return String(i + 1); }
+
+      function renderTop() {
+        var list = state.all.slice().sort(function (a, b) { return b.__heat - a.__heat; }).slice(0, 10);
+        var ul = $('topList');
+        if (!list.length) {
+          ul.innerHTML = '<li class="state">暂时没有检索到新闻。<div class="state-actions">' +
+            '<button class="btn" id="retryInline" type="button">重试</button></div></li>';
+          var rb = $('retryInline');
+          if (rb) rb.addEventListener('click', function () { refresh(true); });
+          return;
+        }
+
+        ul.innerHTML = list.map(function (n, i) {
+          var tags = '';
+          if (isCN(n)) tags += '<span class="tag is-cn">中国天文</span>';
+          if (i < 3) tags += '<span class="tag is-hot">热</span>';
+          return '<li class="top-item">' +
+            '<span class="top-rank">' + rankIcon(i) + '</span>' +
+            '<span class="top-body">' +
+            '<a class="top-title" href="' + esc(n.url) + '" target="_blank" rel="noopener noreferrer">' + esc(n.title) + '</a>' +
+            (n.summary ? '<div class="top-sum">' + esc(n.summary) + '</div>' : '') +
+            '<div class="top-meta">' +
+            '<span class="tag">' + esc(n.source) + '</span>' +
+            (n.published ? '<span>' + esc(relTime(n.published)) + '</span>' : '') +
+            tags +
+            '</div>' +
+            '</span>' +
+            (n.image ? '<img class="top-thumb" src="' + esc(n.image) + '" alt="" loading="lazy" ' +
+              'onerror="this.style.display=\'none\'">' : '') +
+            '</li>';
+        }).join('');
+      }
+
+      function renderView() {
+        var grid = $('viewGrid');
+        var topicGrid = $('topicGrid');
+        var stateEl = $('viewState');
+        var title = $('viewTitle');
+        var sub = $('viewSub');
+        var note = $('viewNote');
+
+        stateEl.hidden = true;
+        grid.hidden = true;
+        topicGrid.hidden = true;
+
+        /* 专题栏目：静态内容 */
+        if (state.view === 'topic') {
+          title.textContent = '专题栏目';
+          sub.textContent = 'Milestones';
+          note.textContent = '近年重大事件与突破';
+          topicGrid.hidden = false;
+          topicGrid.innerHTML = TOPICS.map(function (t) {
+            return '<article class="topic" style="--topic-glow:' + t.glow + '">' +
+              '<span class="topic-year">' + esc(t.year) + '</span>' +
+              '<h3>' + esc(t.title) + '</h3>' +
+              '<p>' + esc(t.text) + '</p>' +
+              '<div class="topic-stats">' +
+              t.stats.map(function (s) { return '<span>' + esc(s) + '</span>'; }).join('') +
+              '</div></article>';
+          }).join('');
+          return;
+        }
+
+        var list;
+        if (state.view === 'cn') {
+          title.textContent = '中国天文';
+          sub.textContent = 'China';
+          note.textContent = '中国航天与天文动态';
+          list = state.all.filter(isCN);
+        } else if (state.view === 'intl') {
+          title.textContent = '外国天文';
+          sub.textContent = 'International';
+          note.textContent = 'NASA / ESA / 全球天文机构';
+          list = state.all.filter(function (n) { return !isCN(n); });
+        } else {
+          title.textContent = '近期热点';
+          sub.textContent = 'Latest';
+          note.textContent = '按时间与来源自动排布';
+          list = state.all.slice();
+        }
+
+        list = list.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
+
+        if (!list.length) {
+          stateEl.hidden = false;
+          stateEl.innerHTML =
+            '<div>这个栏目暂时没有检索到内容。</div>' +
+            '<div class="state-actions">' +
+            '<button class="btn" id="retryInline2" type="button">重新检索</button>' +
+            '<button class="btn" id="pasteInline" type="button">手动粘贴数据</button>' +
+            '</div>';
+          var r1 = $('retryInline2'); if (r1) r1.addEventListener('click', function () { refresh(true); });
+          var r2 = $('pasteInline'); if (r2) r2.addEventListener('click', openPaste);
+          return;
+        }
+
+        grid.hidden = false;
+        grid.innerHTML = list.slice(0, 60).map(function (n) {
+          return '<a class="news-card" href="' + esc(n.url) + '" target="_blank" rel="noopener noreferrer">' +
+            (n.image ? '<img class="thumb" src="' + esc(n.image) + '" alt="" loading="lazy" ' +
+              'onerror="this.remove()">' : '') +
+            '<span class="body">' +
+            '<h3>' + esc(n.title) + '</h3>' +
+            (n.summary ? '<p>' + esc(n.summary) + '</p>' : '') +
+            '<span class="meta">' +
+            '<span class="tag' + (isCN(n) ? ' is-cn' : '') + '">' + esc(n.source) + '</span>' +
+            (n.published ? '<span>' + esc(relTime(n.published)) + '</span>' : '') +
+            '</span></span></a>';
+        }).join('');
+      }
+
+      function renderStats() {
+        $('statCount').textContent = String(state.all.length);
+        $('statSrc').textContent = String(state.sourceCount);
+        var t = state.all.reduce(function (m, n) { return Math.max(m, n.ts || 0); }, 0);
+        $('statTime').textContent = t ? relTime(new Date(t).toISOString()) : (state.fromCache ? '离线缓存' : '—');
+        $('hotUpdated').textContent = state.fromCache ? '离线缓存 · ' + new Date().toLocaleTimeString() : '已更新';
+
+        var cn = state.all.filter(isCN).length;
+        $('cnt-hot').textContent = String(Math.min(10, state.all.length));
+        $('cnt-cn').textContent = String(cn);
+        $('cnt-intl').textContent = String(state.all.length - cn);
+        $('cnt-topic').textContent = String(TOPICS.length);
+      }
+
+      /* ------------------------------------------------------ 主流程 */
+
+      function applyList(list, fromCache) {
+        /* 预先把热度算好，避免每次渲染重复计算 */
+        list.forEach(function (n, i) { n.__heat = heat(n, i); });
+        state.all = list;
+        state.fromCache = !!fromCache;
+        var srcs = {};
+        list.forEach(function (n) { srcs[n.source] = 1; });
+        state.sourceCount = Object.keys(srcs).length;
+
+        renderTop();
+        renderView();
+        renderStats();
+      }
+
+      function showLoading() {
+        var stateEl = $('viewState');
+        stateEl.hidden = false;
+        stateEl.innerHTML = '<div class="spinner"></div><div>正在检索天文资讯源…</div>';
+        $('viewGrid').hidden = true;
+        $('topicGrid').hidden = true;
+      }
+
+      /** fromUser = 用户主动点刷新 */
+      function refresh(fromUser) {
+        if (state.loading) return;
+        state.loading = true;
+        if (fromUser) toast('正在重新检索…');
+        if (state.view !== 'topic') showLoading();
+
+        loadAll().then(function (list) {
+          state.loading = false;
+
+          if (!list.length) {
+            /* 三层源全挂：用快照 + 缓存 */
+            var cache = readCache();
+            var fallback = (cache && cache.list.length) ? cache.list : SNAPSHOT.slice();
+            applyList(fallback.map(normalize).filter(Boolean), true);
+            toast('资讯源暂时不可用，已显示离线内容');
+            return;
+          }
+
+          applyList(list, false);
+          saveCache(list);
+          if (fromUser) toast('已更新 ' + list.length + ' 条');
+        }).catch(function (e) {
+          state.loading = false;
+          console.warn('[新闻] 全部来源失败：', e);
+          var cache = readCache();
+          var fallback = (cache && cache.list.length) ? cache.list : SNAPSHOT.slice();
+          applyList(fallback.map(normalize).filter(Boolean), true);
+          toast('检索失败，已显示离线内容');
+        });
+      }
+
+      /* ------------------------------------------------------ 交互 */
+
+      function bindTabs() {
+        document.querySelectorAll('.tab').forEach(function (b) {
+          b.addEventListener('click', function () {
+            document.querySelectorAll('.tab').forEach(function (x) {
+              x.classList.toggle('is-active', x === b);
+              x.setAttribute('aria-selected', x === b ? 'true' : 'false');
+            });
+            state.view = b.getAttribute('data-view');
+            renderView();
+            /* 切栏目时把视图区滚到可见位置 */
+            var sec = $('secView');
+            if (sec && sec.getBoundingClientRect().top < 0) {
+              sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          });
+        });
+      }
+
+      function openPaste() {
+        $('pasteMask').classList.add('show');
+        $('pasteMask').setAttribute('aria-hidden', 'false');
+        setTimeout(function () { $('pasteArea').focus(); }, 240);
+      }
+
+      function closePaste() {
+        $('pasteMask').classList.remove('show');
+        $('pasteMask').setAttribute('aria-hidden', 'true');
+      }
+
+      function bindPaste() {
+        $('pasteBtn').addEventListener('click', openPaste);
+        $('pasteClose').addEventListener('click', closePaste);
+        $('pasteCancel').addEventListener('click', closePaste);
+        $('pasteMask').addEventListener('click', function (e) {
+          if (e.target === $('pasteMask')) closePaste();
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') closePaste();
+        });
+
+        $('pasteApply').addEventListener('click', function () {
+          var raw = $('pasteArea').value.trim();
+          if (!raw) { toast('请先粘贴内容'); return; }
+          var data;
+          try {
+            data = JSON.parse(raw);
+          } catch (e) {
+            toast('JSON 格式有误：' + e.message);
+            return;
+          }
+          var arr = Array.isArray(data) ? data : (data.results || data.items || data.articles || []);
+          if (!Array.isArray(arr) || !arr.length) { toast('没找到可用的新闻数组'); return; }
+          var list = dedupe(arr.map(normalize).filter(Boolean));
+          if (!list.length) { toast('解析后没有有效的条目（需要有 title 和 url）'); return; }
+          applyList(list, true);
+          saveCache(list);
+          closePaste();
+          toast('已载入 ' + list.length + ' 条离线数据');
+        });
+      }
+
+      /* ------------------------------------------------------ 日夜 */
+      function initTheme() {
+        var btn = $('themeBtn');
+        var KEY = 'Fluid_Color_Scheme';
+        function apply(v) {
+          document.documentElement.setAttribute('data-user-color-scheme', v === 'light' ? 'light' : 'dark');
+          document.documentElement.setAttribute('data-sky', v === 'light' ? 'light' : 'dark');
+          try { localStorage.setItem(KEY, v); } catch (e) { }
+        }
+        var saved = null;
+        try { saved = localStorage.getItem(KEY); } catch (e) { }
+        apply(saved === 'light' ? 'light' : 'dark');
+
+        btn.addEventListener('click', function () {
+          var cur = document.documentElement.getAttribute('data-user-color-scheme');
+          apply(cur === 'light' ? 'dark' : 'light');
+        });
+      }
+
+      /* ------------------------------------------------------ 启动 */
+      function init() {
+        initTheme();
+        bindTabs();
+        bindPaste();
+        $('refreshBtn').addEventListener('click', function () { refresh(true); });
+
+        /* 先显示缓存（如果有），再后台刷新 —— 首屏不会空白 */
+        var cache = readCache();
+        if (cache && cache.list && cache.list.length) {
+          applyList(cache.list.map(normalize).filter(Boolean), true);
+          var ageH = (Date.now() - cache.t) / 3600000;
+          if (ageH > 6) refresh(false);
+          else {
+            /* 缓存还新鲜，仍然静默刷新一次以拿到更新的内容 */
+            setTimeout(function () { refresh(false); }, 900);
+          }
+        } else {
+          /* 没有缓存：先摆快照，再检索 */
+          applyList(SNAPSHOT.map(normalize).filter(Boolean), true);
+          refresh(false);
+        }
+
+        /* 每 15 分钟自动刷新一次 */
+        setInterval(function () { refresh(false); }, 15 * 60 * 1000);
+
+        /* 回到前台且超过 10 分钟没更新，就自动刷一次 */
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden) return;
+          var last = state.all.reduce(function (m, n) { return Math.max(m, n.ts || 0); }, 0);
+          if (!last || Date.now() - last > 10 * 60 * 1000) refresh(false);
+        });
+      }
+
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+      else init();
+    })();
+  </script>
+
+</body>
+
+</html>

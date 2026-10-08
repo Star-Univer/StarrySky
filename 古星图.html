@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme="dark" data-user-color-scheme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>古籍星图 · 三垣二十八宿 | 星空</title>
+  <meta name="description" content="星空 · staruniver 的古籍风格星图：三垣二十八宿摹古抄本，含星官检索、古籍原文、传说典故与现代天文对照。" />
+
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f2e8d4'/%3E%3Cpath d='M32 10 L37 27 L54 32 L37 37 L32 54 L27 37 L10 32 L27 27 Z' fill='%238a2f22'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@400;700;900&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /* =====================================================================
+       古籍星图独立页
+       ---------------------------------------------------------------------
+       用法：
+         · 直接从首页左上角灰色圆点打开的是"面板形态"（由 css/sky.css 提供）
+         · 这个文件是"独立页形态"，方便你把链接直接发给别人，
+           或者用手机单独打开当一本小画册翻。
+
+       内容结构与面板一致：左目录 / 中星图 / 右详解 / 下四页内容。
+       ===================================================================== */
+
+    :root {
+      --paper-0: #fdf9ef;
+      --paper-1: #f4ead4;
+      --paper-2: #e7d9bd;
+      --ink-0: #23180f;
+      --ink-1: #3a2f20;
+      --ink-2: #6b573a;
+      --ink-3: #8a7350;
+      --line: rgba(122, 96, 60, .3);
+      --line-strong: rgba(122, 96, 60, .48);
+      --seal: #a8482f;
+      --seal-deep: #8a2f22;
+      --gold: #b08a3e;
+      --ease-soft: cubic-bezier(.2, .7, .3, 1);
+      --serif: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      font-family: var(--serif);
+      color: var(--ink-1);
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(255, 250, 236, 1), var(--paper-1) 58%, var(--paper-2) 100%);
+      overflow: hidden;
+    }
+
+    /* 纸纹 */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: .55;
+      mix-blend-mode: multiply;
+      background-image:
+        repeating-linear-gradient(90deg, rgba(150, 125, 88, .06) 0 1px, transparent 1px 5px),
+        repeating-linear-gradient(0deg, rgba(150, 125, 88, .05) 0 1px, transparent 1px 6px);
+    }
+
+    /* --------------------------------------------------------- 顶部题头 */
+    .paper-head {
+      position: relative;
+      z-index: 3;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255, 251, 240, .95), rgba(247, 238, 220, .82));
+    }
+
+    .paper-seal {
+      flex: 0 0 auto;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2.5px solid var(--seal);
+      border-radius: 7px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--seal);
+      letter-spacing: 0;
+      box-shadow: 0 4px 14px -8px rgba(138, 47, 34, .8);
+    }
+
+    .paper-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .paper-title h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: .22em;
+      color: var(--ink-0);
+      white-space: nowrap;
+    }
+
+    .paper-title p {
+      font-size: .7rem;
+      letter-spacing: .2em;
+      color: var(--ink-3);
+    }
+
+    .paper-head-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .paper-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 99px;
+      border: 1px solid var(--line-strong);
+      background: rgba(255, 253, 246, .85);
+      transition: border-color .22s ease, box-shadow .22s ease;
+    }
+
+    .paper-search:focus-within {
+      border-color: rgba(168, 72, 47, .75);
+      box-shadow: 0 0 0 3px rgba(168, 72, 47, .12);
+    }
+
+    .paper-search svg {
+      width: 15px;
+      height: 15px;
+      fill: none;
+      stroke: var(--ink-2);
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    .paper-search input {
+      width: clamp(120px, 18vw, 220px);
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: var(--serif);
+      font-size: .84rem;
+      letter-spacing: .06em;
+      color: var(--ink-0);
+    }
+
+    .paper-search input::placeholder {
+      color: rgba(122, 100, 68, .62);
+    }
+
+    .paper-btn {
+      padding: 8px 16px;
+      border-radius: 99px;
+      border: 1px solid var(--line-strong);
+      background: rgba(255, 253, 246, .8);
+      font-family: var(--serif);
+      font-size: .78rem;
+      letter-spacing: .12em;
+      color: var(--ink-2);
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background .22s ease, border-color .22s ease, color .22s ease, transform .22s ease;
+    }
+
+    .paper-btn:hover {
+      background: rgba(168, 72, 47, .12);
+      border-color: rgba(168, 72, 47, .6);
+      color: var(--seal-deep);
+      transform: translateY(-1px);
+    }
+
+    /* --------------------------------------------------------- 主体三栏 */
+    .paper-body {
+      position: relative;
+      z-index: 2;
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      overflow: hidden;
+    }
+
+    /* 左：目录 */
+    .paper-side {
+      min-height: 0;
+      overflow-y: auto;
+      padding: 16px 14px 40px;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(253, 248, 238, .8), rgba(245, 235, 216, .6));
+    }
+
+    .side-note {
+      font-size: .74rem;
+      line-height: 1.95;
+      color: var(--ink-2);
+      padding: 0 4px 14px;
+      border-bottom: 1px dashed var(--line-strong);
+      margin-bottom: 14px;
+    }
+
+    .side-note b {
+      color: var(--seal-deep);
+    }
+
+    .sec {
+      margin-bottom: 18px;
+    }
+
+    .sec-head {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: .8rem;
+      font-weight: 700;
+      color: #4a3a24;
+      letter-spacing: .12em;
+      margin-bottom: 8px;
+    }
+
+    .sec-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 19px;
+      height: 19px;
+      border-radius: 4px;
+      font-size: .62rem;
+      color: #fdf7ea;
+      background: #8a5a2a;
+      letter-spacing: 0;
+    }
+
+    .xiu-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .xiu-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      font-family: var(--serif);
+      color: var(--ink-0);
+      cursor: pointer;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+
+    .xiu-btn b {
+      display: block;
+      font-size: .88rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+    }
+
+    .xiu-btn i {
+      display: block;
+      margin-top: 2px;
+      font-style: normal;
+      font-size: .62rem;
+      letter-spacing: .06em;
+      color: var(--ink-3);
+    }
+
+    .xiu-btn:hover {
+      background: rgba(168, 72, 47, .09);
+      border-color: rgba(168, 72, 47, .32);
+      transform: translateX(3px);
+    }
+
+    .xiu-btn.is-active {
+      background: rgba(168, 72, 47, .16);
+      border-color: rgba(168, 72, 47, .62);
+      box-shadow: inset 3px 0 0 var(--seal);
+    }
+
+    .xiu-btn.is-active b {
+      color: var(--seal-deep);
+    }
+
+    /* 中：星图 */
+    .paper-stage-wrap {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* 星图滚动容器：图幅 2400×1800，窗口小的时候可以横向拖动查看 */
+    .paper-stage {
+      flex: 1 1 auto;
+      min-height: 0;
+      width: 100%;
+      overflow: auto;
+      overscroll-behavior: contain;
+      background:
+        radial-gradient(ellipse at 50% 40%, rgba(255, 251, 240, .7), rgba(238, 227, 205, .35) 72%);
+    }
+
+    .paper-stage .chart-root {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-width: none;
+      user-select: none;
+    }
+
+    .chart-fallback-img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .stage-hint {
+      position: absolute;
+      left: 16px;
+      bottom: 14px;
+      padding: 7px 14px;
+      border-radius: 99px;
+      font-size: .7rem;
+      letter-spacing: .1em;
+      color: var(--ink-2);
+      background: rgba(255, 250, 238, .9);
+      border: 1px solid var(--line);
+      pointer-events: none;
+    }
+
+    /* 右：详解 */
+    .paper-detail {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: min(440px, 46vw);
+      height: 100%;
+      overflow-y: auto;
+      padding: 22px 22px 70px;
+      background: linear-gradient(180deg, rgba(255, 252, 243, .98), rgba(247, 238, 220, .98));
+      border-left: 1px solid var(--line-strong);
+      box-shadow: -26px 0 64px -36px rgba(60, 44, 22, .62);
+      transform: translateX(102%);
+      opacity: 0;
+      transition: transform .5s var(--ease-soft), opacity .4s ease;
+    }
+
+    .paper-detail.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    .d-head {
+      border-bottom: 2px solid rgba(168, 72, 47, .55);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .d-head h2 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: .16em;
+      color: var(--ink-0);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .d-pinyin {
+      font-size: .66rem;
+      letter-spacing: .14em;
+      color: var(--seal);
+      font-family: system-ui, sans-serif;
+      font-weight: 500;
+    }
+
+    .d-sub {
+      margin-top: 7px;
+      font-size: .72rem;
+      letter-spacing: .1em;
+      color: var(--ink-3);
+    }
+
+    .d-facts {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .d-fact {
+      padding: 9px 11px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      background: rgba(255, 254, 249, .8);
+    }
+
+    .d-fact span {
+      display: block;
+      font-size: .6rem;
+      letter-spacing: .14em;
+      color: var(--ink-3);
+    }
+
+    .d-fact b {
+      display: block;
+      margin-top: 3px;
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--ink-0);
+    }
+
+    .d-block {
+      margin-bottom: 18px;
+    }
+
+    .d-block h3 {
+      position: relative;
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .16em;
+      color: var(--seal-deep);
+      margin-bottom: 8px;
+      padding-left: 12px;
+    }
+
+    .d-block h3::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 5px;
+      height: 5px;
+      margin-top: -2.5px;
+      background: var(--seal);
+      transform: rotate(45deg);
+    }
+
+    .d-block p {
+      font-size: .84rem;
+      line-height: 2;
+      color: var(--ink-1);
+      text-align: justify;
+    }
+
+    .d-block p+p {
+      margin-top: 8px;
+    }
+
+    .d-record blockquote {
+      padding: 13px 15px;
+      border-radius: 10px;
+      border: 1px solid var(--line-strong);
+      background: rgba(255, 253, 245, .92);
+      font-size: .86rem;
+      line-height: 2.1;
+      color: var(--ink-0);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85);
+    }
+
+    .d-record cite {
+      display: block;
+      margin-top: 9px;
+      font-style: normal;
+      font-size: .68rem;
+      letter-spacing: .1em;
+      color: var(--ink-3);
+      text-align: right;
+    }
+
+    .d-dso {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .d-dso li {
+      position: relative;
+      padding: 8px 11px 8px 25px;
+      font-size: .78rem;
+      line-height: 1.75;
+      border-radius: 8px;
+      border: 1px solid rgba(122, 96, 60, .24);
+      background: rgba(255, 254, 249, .66);
+      color: var(--ink-1);
+    }
+
+    .d-dso li::before {
+      content: '✦';
+      position: absolute;
+      left: 10px;
+      top: 8px;
+      color: var(--gold);
+      font-size: .72rem;
+    }
+
+    .d-nav {
+      display: flex;
+      gap: 9px;
+      margin-top: 22px;
+      padding-top: 15px;
+      border-top: 1px dashed var(--line-strong);
+    }
+
+    .d-nav button {
+      flex: 1 1 0;
+      padding: 10px 8px;
+      border-radius: 9px;
+      border: 1px solid var(--line-strong);
+      background: rgba(255, 252, 244, .85);
+      font-family: var(--serif);
+      font-size: .76rem;
+      letter-spacing: .06em;
+      color: #4a3a24;
+      cursor: pointer;
+      transition: background .2s ease, border-color .2s ease, transform .2s ease;
+    }
+
+    .d-nav button:hover {
+      background: rgba(168, 72, 47, .12);
+      border-color: rgba(168, 72, 47, .58);
+      color: var(--seal-deep);
+      transform: translateY(-1px);
+    }
+
+    /* 详解面板的关闭按钮（独立页用得上） */
+    .d-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 32px;
+      height: 32px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: rgba(255, 253, 246, .85);
+      cursor: pointer;
+    }
+
+    .d-close svg {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: var(--ink-2);
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    /* --------------------------------------------------- 下部内容标签页 */
+    .paper-foot {
+      position: relative;
+      z-index: 3;
+      flex: 0 0 auto;
+      max-height: 42vh;
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, rgba(253, 248, 238, .96), rgba(243, 233, 213, .96));
+    }
+
+    .foot-tabs {
+      flex: 0 0 auto;
+      display: flex;
+      gap: 4px;
+      padding: 10px 20px 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .foot-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .foot-tab {
+      flex: 0 0 auto;
+      padding: 9px 18px;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      background: transparent;
+      font-family: var(--serif);
+      font-size: .8rem;
+      letter-spacing: .14em;
+      color: var(--ink-2);
+      cursor: pointer;
+      transition: background .2s ease, color .2s ease;
+    }
+
+    .foot-tab:hover {
+      background: rgba(168, 72, 47, .08);
+      color: var(--seal-deep);
+    }
+
+    .foot-tab.is-active {
+      background: rgba(255, 253, 246, .96);
+      border-color: var(--line-strong);
+      color: var(--seal-deep);
+      font-weight: 700;
+      box-shadow: 0 -2px 0 var(--seal) inset;
+    }
+
+    .foot-pane {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 16px 22px 26px;
+      background: rgba(255, 253, 246, .92);
+    }
+
+    .lead {
+      font-size: .84rem;
+      line-height: 2;
+      color: #4a3a24;
+      margin-bottom: 16px;
+      padding-left: 13px;
+      border-left: 3px solid rgba(168, 72, 47, .5);
+      text-align: justify;
+    }
+
+    /* 四时观星 */
+    .season {
+      position: relative;
+      padding: 18px 20px 20px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255, 254, 249, .88);
+      margin-bottom: 16px;
+      box-shadow: 0 14px 34px -28px rgba(60, 44, 22, .85);
+    }
+
+    .season-badge {
+      position: absolute;
+      top: -13px;
+      left: 18px;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fdf7ea;
+      background: radial-gradient(circle at 35% 30%, #c45a3c, #8a2f22);
+      box-shadow: 0 7px 18px -9px rgba(138, 47, 34, .95);
+    }
+
+    .season h3 {
+      font-size: 1.06rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: var(--ink-0);
+      margin: 8px 0 4px 46px;
+    }
+
+    .season .season-time {
+      font-size: .68rem;
+      letter-spacing: .12em;
+      color: var(--ink-3);
+      margin: 0 0 11px 46px;
+    }
+
+    .season p {
+      font-size: .82rem;
+      line-height: 2;
+      text-align: justify;
+    }
+
+    .season-cols {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin: 15px 0;
+    }
+
+    .season-cols h4 {
+      font-size: .76rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      color: var(--seal-deep);
+      margin-bottom: 7px;
+    }
+
+    .season-cols ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .season-cols li {
+      position: relative;
+      padding-left: 15px;
+      font-size: .78rem;
+      line-height: 1.8;
+      color: var(--ink-1);
+    }
+
+    .season-cols li::before {
+      content: '·';
+      position: absolute;
+      left: 4px;
+      color: var(--seal);
+      font-weight: 700;
+    }
+
+    .season-tip {
+      margin-top: 11px;
+      padding: 11px 13px;
+      border-radius: 9px;
+      background: rgba(168, 72, 47, .07);
+      border: 1px dashed rgba(168, 72, 47, .34);
+      font-size: .78rem;
+      line-height: 1.9;
+      color: #4a3a24;
+    }
+
+    /* 表格 */
+    table.doc {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .82rem;
+    }
+
+    table.doc thead th {
+      position: sticky;
+      top: 0;
+      padding: 10px 11px;
+      text-align: left;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      color: #fdf7ea;
+      background: #7a5c33;
+      white-space: nowrap;
+    }
+
+    table.doc tbody td {
+      padding: 9px 11px;
+      border-bottom: 1px solid rgba(122, 96, 60, .2);
+      color: var(--ink-1);
+      line-height: 1.75;
+    }
+
+    table.doc tbody tr:nth-child(even) {
+      background: rgba(122, 96, 60, .05);
+    }
+
+    .td-seal {
+      font-weight: 700;
+      color: var(--seal-deep);
+      white-space: nowrap;
+    }
+
+    tr.row-link {
+      cursor: pointer;
+      transition: background .2s ease;
+    }
+
+    tr.row-link:hover {
+      background: rgba(168, 72, 47, .14) !important;
+    }
+
+    /* 星占术语 */
+    .omen-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 13px;
+    }
+
+    .omen {
+      padding: 13px 15px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255, 254, 249, .85);
+    }
+
+    .omen h4 {
+      display: flex;
+      align-items: baseline;
+      gap: 9px;
+      font-size: .9rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--ink-0);
+      margin-bottom: 7px;
+      flex-wrap: wrap;
+    }
+
+    .omen h4 span {
+      font-size: .62rem;
+      letter-spacing: .08em;
+      color: var(--seal);
+      font-family: system-ui, sans-serif;
+      font-weight: 500;
+    }
+
+    .omen p {
+      font-size: .78rem;
+      line-height: 1.9;
+      color: var(--ink-1);
+    }
+
+    .omen cite {
+      display: block;
+      margin-top: 8px;
+      font-style: normal;
+      font-size: .64rem;
+      letter-spacing: .1em;
+      color: var(--ink-3);
+      text-align: right;
+    }
+
+    /* 时间轴 */
+    .timeline {
+      position: relative;
+      padding-left: 20px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 5px;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(168, 72, 47, .68), rgba(168, 72, 47, .12));
+    }
+
+    .ev {
+      position: relative;
+      display: grid;
+      grid-template-columns: 122px minmax(0, 1fr);
+      gap: 14px;
+      padding: 8px 0;
+    }
+
+    .ev::before {
+      content: '';
+      position: absolute;
+      left: -18px;
+      top: 15px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--seal);
+      box-shadow: 0 0 0 3px rgba(168, 72, 47, .16);
+    }
+
+    .ev-year {
+      font-size: .74rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: var(--seal-deep);
+      padding-top: 2px;
+    }
+
+    .ev h4 {
+      font-size: .84rem;
+      font-weight: 700;
+      color: var(--ink-0);
+      margin-bottom: 3px;
+    }
+
+    .ev p {
+      font-size: .77rem;
+      line-height: 1.85;
+      color: #4a3a24;
+    }
+
+    /* 页脚 */
+    .paper-foot-note {
+      position: relative;
+      z-index: 3;
+      flex: 0 0 auto;
+      padding: 10px 22px 12px;
+      font-size: .66rem;
+      letter-spacing: .16em;
+      color: var(--ink-3);
+      text-align: center;
+      border-top: 1px solid rgba(122, 96, 60, .18);
+      background: rgba(243, 233, 213, .9);
+    }
+
+    /* ------------------------------------------------------------ 响应式 */
+    @media (max-width: 1000px) {
+      .paper-body {
+        grid-template-columns: 1fr;
+        overflow-y: auto;
+      }
+
+      .paper-side {
+        display: none;
+      }
+
+      /* 窄屏时详解改成嵌在星图下面的一整块，不要浮在星图上 */
+      .paper-detail {
+        position: static;
+        width: 100%;
+        height: auto;
+        max-height: none;
+        transform: none;
+        opacity: 1;
+        border-left: none;
+        border-top: 1px solid var(--line-strong);
+        box-shadow: none;
+        display: none;
+      }
+
+      .paper-detail.show {
+        display: block;
+      }
+
+      .paper-stage-wrap {
+        min-height: 340px;
+      }
+
+      .d-close {
+        display: flex;
+      }
+
+      .paper-foot {
+        max-height: 32vh;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .paper-head {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px 14px;
+      }
+
+      .paper-title h1 {
+        font-size: 1.15rem;
+        letter-spacing: .16em;
+      }
+
+      .paper-title p {
+        display: none;
+      }
+
+      .paper-head-actions {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .paper-search {
+        flex: 1 1 auto;
+      }
+
+      .paper-search input {
+        width: 100%;
+      }
+
+      .paper-seal {
+        width: 38px;
+        height: 38px;
+        font-size: 1.1rem;
+      }
+
+      .ev {
+        grid-template-columns: 1fr;
+        gap: 3px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ============================ 顶部题头 ============================ -->
+  <header class="paper-head">
+    <div class="paper-seal" aria-hidden="true">星</div>
+    <div class="paper-title">
+      <h1>星空全图</h1>
+      <p>三垣二十八宿 · 摹古籍抄本 · 玄寂墨羽藏</p>
+    </div>
+
+    <div class="paper-head-actions">
+      <label class="paper-search">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="M16.5 16.5 21 21" />
+        </svg>
+        <input id="chartSearch" type="search" placeholder="检索星官：角宿 / 参宿 / 大火 / Antares"
+          aria-label="检索星官" autocomplete="off" spellcheck="false" />
+      </label>
+      <button class="paper-btn" id="btnRandom" type="button">随意一宿</button>
+      <a class="paper-btn" href="index.html">← 返回星空</a>
+    </div>
+  </header>
+
+  <!-- ============================ 主体三栏 ============================ -->
+  <div class="paper-body" id="chartBody">
+
+    <!-- 左：星官目录 -->
+    <aside class="paper-side">
+      <p class="side-note">
+        此图摹自古籍抄本，以<b>三垣二十八宿</b>为纲。<br />
+        点图中任一星官、或点左侧目录，右侧即现其<b>古籍原文、传说典故</b>与<b>现代天文对照</b>。
+      </p>
+      <div id="chartList"></div>
+    </aside>
+
+    <!-- 中：星图（由 js/skychart.js 读取 assets/chart-ink-inline.svg 内联进来） -->
+    <section class="paper-stage-wrap">
+      <div class="paper-stage" id="chartStage" data-src="assets/chart-ink-inline.svg"></div>
+      <p class="stage-hint">点击图中的星官名或星点，可展开详解</p>
+      <button class="d-close" id="detailClose" type="button" aria-label="关闭详解">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+    </section>
+
+    <!-- 右：详解（浮层） -->
+    <aside class="paper-detail" id="chartDetail" aria-live="polite"></aside>
+  </div>
+
+  <!-- ========================== 下部内容页 ========================== -->
+  <div class="paper-foot">
+    <div class="foot-tabs" id="chartTabs" role="tablist"></div>
+    <div class="foot-pane" id="chartTabPane" role="tabpanel"></div>
+  </div>
+
+  <p class="paper-foot-note">
+    星图数据取自《史记·天官书》《汉书·天文志》《晋书·天文志》《开元占经》等典籍 ·
+    现代天文数据参考 IAU 与各类公开星表
+  </p>
+
+  <script src="js/starlore.js"></script>
+  <script src="js/skychart.js"></script>
+</body>
+
+</html>

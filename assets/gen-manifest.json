@@ -1,0 +1,27 @@
+{
+  "generated": "2026-10-08T15:11:38.081Z",
+  "seeds": {
+    "deep": "0xA17C0DE",
+    "mid": "0xB2E5A11",
+    "near": "0xC3F0B22",
+    "chart": "0xD4A1C33"
+  },
+  "canvas": {
+    "w": 4000,
+    "h": 2000
+  },
+  "chartCanvas": {
+    "w": 2400,
+    "h": 1900
+  },
+  "files": [
+    "sky-deep.svg",
+    "sky-mid.svg",
+    "sky-near.svg",
+    "mansion-layer.svg",
+    "chart-ink.svg",
+    "chart-ink-inline.svg",
+    "starcat.json"
+  ],
+  "totalKB": 5898.9
+}

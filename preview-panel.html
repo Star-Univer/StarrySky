@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>面板渲染自检</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      background: #111;
+    }
+
+    iframe {
+      width: 1280px;
+      height: 900px;
+      border: 0;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ?open=chart / ?open=settings / ?open=light -->
+  <script>
+    var q = new URLSearchParams(location.search);
+    var open = q.get('open') || 'chart';
+    var light = q.get('light') === '1';
+    var frame = document.createElement('iframe');
+    frame.src = '../index.html';
+    document.body.appendChild(frame);
+    frame.addEventListener('load', function () {
+      try {
+        var d = frame.contentDocument;
+        var w = frame.contentWindow;
+        if (light) {
+          d.documentElement.setAttribute('data-user-color-scheme', 'light');
+          d.documentElement.setAttribute('data-sky', 'light');
+        }
+        if (open === 'chart') {
+          setTimeout(function () { d.getElementById('chartOpenBtn').click(); }, 300);
+        } else if (open === 'settings') {
+          setTimeout(function () {
+            w.localStorage.setItem('sky_session', '玄寂墨羽');
+            d.getElementById('navUser').click();
+          }, 300);
+        } else if (open === 'auth') {
+          setTimeout(function () { d.getElementById('navUser').click(); }, 300);
+        }
+      } catch (e) {
+        document.title = 'ERR ' + e.message;
+      }
+    });
+  </script>
+</body>
+
+</html>
