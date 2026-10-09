@@ -647,6 +647,32 @@ footer .line{
   .btn-huangdao{font-size:15px;letter-spacing:5px;text-indent:5px;padding:13px 0;}
 }
 </style>
+
+  <!-- theme-skin: 全站淡黄底 + 亮度 -->
+  <style>
+    /* 亮度滑杆用的变量。页面自带的淡黄底是最暗的一档，
+       拉到 100% 时由 js/theme-skin.js 换成纯白。 */
+    :root { --bright: 0; }
+  </style>
+  <script>
+    /* 提前把亮度写进 CSS 变量，避免刷新时先闪一下淡黄再从纯白跳回来 */
+    (function () {
+      try {
+        var v = parseFloat(localStorage.getItem('sky_bright'));
+        if (!isFinite(v) || v < 0 || v > 1) v = 0;
+        document.documentElement.style.setProperty('--bright', String(v));
+        if (v > 0) {
+          /* 用一层极淡的白纱叠出"由淡黄变纯白"的过渡，
+             不改动页面已有的任何颜色，最保险 */
+          var s = document.createElement('style');
+          s.id = 'brightVeil';
+          s.textContent = 'html::before{content:"";position:fixed;inset:0;z-index:0;' +
+            'pointer-events:none;background:rgba(255,255,255,' + v.toFixed(3) + ')}';
+          document.head.appendChild(s);
+        }
+      } catch (e) { }
+    })();
+  </script>
 </head>
 <body>
 

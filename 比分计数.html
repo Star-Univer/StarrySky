@@ -27,7 +27,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: #fff;
+    background: #fbf7ec;
     border: 1px solid #e2e8f0;
     color: #1e293b;
     text-decoration: none;
@@ -44,7 +44,7 @@
   .back-btn svg { width: 22px; height: 22px; display: block; }
 
   .board {
-    background: #fff; border-radius: 16px;
+    background: #fbf7ec; border-radius: 16px;
     padding: 18px 14px 12px;
     box-shadow: 0 2px 10px rgba(15,23,42,.07);
     margin-bottom: 14px;
@@ -73,12 +73,12 @@
 
   table {
     width: 100%; border-collapse: collapse; border-spacing: 0;
-    background: #fff; border-radius: 14px; overflow: hidden;
+    background: #fbf7ec; border-radius: 14px; overflow: hidden;
     box-shadow: 0 2px 8px rgba(15,23,42,.06);
     table-layout: fixed;
   }
   thead th {
-    background: #f1f5f9; font-size: 12px; font-weight: 600;
+    background: #f6efdf; font-size: 12px; font-weight: 600;
     color: #64748b; padding: 9px 4px; letter-spacing: 1px; text-align: center;
   }
   tbody td {
@@ -91,14 +91,14 @@
     display: block; width: 100%; min-width: 0;
     height: 44px; font-size: 20px; font-weight: 700; text-align: center;
     border: 2px solid #e2e8f0; border-radius: 10px;
-    background: #f8fafc; color: #1e293b; outline: none; padding: 0 4px;
+    background: #f7f2e6; color: #1e293b; outline: none; padding: 0 4px;
     font-family: inherit; margin: 0;
     -webkit-box-sizing: border-box; box-sizing: border-box;
     cursor: pointer;
     -webkit-appearance: menulist-button;
     appearance: menulist-button;
   }
-  select.score:focus { border-color: #93c5fd; background: #fff; }
+  select.score:focus { border-color: #93c5fd; background: #fbf7ec; }
   select.score.b:focus { border-color: #fdba74; }
   select.score.auto {
     background: #eef2ff;
@@ -120,10 +120,36 @@
   .btn {
     flex: 1; height: 44px; border: none; border-radius: 12px;
     font-size: 15px; font-weight: 600; font-family: inherit;
-    background: #fff; color: #dc2626;
+    background: #fbf7ec; color: #dc2626;
     box-shadow: 0 2px 8px rgba(15,23,42,.06); cursor: pointer;
   }
 </style>
+
+  <!-- theme-skin: 全站淡黄底 + 亮度 -->
+  <style>
+    /* 亮度滑杆用的变量。页面自带的淡黄底是最暗的一档，
+       拉到 100% 时由 js/theme-skin.js 换成纯白。 */
+    :root { --bright: 0; }
+  </style>
+  <script>
+    /* 提前把亮度写进 CSS 变量，避免刷新时先闪一下淡黄再从纯白跳回来 */
+    (function () {
+      try {
+        var v = parseFloat(localStorage.getItem('sky_bright'));
+        if (!isFinite(v) || v < 0 || v > 1) v = 0;
+        document.documentElement.style.setProperty('--bright', String(v));
+        if (v > 0) {
+          /* 用一层极淡的白纱叠出"由淡黄变纯白"的过渡，
+             不改动页面已有的任何颜色，最保险 */
+          var s = document.createElement('style');
+          s.id = 'brightVeil';
+          s.textContent = 'html::before{content:"";position:fixed;inset:0;z-index:0;' +
+            'pointer-events:none;background:rgba(255,255,255,' + v.toFixed(3) + ')}';
+          document.head.appendChild(s);
+        }
+      } catch (e) { }
+    })();
+  </script>
 </head>
 <body>
 

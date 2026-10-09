@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>玄寂墨羽 · 星空</title>
+  <meta name="description" content="玄寂墨羽 —— 星空站主的开发者信息与开发者的一封信。" />
+
+  <!-- 内联 SVG 图标：和 index.html / 留言历史.html 用同一枚星星图标，不依赖任何文件 -->
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff4fd8'/%3E%3Cstop offset='1' stop-color='%2300AEEC'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230a0e16'/%3E%3Cpath d='M32 8 L37 27 L56 32 L37 37 L32 56 L27 37 L8 32 L27 27 Z' fill='url(%23g)'/%3E%3Ccircle cx='50' cy='14' r='2' fill='white'/%3E%3Ccircle cx='14' cy='50' r='1.5' fill='white'/%3E%3C/svg%3E">
+
+  <!-- 与主站一致的字体：思源黑体 + 思源宋体（信纸用宋体更有味道） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@400;600;700&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /* =========================================================================
+       玄寂墨羽 · 开发者页
+       -------------------------------------------------------------------------
+       这一页只用「本页内联样式」，不引入 css/sky.css：
+       因为它是独立单页，自己带一份设计令牌最省事，也不影响主站。
+       配色令牌与 css/sky.css 里的 :root 保持同一套命名，方便你对照着改。
+       ========================================================================= */
+
+    :root {
+      /* ---- 基色（浅色主题：暖白 / 淡黄，不用纯白） ---- */
+      --bg: #f3ede0;
+      --bg-card: #f6efdf;
+      --text: #221c14;
+      --text-muted: #8a7a63;
+      --brand: #00AEEC;
+      --bili: #00AEEC;
+
+      /* ---- 顶栏（两套主题都保持深色，和主站一致） ---- */
+      --nav-bg: #0a0e16;
+      --nav-text: #f0f2f6;
+
+      /* ---- 玻璃拟态（浅色：淡黄玻璃，等价于 #f6efdf 的透明版） ---- */
+      --glass-bg: linear-gradient(155deg,
+          rgba(252, 247, 235, .92) 0%,
+          rgba(246, 239, 223, .78) 45%,
+          rgba(244, 236, 218, .88) 100%);
+      --glass-border: rgba(255, 255, 255, .92);
+      --glass-shadow: 0 26px 60px -30px rgba(84, 66, 34, .38);
+      --glass-inset: inset 0 1px 0 rgba(255, 255, 255, .95);
+      --glass-head-border: rgba(60, 48, 30, .14);
+      --glass-title: #2a2113;
+      --glass-sub: rgba(122, 100, 66, .68);
+      --glass-item-bg: rgba(255, 252, 244, .72);
+      --glass-item-border: rgba(122, 98, 60, .20);
+      --glass-item-text: #241d12;
+      --glass-item-desc: rgba(122, 100, 66, .80);
+
+      /* ---- 输入框 / 控件（浅色） ---- */
+      --field-bg: rgba(255, 253, 246, .94);
+      --field-border: rgba(122, 98, 60, .32);
+      --field-focus: rgba(0, 138, 190, .85);
+
+      /* ---- 按钮（浅色） ---- */
+      --btn-bg: linear-gradient(145deg, rgba(0, 174, 236, .18), rgba(0, 174, 236, .07));
+      --btn-border: rgba(0, 174, 236, .42);
+      --btn-text: #0c4f6b;
+      --btn-primary-bg: linear-gradient(140deg, #38c6f5, #00AEEC 55%, #0a86bd);
+      --btn-primary-text: #05202c;
+
+      /* ---- 星空底色（黑夜：深空） ---- */
+      --sky-bg: radial-gradient(ellipse at 50% 100%,
+          #143d5c 0%, #0a1d3a 35%, #050a14 70%, #010306 100%);
+
+      /* ---- 尺寸与动效曲线：和 sky.css 同名 ---- */
+      --r-xs: 9px;
+      --r-sm: 14px;
+      --r-md: 18px;
+      --r-lg: 26px;
+      --r-xl: 32px;
+      --ease-soft: cubic-bezier(.2, .7, .3, 1);
+      --dur-fast: .22s;
+      --dur-mid: .38s;
+      --dur-slow: .8s;
+    }
+
+    /* ---- 深空夜色：把上面所有浅色令牌整体换一遍 ---- */
+    html[data-user-color-scheme="dark"] {
+      --bg: #111b2c;
+      --bg-card: #0d1626;
+      --text: #e8eaf0;
+      --text-muted: #8b9bb4;
+
+      --glass-bg: linear-gradient(155deg,
+          rgba(255, 255, 255, .18) 0%,
+          rgba(255, 255, 255, .07) 45%,
+          rgba(255, 255, 255, .12) 100%);
+      --glass-border: rgba(255, 255, 255, .24);
+      --glass-shadow: 0 30px 70px -26px rgba(0, 0, 0, .85);
+      --glass-inset: inset 0 1px 0 rgba(255, 255, 255, .42);
+      --glass-head-border: rgba(255, 255, 255, .14);
+      --glass-title: #ffffff;
+      --glass-sub: rgba(210, 226, 255, .55);
+      --glass-item-bg: rgba(255, 255, 255, .06);
+      --glass-item-border: rgba(255, 255, 255, .12);
+      --glass-item-text: #eef4ff;
+      --glass-item-desc: rgba(200, 218, 245, .60);
+
+      --field-bg: rgba(10, 20, 36, .62);
+      --field-border: rgba(255, 255, 255, .22);
+      --field-focus: rgba(88, 196, 255, .9);
+
+      --btn-bg: linear-gradient(145deg, rgba(0, 174, 236, .26), rgba(0, 174, 236, .10));
+      --btn-border: rgba(0, 174, 236, .46);
+      --btn-text: #a8e4ff;
+      --btn-primary-bg: linear-gradient(140deg, #6fe0ff, #00AEEC 55%, #0a86bd);
+      --btn-primary-text: #04202c;
+
+      --sky-bg: radial-gradient(ellipse at 50% 100%,
+          #143d5c 0%, #0a1d3a 35%, #050a14 70%, #010306 100%);
+    }
+
+    /* 白天：把同一片星空整体提亮偏青，像黎明前 20 分钟的天（沿用主站思路） */
+    html[data-user-color-scheme="light"] {
+      --sky-bg:
+        radial-gradient(ellipse at 78% 4%, rgba(255, 246, 220, .80), transparent 58%),
+        radial-gradient(ellipse at 50% 120%, rgba(150, 195, 240, .55), transparent 64%),
+        linear-gradient(180deg, #a9c6e2 0%, #8fb0d4 45%, #7fa8cf 100%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      padding-top: 56px;
+      /* 手机上不要横向溢出 */
+      overflow-x: hidden;
+      transition: background var(--dur-mid) ease, color var(--dur-mid) ease;
+    }
+
+    ::selection {
+      background: #00AEEC;
+      color: #ffffff;
+    }
+
+    /* ===== 星空背景层：固定在底层，内容全部浮在它上面 ===== */
+    .sky {
+      position: fixed;
+      inset: -10%;
+      z-index: 0;
+      background: var(--sky-bg);
+      pointer-events: none;
+      transition: background var(--dur-slow) ease;
+    }
+
+    /* 一层极淡的扫描纹理，模仿老式天文底片 */
+    .sky::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: .05;
+      background-image: repeating-linear-gradient(0deg, rgba(255, 255, 255, .5) 0 1px, transparent 1px 3px);
+    }
+
+    /* ===== 顶部子导航：左返回 / 中标题 / 右日夜切换（照抄留言历史.html） ===== */
+    .sub-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 20px;
+      background: var(--nav-bg);
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--nav-text);
+      text-decoration: none;
+      font-size: .9rem;
+      padding: 7px 14px;
+      border-radius: var(--r-xs);
+      opacity: .85;
+      white-space: nowrap;
+      transition: background var(--dur-fast) ease, opacity var(--dur-fast) ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .back-link:hover {
+      background: rgba(255, 255, 255, .10);
+      opacity: 1;
+    }
+
+    .nav-title {
+      color: #ffffff;
+      font-weight: 700;
+      font-size: .95rem;
+      letter-spacing: .14em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .color-toggle-btn {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      border: none;
+      border-radius: 50%;
+      background: transparent;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      transition: background var(--dur-fast) ease, transform var(--dur-fast) ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .color-toggle-btn:hover {
+      background: rgba(255, 255, 255, .12);
+      transform: scale(1.08);
+    }
+
+    .color-toggle-btn:active {
+      transform: scale(.92);
+    }
+
+    .color-toggle-btn svg {
+      display: none;
+      width: 22px;
+      height: 22px;
+    }
+
+    /* 黑夜显示月亮、白天显示太阳 */
+    html[data-user-color-scheme="dark"] .icon-moon,
+    html:not([data-user-color-scheme]) .icon-moon {
+      display: block;
+    }
+
+    html[data-user-color-scheme="light"] .icon-sun {
+      display: block;
+    }
+
+    /* ===== 内容容器 ===== */
+    .page-wrap {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 44px 20px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    /* ===== 玻璃卡片（通用外壳） ===== */
+    .glass-card {
+      position: relative;
+      padding: 28px 26px 26px;
+      border-radius: var(--r-xl);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow), var(--glass-inset);
+      -webkit-backdrop-filter: blur(26px) saturate(180%);
+      backdrop-filter: blur(26px) saturate(180%);
+      animation: cardIn .7s var(--ease-soft) both;
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* 题头：标题 + 右侧英文小字 */
+    .glass-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 2px 6px 18px;
+      border-bottom: 1px solid var(--glass-head-border);
+      margin-bottom: 20px;
+    }
+
+    .glass-title {
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: .22em;
+      padding-left: .22em;
+      color: var(--glass-title);
+    }
+
+    /* 黑夜里给标题一点蓝辉光 */
+    html[data-user-color-scheme="dark"] .glass-title {
+      text-shadow: 0 0 22px rgba(130, 180, 255, .55);
+    }
+
+    .glass-sub {
+      flex: 0 0 auto;
+      font-size: .66rem;
+      letter-spacing: .26em;
+      padding-left: .26em;
+      color: var(--glass-sub);
+      text-transform: uppercase;
+    }
+
+    /* ===== 上层：开发者信息 四项 ===== */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .info-item {
+      padding: 14px 16px;
+      border-radius: var(--r-md);
+      background: var(--glass-item-bg);
+      border: 1px solid var(--glass-item-border);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16);
+      transition: border-color var(--dur-mid) ease, box-shadow var(--dur-mid) ease;
+    }
+
+    .info-item:hover {
+      border-color: rgba(0, 174, 236, .45);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), 0 14px 28px -22px rgba(0, 174, 236, .8);
+    }
+
+    .info-label {
+      display: block;
+      font-size: .68rem;
+      letter-spacing: .26em;
+      color: var(--glass-item-desc);
+      margin-bottom: 6px;
+    }
+
+    .info-value {
+      display: block;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      color: var(--glass-item-text);
+      word-break: break-word;
+    }
+
+    /* 编辑态的输入框：默认隐藏，切到编辑态才出现 */
+    .info-input {
+      display: none;
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: var(--r-xs);
+      border: 1px solid var(--field-border);
+      background: var(--field-bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .95rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      outline: none;
+      transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+    }
+
+    .info-input:focus {
+      border-color: var(--field-focus);
+      box-shadow: 0 0 0 3px rgba(0, 174, 236, .18);
+    }
+
+    /* ===== 中层：开发者的信 ===== */
+    .letter-card {
+      /* 信纸这一块刻意做高一点，留白多，像真正的一张信纸 */
+      min-height: 320px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 中层的题头是「左上角大字标题 + 右上角字体控件」 */
+    .letter-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 2px 6px 18px;
+      border-bottom: 1px solid var(--glass-head-border);
+      margin-bottom: 20px;
+    }
+
+    .letter-title {
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      /* 左上角「适当大小」的标题：比正文大，但不到首页那级的巨字 */
+      font-size: 1.42rem;
+      font-weight: 900;
+      letter-spacing: .2em;
+      padding-left: .2em;
+      line-height: 1.3;
+      color: var(--glass-title);
+    }
+
+    html[data-user-color-scheme="dark"] .letter-title {
+      text-shadow: 0 0 22px rgba(130, 180, 255, .55);
+    }
+
+    /* ---- 字体 / 字号控件组：编辑态才出现，位于中层右上角 ---- */
+    .letter-tools {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .letter-tools[hidden] {
+      display: none !important;
+    }
+
+    .tool-field {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 99px;
+      background: var(--glass-item-bg);
+      border: 1px solid var(--glass-item-border);
+    }
+
+    .tool-field>span {
+      font-size: .68rem;
+      letter-spacing: .16em;
+      color: var(--glass-item-desc);
+      white-space: nowrap;
+    }
+
+    .tool-field select {
+      border: 1px solid var(--field-border);
+      border-radius: var(--r-xs);
+      background: var(--field-bg);
+      color: var(--text);
+      font-family: inherit;
+      font-size: .8rem;
+      padding: 3px 6px;
+      outline: none;
+      cursor: pointer;
+      max-width: 42vw;
+    }
+
+    .tool-field select:focus,
+    .tool-field input[type="range"]:focus {
+      border-color: var(--field-focus);
+    }
+
+    .tool-field input[type="range"] {
+      width: 108px;
+      accent-color: var(--bili);
+      cursor: pointer;
+    }
+
+    .tool-size-num {
+      font-size: .74rem;
+      font-variant-numeric: tabular-nums;
+      color: var(--glass-item-text);
+      min-width: 34px;
+      text-align: right;
+    }
+
+    /* ---- 信纸区域 ---- */
+    .letter-body {
+      position: relative;
+      z-index: 2;
+      flex: 1 1 auto;
+      min-height: 200px;
+      padding: 18px 20px;
+      border-radius: var(--r-md);
+      background: var(--glass-item-bg);
+      border: 1px solid var(--glass-item-border);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16);
+    }
+
+    /* 只读展示用的段落：长文本自动换行、保留换行符 */
+    .letter-text {
+      font-size: 16px;
+      line-height: 1.95;
+      letter-spacing: .03em;
+      color: var(--glass-item-text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    /* 初始为空时的浅色占位提示 */
+    .letter-text.is-empty {
+      color: var(--glass-item-desc);
+      opacity: .85;
+      font-style: italic;
+    }
+
+    /* 编辑态的文本域：撑满信纸，直接在里面写信 */
+    .letter-area {
+      display: none;
+      width: 100%;
+      min-height: 260px;
+      padding: 0;
+      border: none;
+      outline: none;
+      resize: vertical;
+      background: transparent;
+      color: var(--glass-item-text);
+      font-family: inherit;
+      font-size: 16px;
+      line-height: 1.95;
+      letter-spacing: .03em;
+    }
+
+    .letter-area::placeholder {
+      color: var(--glass-item-desc);
+      opacity: .8;
+    }
+
+    /* 编辑态：显示 textarea，隐藏只读段落 */
+    .is-editing .letter-area {
+      display: block;
+    }
+
+    .is-editing .letter-text {
+      display: none;
+    }
+
+    /* 编辑态：四项资料把文字换成输入框 */
+    .is-editing .info-input {
+      display: block;
+    }
+
+    .is-editing .info-value {
+      display: none;
+    }
+
+    /* ===== 开发者操作区：夹在中层与下层之间（编辑 / 保存） ===== */
+    .dev-bar {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .dev-bar[hidden] {
+      display: none !important;
+    }
+
+    .dev-btn {
+      min-width: 108px;
+      padding: 10px 22px;
+      border-radius: 99px;
+      border: 1px solid var(--btn-border);
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      font-family: inherit;
+      font-size: .88rem;
+      font-weight: 700;
+      letter-spacing: .18em;
+      padding-left: calc(22px + .18em);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform var(--dur-fast) var(--ease-soft), box-shadow var(--dur-fast) ease,
+        border-color var(--dur-fast) ease, opacity var(--dur-fast) ease;
+    }
+
+    .dev-btn:hover {
+      transform: translateY(-2px);
+      border-color: rgba(0, 174, 236, .8);
+      box-shadow: 0 14px 30px -18px rgba(0, 174, 236, .95);
+    }
+
+    .dev-btn:active {
+      transform: translateY(0) scale(.985);
+    }
+
+    .dev-btn:focus-visible {
+      outline: 2px solid rgba(0, 174, 236, .8);
+      outline-offset: 3px;
+    }
+
+    /* 「保存」是主按钮：实心蓝，一眼知道该点哪个 */
+    .dev-btn--primary {
+      background: var(--btn-primary-bg);
+      border-color: transparent;
+      color: var(--btn-primary-text);
+      box-shadow: 0 12px 26px -16px rgba(0, 174, 236, .95);
+    }
+
+    /* 编辑态下「编辑」按钮变灰，避免重复点 */
+    .dev-btn[disabled] {
+      opacity: .45;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* ===== 下层：更新时间 + 回到星空 ===== */
+    .foot-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 24px 24px 22px;
+    }
+
+    /* 右下角的更新时间：用 align-self 顶到右边 */
+    .updated {
+      align-self: flex-end;
+      font-size: .74rem;
+      letter-spacing: .12em;
+      color: var(--glass-item-desc);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .home-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      max-width: 320px;
+      padding: 14px 26px;
+      border-radius: 99px;
+      border: 1px solid var(--btn-border);
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+      font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: .26em;
+      padding-left: calc(26px + .26em);
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 16px 34px -20px rgba(0, 174, 236, .95);
+      -webkit-tap-highlight-color: transparent;
+      transition: transform var(--dur-mid) var(--ease-soft), box-shadow var(--dur-mid) ease, filter var(--dur-mid) ease;
+    }
+
+    .home-btn:hover {
+      transform: translateY(-3px);
+      filter: brightness(1.06);
+      box-shadow: 0 22px 44px -20px rgba(0, 174, 236, 1);
+    }
+
+    .home-btn:active {
+      transform: translateY(-1px) scale(.99);
+    }
+
+    .home-btn:focus-visible {
+      outline: 2px solid rgba(0, 174, 236, .85);
+      outline-offset: 3px;
+    }
+
+    .home-btn svg {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 auto;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* ============================================================ 响应式 */
+    @media (max-width: 560px) {
+      .page-wrap {
+        padding: 24px 12px 60px;
+        gap: 16px;
+      }
+
+      .glass-card {
+        padding: 20px 16px 18px;
+        border-radius: var(--r-lg);
+      }
+
+      .sub-nav {
+        padding: 0 12px;
+      }
+
+      .nav-title {
+        font-size: .88rem;
+        letter-spacing: .10em;
+      }
+
+      /* 手机上开发者信息改成单列，读起来更舒服 */
+      .info-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .letter-title {
+        font-size: 1.2rem;
+      }
+
+      .letter-body {
+        padding: 14px 14px;
+      }
+    }
+
+    /* 极窄屏：字体控件换行 */
+    @media (max-width: 400px) {
+      .tool-field input[type="range"] {
+        width: 84px;
+      }
+
+      .dev-btn {
+        min-width: 96px;
+        padding: 9px 16px;
+        letter-spacing: .12em;
+      }
+    }
+
+    /* ====================================== 尊重「减少动态效果」的系统设置 */
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===================== 星空背景层 ===================== -->
+  <div class="sky" aria-hidden="true"></div>
+
+  <!-- ===================== 顶部子导航 =====================
+       和 留言历史.html 完全同一套结构：左返回 / 中标题 / 右日夜切换 -->
+  <header class="sub-nav">
+    <a class="back-link" href="index.html">← 返回首页</a>
+    <span class="nav-title">玄寂墨羽</span>
+    <button class="color-toggle-btn" id="colorToggleBtn" type="button" aria-label="切换日夜模式" title="切换日夜模式">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.9" stroke-linecap="round"
+        stroke-linejoin="round" aria-hidden="true">
+        <path d="M20.2 14.6A8.6 8.6 0 0 1 9.4 3.8a8.6 8.6 0 1 0 10.8 10.8z" fill="#ffffff" stroke="none" />
+      </svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.1" stroke-linecap="round"
+        stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.6" fill="#ffffff" stroke="none" />
+        <line x1="12" y1="1.8" x2="12" y2="4.2" />
+        <line x1="12" y1="19.8" x2="12" y2="22.2" />
+        <line x1="1.8" y1="12" x2="4.2" y2="12" />
+        <line x1="19.8" y1="12" x2="22.2" y2="12" />
+        <line x1="4.8" y1="4.8" x2="6.5" y2="6.5" />
+        <line x1="17.5" y1="17.5" x2="19.2" y2="19.2" />
+        <line x1="19.2" y1="4.8" x2="17.5" y2="6.5" />
+        <line x1="6.5" y1="17.5" x2="4.8" y2="19.2" />
+      </svg>
+    </button>
+  </header>
+
+  <main class="page-wrap">
+
+    <!-- ================================================================
+         上层 · 开发者信息
+         四项：民族 / 星座 / 住址 / 身份
+         每一项都有「只读文字」和「编辑输入框」两份，靠 body 上的 .is-editing 切换显隐。
+         ================================================================ -->
+    <section class="glass-card" aria-label="开发者信息">
+      <div class="glass-head">
+        <h1 class="glass-title">开发者信息</h1>
+        <span class="glass-sub">Developer</span>
+      </div>
+
+      <div class="info-grid" id="profileGrid">
+        <!-- 民族 -->
+        <div class="info-item">
+          <span class="info-label">民族</span>
+          <span class="info-value" data-key="nation">朝鲜</span>
+          <input class="info-input" type="text" data-key="nation" maxlength="20" placeholder="填写民族"
+            aria-label="编辑民族" />
+        </div>
+
+        <!-- 星座 -->
+        <div class="info-item">
+          <span class="info-label">星座</span>
+          <span class="info-value" data-key="zodiac">双鱼</span>
+          <input class="info-input" type="text" data-key="zodiac" maxlength="20" placeholder="填写星座"
+            aria-label="编辑星座" />
+        </div>
+
+        <!-- 住址 -->
+        <div class="info-item">
+          <span class="info-label">住址</span>
+          <span class="info-value" data-key="address">抚顺</span>
+          <input class="info-input" type="text" data-key="address" maxlength="40" placeholder="填写住址"
+            aria-label="编辑住址" />
+        </div>
+
+        <!-- 身份（用户明确要求可编辑） -->
+        <div class="info-item">
+          <span class="info-label">身份</span>
+          <span class="info-value" data-key="identity">高三生</span>
+          <input class="info-input" type="text" data-key="identity" maxlength="20" placeholder="填写身份"
+            aria-label="编辑身份" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         中层 · 开发者的信
+         左上角是大字标题「开发者的信」；右上角是编辑态才出现的字体/字号控件；
+         信的内容初始为空，只显示一句浅色占位提示。
+         ================================================================ -->
+    <section class="glass-card letter-card" id="letterCard" aria-label="开发者的信">
+      <div class="letter-head">
+        <h2 class="letter-title">开发者的信</h2>
+
+        <!-- 字体 / 字号控件组：仅编辑态可见（hidden 属性控制） -->
+        <div class="letter-tools" id="letterTools" hidden>
+          <label class="tool-field">
+            <span>字体</span>
+            <select id="fontSelect" aria-label="选择信的字体">
+              <option value="system">系统默认</option>
+              <option value="song">宋体</option>
+              <option value="hei">黑体</option>
+              <option value="kai">楷体</option>
+              <option value="fang">仿宋</option>
+              <option value="serif-noto">思源宋体</option>
+            </select>
+          </label>
+
+          <label class="tool-field">
+            <span>字号</span>
+            <input type="range" id="sizeRange" min="12" max="28" step="1" value="16" aria-label="选择信的字号" />
+            <b class="tool-size-num" id="sizeNum">16px</b>
+          </label>
+        </div>
+      </div>
+
+      <div class="letter-body">
+        <!-- 只读展示：空的时候由脚本加上 .is-empty，显示浅色占位提示 -->
+        <p class="letter-text is-empty" id="letterText">这里还没有信 —— 开发者还没有写下想说的话。</p>
+        <!-- 编辑态文本域 -->
+        <textarea class="letter-area" id="letterArea" placeholder="在这里写下你想对大家说的话…"
+          aria-label="编辑开发者的信"></textarea>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         开发者界面 · 夹在中层与下层之间
+         只有确认是开发者本人（piao022400@qq.com 登录）才显示。
+         Supabase CDN 没加载出来时，这一整块保持隐藏，页面照常可看。
+         ================================================================ -->
+    <div class="dev-bar" id="devBar" hidden>
+      <button class="dev-btn" id="editBtn" type="button">编辑</button>
+      <button class="dev-btn dev-btn--primary" id="saveBtn" type="button" disabled>保存</button>
+    </div>
+
+    <!-- ================================================================
+         下层 · 更新时间 + 回到星空
+         ================================================================ -->
+    <section class="glass-card foot-card" aria-label="页面信息">
+      <!-- 右下角：上次更新于 XXXX年X月X日（localStorage 里没有记录就显示今天） -->
+      <p class="updated" id="updatedText">上次更新于 —</p>
+
+      <!-- 最下面的按钮：回到星空首页 -->
+      <a class="home-btn" href="index.html">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3.5 13.8 9l5.7 1.8-5.7 1.8L12 18.3l-1.8-5.7L4.5 10.8 10.2 9z" />
+          <circle cx="19" cy="5" r="1" fill="currentColor" stroke="none" />
+          <circle cx="5.5" cy="19" r="1" fill="currentColor" stroke="none" />
+        </svg>
+        <span>回到星空</span>
+      </a>
+    </section>
+
+  </main>
+
+  <!-- Supabase：可能因为离线加载失败，下面脚本里已经用 if (!window.supabase) 兜住 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* ===================================================================
+         零、配置
+         =================================================================== */
+
+      /* 站点在用的 Supabase 项目（和其它页面保持一致，改一处要一起改） */
+      var SUPABASE_URL = 'https://icjptvrlmmnxamgnemvz.supabase.co';
+      var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanB0dnJsbW1ueGFtZ25lbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5OTY5NDAsImV4cCI6MjEwNjU3Mjk0MH0.2PiF0gJet82QnQpHd8Il_6bvTPLtBeypVOYRHG_W9YU';
+
+      /* 开发者邮箱：只有这个邮箱登录后才看得到「编辑 / 保存」 */
+      var DEV_EMAIL = 'piao022400@qq.com';
+
+      /* localStorage 用的三个键：资料 / 信 / 更新时间 */
+      var K_PROFILE = 'xuanji_profile';
+      var K_LETTER = 'xuanji_letter';
+      var K_UPDATED = 'xuanji_updated';
+      var K_SCHEME = 'Fluid_Color_Scheme'; /* 日夜模式，与站点其它页面同一个键 */
+
+      /* 默认值：localStorage 里什么都没有时就显示这些 */
+      var DEFAULT_PROFILE = { nation: '朝鲜', zodiac: '双鱼', address: '抚顺', identity: '高三生' };
+      var DEFAULT_LETTER = { text: '', font: 'system', size: 16 };
+
+      /* 六种中文字体：value 存进 localStorage，font-family 栈是本机真实可用的字体名。
+         注意「宋体 / 楷体 / 仿宋」在 Windows 上的名字分别是 SimSun / KaiTi / FangSong。 */
+      var FONT_STACKS = {
+        'system': 'system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif',
+        'song': '"SimSun", "Songti SC", "STSong", "Noto Serif SC", serif',
+        'hei': '"SimHei", "Heiti SC", "Microsoft YaHei", "Noto Sans SC", sans-serif',
+        'kai': '"KaiTi", "Kaiti SC", "STKaiti", serif',
+        'fang': '"FangSong", "STFangsong", "FangSong_GB2312", "Noto Serif SC", serif',
+        'serif-noto': '"Noto Serif SC", "Songti SC", "STSong", "SimSun", serif'
+      };
+
+      var FONT_KEYS = Object.keys(FONT_STACKS);
+
+      /* ===================================================================
+         一、小工具
+         =================================================================== */
+
+      /* 安全的 localStorage 读取：隐私模式 / 禁 cookie 时 localStorage 会直接抛错 */
+      function readLS(key) {
+        try { return localStorage.getItem(key); } catch (e) { return null; }
+      }
+
+      function writeLS(key, value) {
+        try { localStorage.setItem(key, value); return true; } catch (e) { return false; }
+      }
+
+      /* 读一个 JSON 对象；坏数据 / 不存在都返回 null，避免整页崩掉 */
+      function readJSON(key) {
+        var raw = readLS(key);
+        if (!raw) return null;
+        try {
+          var obj = JSON.parse(raw);
+          return (obj && typeof obj === 'object') ? obj : null;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      /* 「XXXX年X月X日」：月日不补零，写出来更像中文 */
+      function formatYMD(input) {
+        var d = (input instanceof Date) ? input : new Date(input);
+        if (isNaN(d.getTime())) d = new Date(); /* 时间戳坏了就退回今天 */
+        return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
+      }
+
+      var $ = function (id) { return document.getElementById(id); };
+
+      /* ===================================================================
+         二、日夜模式（默认 dark，记住用户的选择）
+         =================================================================== */
+      (function initScheme() {
+        var root = document.documentElement;
+        var btn = $('colorToggleBtn');
+
+        function apply() {
+          var v = readLS(K_SCHEME) || 'dark';
+          if (v !== 'dark' && v !== 'light') v = 'dark'; /* 只认这两个值 */
+          root.setAttribute('data-user-color-scheme', v);
+        }
+
+        function toggle() {
+          var cur = root.getAttribute('data-user-color-scheme') || 'dark';
+          writeLS(K_SCHEME, cur === 'dark' ? 'light' : 'dark');
+          apply();
+        }
+
+        apply();
+        if (btn) btn.addEventListener('click', toggle);
+      })();
+
+      /* ===================================================================
+         三、数据：读出来、画到页面上
+         =================================================================== */
+
+      /* 当前显示的资料（编辑过程中不写这里，点保存时才更新） */
+      var profile = Object.assign({}, DEFAULT_PROFILE, readJSON(K_PROFILE) || {});
+      var letter = Object.assign({}, DEFAULT_LETTER, readJSON(K_LETTER) || {});
+
+      /* 信的字体 key 不合法就退回系统默认；字号夹在 12~28 之间 */
+      if (FONT_KEYS.indexOf(letter.font) === -1) letter.font = 'system';
+      letter.size = Math.min(28, Math.max(12, parseInt(letter.size, 10) || 16));
+
+      var infoValues = document.querySelectorAll('.info-value');
+      var infoInputs = document.querySelectorAll('.info-input');
+      var letterText = $('letterText');
+      var letterArea = $('letterArea');
+      var letterTools = $('letterTools');
+      var fontSelect = $('fontSelect');
+      var sizeRange = $('sizeRange');
+      var sizeNum = $('sizeNum');
+      var updatedText = $('updatedText');
+      var editBtn = $('editBtn');
+      var saveBtn = $('saveBtn');
+      var devBar = $('devBar');
+
+      /* ---- 把资料画到四项上 ---- */
+      function renderProfile() {
+        infoValues.forEach(function (el) {
+          var key = el.getAttribute('data-key');
+          if (!key) return;
+          var v = profile[key];
+          el.textContent = (v === undefined || v === null || v === '') ? '—' : String(v);
+        });
+        infoInputs.forEach(function (el) {
+          var key = el.getAttribute('data-key');
+          if (!key) return;
+          el.value = (profile[key] === undefined || profile[key] === null) ? '' : String(profile[key]);
+        });
+      }
+
+      /* ---- 把信画到只读段落上 ---- */
+      function renderLetter() {
+        var text = String(letter.text == null ? '' : letter.text);
+        if (text.trim() === '') {
+          /* 初始为空：显示一句浅色占位提示 */
+          letterText.textContent = '这里还没有信 —— 开发者还没有写下想说的话。';
+          letterText.classList.add('is-empty');
+        } else {
+          letterText.textContent = text;
+          letterText.classList.remove('is-empty');
+        }
+        applyFontToLetter();
+      }
+
+      /* 把字体栈和字号贴到信上（只读段落和编辑文本域都要） */
+      function applyFontToLetter() {
+        var stack = FONT_STACKS[letter.font] || FONT_STACKS.system;
+        var size = letter.size + 'px';
+        [letterText, letterArea].forEach(function (el) {
+          if (!el) return;
+          el.style.fontFamily = stack;
+          el.style.fontSize = size;
+        });
+        if (sizeRange) sizeRange.value = String(letter.size);
+        if (sizeNum) sizeNum.textContent = letter.size + 'px';
+        if (fontSelect) fontSelect.value = letter.font;
+      }
+
+      /* ---- 右下角「上次更新于…」 ----
+         没有记录（第一次打开）就显示今天。 */
+      function renderUpdated() {
+        var raw = readLS(K_UPDATED);
+        var ts = raw ? parseInt(raw, 10) : NaN;
+        if (!raw || isNaN(ts)) ts = Date.now();
+        updatedText.textContent = '上次更新于 ' + formatYMD(ts);
+      }
+
+      renderProfile();
+      renderLetter();
+      renderUpdated();
+
+      /* ===================================================================
+         四、编辑态：切换输入框 / 文本域 / 字体控件
+         =================================================================== */
+      var editing = false;
+
+      function setEditing(on) {
+        editing = !!on;
+        document.body.classList.toggle('is-editing', editing);
+        if (letterTools) letterTools.hidden = !editing;
+        if (editBtn) editBtn.disabled = editing;
+        if (saveBtn) saveBtn.disabled = !editing;
+
+        if (editing) {
+          /* 进编辑态：把当前值灌进输入框，再把光标放到信上 */
+          renderProfile();
+          letterArea.value = letter.text || '';
+          applyFontToLetter();
+          letterArea.focus();
+        } else {
+          /* 退出编辑态：输入框里没保存的内容丢掉，重新按数据渲染 */
+          renderProfile();
+          renderLetter();
+        }
+      }
+
+      if (editBtn) {
+        editBtn.addEventListener('click', function () { setEditing(true); });
+      }
+
+      /* 「保存」：把资料、信、字体、字号一起写进 localStorage，
+         并把「上次更新」的时间设成当前时刻，然后退出编辑态。 */
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function () {
+          if (!editing) return;
+
+          /* 1) 四项资料：民族 / 星座 / 住址 / 身份 都允许改（身份是用户明确要求的） */
+          infoInputs.forEach(function (el) {
+            var key = el.getAttribute('data-key');
+            if (!key) return;
+            var v = String(el.value || '').trim();
+            profile[key] = v || DEFAULT_PROFILE[key] || '';
+          });
+
+          /* 2) 信的内容 + 字体 + 字号 */
+          letter.text = String(letterArea.value || '');
+          letter.font = (fontSelect && FONT_STACKS[fontSelect.value]) ? fontSelect.value : letter.font;
+          letter.size = Math.min(28, Math.max(12, parseInt(sizeRange && sizeRange.value, 10) || letter.size));
+
+          /* 3) 落盘 */
+          writeLS(K_PROFILE, JSON.stringify(profile));
+          writeLS(K_LETTER, JSON.stringify(letter));
+          writeLS(K_UPDATED, String(Date.now()));
+
+          renderProfile();
+          renderLetter();
+          renderUpdated();
+          setEditing(false);
+        });
+      }
+
+      /* 字体实时预览：改了立刻作用在信上 */
+      if (fontSelect) {
+        fontSelect.addEventListener('change', function () {
+          if (!editing) return;
+          if (FONT_STACKS[fontSelect.value]) letter.font = fontSelect.value;
+          applyFontToLetter();
+        });
+      }
+
+      /* 字号实时预览：滑动时立刻作用在信上 */
+      if (sizeRange) {
+        sizeRange.addEventListener('input', function () {
+          if (!editing) return;
+          letter.size = Math.min(28, Math.max(12, parseInt(sizeRange.value, 10) || 16));
+          applyFontToLetter();
+        });
+      }
+
+      /* 小细节：编辑时按 Ctrl+S 也能保存 */
+      document.addEventListener('keydown', function (e) {
+        if (!editing) return;
+        if ((e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === 's') {
+          e.preventDefault();
+          if (saveBtn) saveBtn.click();
+        }
+      });
+
+      /* ===================================================================
+         五、权限：用 Supabase 判断当前登录的是不是开发者本人
+         -------------------------------------------------------------------
+         注意 CDN 可能拉不下来（离线时 window.supabase 不存在），
+         这时什么都不做，页面正常显示，只是不出现编辑按钮。
+         =================================================================== */
+      function checkDeveloper() {
+        /* 第一种兜底：CDN 没加载出来，直接判定不是开发者 */
+        if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+          return Promise.resolve(false);
+        }
+
+        var client;
+        try {
+          client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+          return Promise.resolve(false);
+        }
+
+        return Promise.resolve(client.auth.getUser()).then(function (res) {
+          var user = res && res.data ? res.data.user : null;
+          var email = user && user.email ? String(user.email).toLowerCase() : '';
+          return email === DEV_EMAIL.toLowerCase();
+        })['catch'](function () {
+          /* 网络断了 / 没登录，都当成「不是开发者」，不打扰访客 */
+          return false;
+        });
+      }
+
+      checkDeveloper().then(function (isDev) {
+        if (!isDev) return;
+        /* 是开发者：露出编辑 / 保存按钮组 */
+        if (devBar) devBar.hidden = false;
+        if (editBtn) editBtn.disabled = false;
+        if (saveBtn) saveBtn.disabled = true; /* 还没进编辑态，保存先按不动 */
+      });
+
+    })();
+  </script>
+
+</body>
+
+</html>

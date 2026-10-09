@@ -19,7 +19,7 @@
   </script>
   <style>
     :root {
-      --bg: #edf1f7;
+      --bg: #f6efdf;
       --text: #0f1b2b;
       --text-muted: #6a819a;
       --brand: #00AEEC;
@@ -62,7 +62,7 @@
     .stars { position: absolute; inset: 0; overflow: hidden; }
     .star {
       position: absolute; width: 2px; height: 2px; border-radius: 50%;
-      background: #fff; animation: starTwinkle 4.5s ease-in-out infinite alternate;
+      background: #fbf7ec; animation: starTwinkle 4.5s ease-in-out infinite alternate;
     }
     @keyframes starTwinkle { 0% { opacity: .25; } 100% { opacity: .95; } }
 
@@ -488,13 +488,13 @@
     .brightness-bar::-webkit-slider-thumb {
       -webkit-appearance: none; appearance: none;
       width: 18px; height: 18px; border-radius: 50%;
-      background: #fff;
+      background: #fbf7ec;
       box-shadow: 0 2px 8px rgba(0,0,0,.35);
       cursor: pointer;
     }
     .brightness-bar::-moz-range-thumb {
       width: 18px; height: 18px; border-radius: 50%;
-      background: #fff; border: none; cursor: pointer;
+      background: #fbf7ec; border: none; cursor: pointer;
     }
     .eye-btn {
       display: flex; align-items: center; gap: 6px;
@@ -856,6 +856,32 @@
       .shelf-wrap { padding: 12px 14px 100px; }
     }
   </style>
+
+  <!-- theme-skin: 全站淡黄底 + 亮度 -->
+  <style>
+    /* 亮度滑杆用的变量。页面自带的淡黄底是最暗的一档，
+       拉到 100% 时由 js/theme-skin.js 换成纯白。 */
+    :root { --bright: 0; }
+  </style>
+  <script>
+    /* 提前把亮度写进 CSS 变量，避免刷新时先闪一下淡黄再从纯白跳回来 */
+    (function () {
+      try {
+        var v = parseFloat(localStorage.getItem('sky_bright'));
+        if (!isFinite(v) || v < 0 || v > 1) v = 0;
+        document.documentElement.style.setProperty('--bright', String(v));
+        if (v > 0) {
+          /* 用一层极淡的白纱叠出"由淡黄变纯白"的过渡，
+             不改动页面已有的任何颜色，最保险 */
+          var s = document.createElement('style');
+          s.id = 'brightVeil';
+          s.textContent = 'html::before{content:"";position:fixed;inset:0;z-index:0;' +
+            'pointer-events:none;background:rgba(255,255,255,' + v.toFixed(3) + ')}';
+          document.head.appendChild(s);
+        }
+      } catch (e) { }
+    })();
+  </script>
 </head>
 
 <body>
@@ -982,7 +1008,7 @@
         <span class="set-label">颜色</span>
         <div class="set-main">
           <div class="color-row" id="textColorRow">
-            <div class="color-dot" data-v="#ffffff" style="background:#fff;" title="白"></div>
+            <div class="color-dot" data-v="#ffffff" style="background:#fbf7ec;" title="白"></div>
             <div class="color-dot" data-v="#f5ecd7" style="background:#f5ecd7;" title="米黄"></div>
             <div class="color-dot" data-v="#d5e5d0" style="background:#d5e5d0;" title="豆绿"></div>
             <div class="color-dot" data-v="#c8d6e5" style="background:#c8d6e5;" title="浅蓝"></div>
@@ -999,7 +1025,7 @@
         <div class="set-main">
           <div class="bg-row" id="bgRow">
             <div class="bg-thumb" data-v="auto" title="跟随昼夜"><span style="font-size:.7rem;color:#888;">跟随</span></div>
-            <div class="bg-thumb" data-v="white" style="background:#fafafa;"></div>
+            <div class="bg-thumb" data-v="white" style="background:#f7f2e6;"></div>
             <div class="bg-thumb" data-v="cream" style="background:#f5ecd7;"></div>
             <div class="bg-thumb" data-v="green" style="background:#d5e5d0;"></div>
             <div class="bg-thumb" data-v="blue" style="background:#0d1b2a;"></div>

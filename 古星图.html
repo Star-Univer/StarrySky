@@ -327,7 +327,7 @@
     /* 星图滚动容器：图幅 2400×1800，窗口小的时候可以横向拖动查看 */
     .paper-stage {
       flex: 1 1 auto;
-      min-height: 0;
+      min-height: 420px;
       width: 100%;
       overflow: auto;
       overscroll-behavior: contain;
@@ -335,9 +335,11 @@
         radial-gradient(ellipse at 50% 40%, rgba(255, 251, 240, .7), rgba(238, 227, 205, .35) 72%);
     }
 
+    /* 内联进来的星图：给个下限高度，避免被 flex 压成 0 */
     .paper-stage .chart-root {
       display: block;
       width: 100%;
+      min-height: 420px;
       height: auto;
       max-width: none;
       user-select: none;
@@ -1069,7 +1071,44 @@
   </p>
 
   <script src="js/starlore.js"></script>
+
+  <!-- 星图源码：先用一个外链脚本把它预加载成全局变量，而不是让页面去 fetch。
+       原因：浏览器在 file:// 下会拦掉 fetch，双击本地打开时星图会是一片空白；
+       而外链脚本不受同源限制，本地、线上、断网三种情况都能出图。
+       注意：注释里不要出现尖括号加 script 的字样，否则会被当成真的脚本标签。 -->
+  <script src="assets/chart-ink-inline.js"></script>
+
   <script src="js/skychart.js"></script>
+
+  <script>
+    /* 独立页收尾兜底：正常情况下 skychart.js 在 init 里已经把星图内联好了，
+       这里只是再确认一次 —— 万一内联没成功，就直接用预加载好的源码补上，
+       保证这一页永远不会是一片空白。 */
+    (function () {
+      function boot() {
+        try {
+          var stage = document.getElementById('chartStage');
+          if (!stage || stage.querySelector('.chart-root')) return;
+
+          var sc = window.SkyChart;
+          if (sc && typeof sc.inline === 'function') {
+            sc.inline();
+          } else if (window.__chartSvg) {
+            stage.innerHTML = window.__chartSvg;
+            stage.setAttribute('data-inlined', '1');
+          }
+        } catch (e) {
+          if (window.console) console.warn('[星图] 独立页兜底内联失败：', e);
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { setTimeout(boot, 200); });
+      } else {
+        setTimeout(boot, 200);
+      }
+    })();
+  </script>
 </body>
 
 </html>

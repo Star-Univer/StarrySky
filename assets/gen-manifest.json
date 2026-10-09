@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-08T15:11:38.081Z",
+  "generated": "2026-10-09T14:51:03.119Z",
   "seeds": {
     "deep": "0xA17C0DE",
     "mid": "0xB2E5A11",
@@ -19,9 +19,11 @@
     "sky-mid.svg",
     "sky-near.svg",
     "mansion-layer.svg",
+    "mansion-layer.js",
     "chart-ink.svg",
     "chart-ink-inline.svg",
+    "chart-ink-inline.js",
     "starcat.json"
   ],
-  "totalKB": 5898.9
+  "totalKB": 6216
 }

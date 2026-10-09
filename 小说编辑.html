@@ -19,14 +19,14 @@
   </script>
   <style>
     :root {
-      --bg: #edf1f7;
+      --bg: #f6efdf;
       --text: #0f1b2b;
       --text-muted: #6a819a;
       --brand: #00AEEC;
       --nav-bg: #0a0e16;
       --nav-text: #f0f2f6;
       --sky: radial-gradient(ellipse at 50% 100%, #143d5c 0%, #0a1d3a 35%, #050a14 70%, #010306 100%);
-      --card-bg: rgba(255, 255, 255, .86);
+      --card-bg: rgba(251, 247, 236, .88);
       --card-border: rgba(15, 27, 43, .10);
       --chip-bg: rgba(15, 27, 43, .05);
       --chip-border: rgba(15, 27, 43, .12);
@@ -72,7 +72,7 @@
     .stars { position: absolute; inset: 0; overflow: hidden; }
     .star {
       position: absolute; width: 2px; height: 2px; border-radius: 50%;
-      background: #fff; animation: starTwinkle 4.5s ease-in-out infinite alternate;
+      background: #fbf7ec; animation: starTwinkle 4.5s ease-in-out infinite alternate;
     }
     @keyframes starTwinkle { 0% { opacity: .25; } 100% { opacity: .95; } }
 
@@ -482,6 +482,32 @@
       .book-row .actions { width: 100%; justify-content: flex-start; }
     }
   </style>
+
+  <!-- theme-skin: 全站淡黄底 + 亮度 -->
+  <style>
+    /* 亮度滑杆用的变量。页面自带的淡黄底是最暗的一档，
+       拉到 100% 时由 js/theme-skin.js 换成纯白。 */
+    :root { --bright: 0; }
+  </style>
+  <script>
+    /* 提前把亮度写进 CSS 变量，避免刷新时先闪一下淡黄再从纯白跳回来 */
+    (function () {
+      try {
+        var v = parseFloat(localStorage.getItem('sky_bright'));
+        if (!isFinite(v) || v < 0 || v > 1) v = 0;
+        document.documentElement.style.setProperty('--bright', String(v));
+        if (v > 0) {
+          /* 用一层极淡的白纱叠出"由淡黄变纯白"的过渡，
+             不改动页面已有的任何颜色，最保险 */
+          var s = document.createElement('style');
+          s.id = 'brightVeil';
+          s.textContent = 'html::before{content:"";position:fixed;inset:0;z-index:0;' +
+            'pointer-events:none;background:rgba(255,255,255,' + v.toFixed(3) + ')}';
+          document.head.appendChild(s);
+        }
+      } catch (e) { }
+    })();
+  </script>
 </head>
 
 <body>

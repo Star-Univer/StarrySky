@@ -917,6 +917,53 @@
         }
       }
 
+      /* ==================================================== 增量刷新的"新内容"高亮
+         只有这一次刚合并进来的条目会带上 .is-fresh，
+         淡金底色 2 秒渐隐 —— 让用户一眼看出"新的是这几条"，
+         而不是整块列表重排闪一下（那样很晃眼，也看不出到底哪里变了）。
+         ===================================================================== */
+      @keyframes freshFade {
+        0% {
+          background-color: rgba(232, 180, 94, .26);
+          box-shadow: inset 3px 0 0 rgba(232, 180, 94, .95);
+        }
+
+        60% {
+          background-color: rgba(232, 180, 94, .12);
+          box-shadow: inset 3px 0 0 rgba(232, 180, 94, .55);
+        }
+
+        100% {
+          background-color: transparent;
+          box-shadow: inset 3px 0 0 rgba(232, 180, 94, 0);
+        }
+      }
+
+      .top-item.is-fresh,
+      .news-card.is-fresh {
+        animation: freshFade 2s ease-out forwards;
+      }
+
+      /* 刷新进行中：按钮转圈 + 禁用态。
+         优先给 .btn.is-busy 上色，老浏览器不认 :has() 也不会难看。 */
+      .btn.is-busy {
+        background: rgba(0, 174, 236, .16);
+        border-color: rgba(0, 174, 236, .5);
+      }
+
+      .btn[disabled],
+      .btn.is-busy {
+        cursor: default;
+        opacity: .72;
+        transform: none;
+      }
+
+      .btn.is-busy svg,
+      .btn:has(svg.is-spin) svg,
+      svg.is-spin {
+        animation: spin .9s linear infinite;
+      }
+
       /* ==================================================== 底部 / 弹层 */
       .page-foot {
         margin: 34px 0 46px;
@@ -1296,6 +1343,19 @@
 
          专题栏目是静态的（近年天文重大事件/突破），
          因为这类内容不会天天变，写死反而更可靠、更好读。
+
+         ------------------------------ 增量刷新（2025 改版） ------------------------------
+
+         以前的毛病：点一次「刷新」就整块 loadAll() —— 并发 100 条主源 + 6 个 RSS，
+         然后整体替换列表。请求又多又慢，页面还会卡一下，体验很像"卡住了"。
+
+         现在的做法（省时间省算力）：
+           · fetchNewest()   —— 只问主源要「最新 12 条」，请求极小，几秒内就回来；
+           · mergeNew()      —— 增量合并：老条目原样保留（连热度 __heat 都不重算），
+                                只有真正的新条目才追加进来并单独算热度；
+           · fullScan()      —— 原来的全量源能力没有删，只是降级成"后台静默补一次"，
+                                成功就再合并一次，失败也完全不影响用户已经看到的界面；
+           · 切栏目只从 state.all 里筛，永远不发网络请求 —— 这样点哪个栏都不会"卡住其他栏"。
        ===================================================================== */
     (function () {
       'use strict';
@@ -1304,6 +1364,15 @@
 
       var SFN = 'https://api.spaceflightnewsapi.net/v4/articles/';
       var RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+      /* 增量刷新一次问主源要几条：只取最新的这一小撮，请求很轻 */
+      var NEWEST_LIMIT = 12;
+      /* 内存里最多留多少条（超了砍最旧的），防止页面挂久了越堆越胖 */
+      var MAX_ITEMS = 200;
+      /* 两次刷新之间的最小间隔：不足就用"刚刚已更新"挡掉，防止连点把源站打爆 */
+      var MIN_REFRESH_GAP = 20 * 1000;
+      /* 自动刷新周期：天文新闻更新没那么快，1 小时足够了 */
+      var AUTO_REFRESH_MS = 60 * 60 * 1000;
 
       /* 外国天文：RSS 源 */
       var FEEDS_INTL = [
@@ -1512,9 +1581,38 @@
       var state = {
         all: [],
         view: 'hot',
-        loading: false,
+        loading: false,        /* 有刷新在跑时，再点按「刷新」直接忽略，避免并发打架 */
         fromCache: false,
-        sourceCount: 0
+        sourceCount: 0,
+        /* 这一次增量刷新跑出来的「新条目」，渲染时命中就加 .is-fresh 高亮。
+           用普通对象当集合（ES5 没有 Set，也不想为这个引入新写法）。 */
+        freshKeys: {},
+        /* 上次真正发起刷新的时间，用来做"最小间隔"守卫（连点防护） */
+        lastRefreshAt: 0,
+        /* 上次成功拿到数据的时间，配合 state.stale 生成"3 分钟前更新" */
+        lastStatusAt: 0,
+        stale: false,
+        /* 缓存为空 / 首屏还没内容时才允许的"首刷"，可以绕过最小间隔守卫 */
+        pending: false,
+        /* 当前屏幕上摆的是不是"内置快照占位"。是的话，真数据一回来就该让位 */
+        isSnapshot: false,
+        /* 屏幕上的列表是不是"临时替身"：
+           内置快照，或者条数很少的缓存（说明上次也只抓到这么点，多半是离线时攒下的）。
+           对替身做增量合并没有意义 —— 真数据回来时整批换掉更干净，
+           否则列表里会永远混着一批旧内容，页头也没法诚实地说"刚更新"。 */
+        isPlaceholder: false,
+        /* 屏幕上的内容是不是"过期/离线来的"。跟 fromCache 不同：
+           fromCache 只表示"这一次 applyList 直接吃的缓存"，
+           staleData 表示"这批内容本身就是旧的"，页头据此显示「离线缓存」。 */
+        staleData: false,
+        /* 离线提示每次加载只弹一次，别反复打扰 */
+        warnedOffline: false,
+        /* 后台全量补扫是否在跑。它和增量刷新共用一个"网络闸门"：
+           两者撞在一起既费流量、又可能互相覆盖刚合并好的列表。 */
+        scanning: false,
+        /* 每次合并出新内容就 +1。渲染时把它算进"内容签名"里，
+           这样"同样是 10 条、第一条也没变，但其中某条换成了新的"也能触发重画 */
+        freshStamp: 0
       };
 
       /* ------------------------------------------------------- 小工具 */
@@ -1597,17 +1695,56 @@
         };
       }
 
+      /* ------------------------------------------------------ 去重用的"身份钥匙"
+         一条新闻靠两把钥匙辨认，这样同一条新闻换个链接也不会重复出现：
+           · titleKey：标题去空格、转小写、截前 40 字（沿用原来 dedupe 的规则）
+           · urlKey  ：链接去掉首尾空格与结尾的斜杠
+         ----------------------------------------------------------------- */
+      function titleKey(n) {
+        return String((n && n.title) || '').replace(/\s+/g, '').slice(0, 40).toLowerCase();
+      }
+
+      function urlKey(n) {
+        return String((n && n.url) || '').trim().replace(/\/+$/, '').toLowerCase();
+      }
+
       function dedupe(list) {
         var seen = {};
         var out = [];
         list.forEach(function (n) {
           if (!n) return;
-          var key = n.title.replace(/\s+/g, '').slice(0, 40).toLowerCase();
+          var key = titleKey(n);
           if (seen[key]) return;
           seen[key] = 1;
           out.push(n);
         });
         return out;
+      }
+
+      /* 把已有一批新闻的"两把钥匙"全部收进一个查询表。
+         增量合并时用它做 O(1) 判断："这条是不是早就有了？" */
+      function seenKeys(list) {
+        var seen = {};
+        list.forEach(function (n) {
+          if (!n) return;
+          seen[titleKey(n)] = 1;
+          var u = urlKey(n);
+          if (u) seen[u] = 1;
+        });
+        return seen;
+      }
+
+      /* 统计有多少个不同的来源（页头"来源 N 个"用） */
+      function countSources(list) {
+        var s = {};
+        list.forEach(function (n) { s[n.source] = 1; });
+        return Object.keys(s).length;
+      }
+
+      /* 列表截断到上限，防止长时间挂着页面后内存里越堆越多。
+         先按时间倒序，这样砍掉的一定是最旧的。 */
+      function capList(list, max) {
+        return list.slice().sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); }).slice(0, max);
       }
 
       /* -------------------------------------------------- 分类与热度打分 */
@@ -1646,23 +1783,31 @@
 
       /* ---------------------------------------------------------- 取数 */
 
-      /** 主源：Spaceflight News API v4 */
-      function loadSFN() {
-        var url = SFN + '?limit=100&ordering=-published_at';
+      /** 主源：Spaceflight News API v4
+       *  limit 由调用方决定：全量扫描给 100，增量刷新只给 12（请求小、回得快） */
+      function loadSFN(limit) {
+        var url = SFN + '?limit=' + (limit || 100) + '&ordering=-published_at';
         return fetchT(url, 13000).then(function (r) { return r.json(); }).then(function (j) {
           var arr = (j && (j.results || j)) || [];
           if (!Array.isArray(arr)) throw new Error('返回格式异常');
-          return arr.map(function (a) {
+          return arr.map(function (n) {
             return normalize({
-              title: a.title,
-              url: a.url,
-              summary: a.summary,
-              source: a.news_site,
-              published: a.published_at,
-              image: a.image_url
+              title: n.title,
+              url: n.url,
+              summary: n.summary,
+              source: n.news_site,
+              published: n.published_at,
+              image: n.image_url
             });
-          });
+          }).filter(Boolean);
         });
+      }
+
+      /** 增量刷新用：只取主源最新的一小撮（默认 12 条）。
+       *  这是整个改版的关键 —— 请求体小、耗时可预期，几秒内就该回来，
+       *  所以点「刷新」几乎立刻有反馈，不会再"转半天"。 */
+      function fetchNewest(limit) {
+        return loadSFN(limit || 12);
       }
 
       /** 备源：rss2json 读 RSS */
@@ -1748,6 +1893,81 @@
         });
       }
 
+      /* ==================================================================
+         增量合并：这是"不用从头再找再全换"的核心
+         ------------------------------------------------------------------
+         规则（按这个顺序读就行）：
+           1. 先把 state.all 里已有的条目全部原样搬进结果，并把它们的标题/链接
+              记进 seen。老条目连热度 __heat 都不重算 —— 重算要遍历列表、还要读时间，
+              纯属白费算力。
+           2. 再一条条看新抓回来的 fresh：标题或链接任何一把钥匙在 seen 里出现过，
+              就当成"旧闻"跳过；没出现过的才算真·新条目，现场算热度后追加。
+           3. 最后按时间倒序、截断到 200 条上限，避免页面挂久了无限膨胀。
+         返回 { list, added, freshKeys }：
+           added 是新条目的数量，freshKeys 是新条目的钥匙表，
+           渲染时命中就加 .is-fresh 高亮，让用户看出"新的是这几条"。
+         ================================================================== */
+      function mergeNew(fresh) {
+        /* 先判断底子是不是"临时替身"。是的话先就地让位：
+           清掉旧的高亮标记、把 isPlaceholder 复位，然后以空列表为底重新合并。
+           这样不只是数据干净，渲染时的"内容签名"也会跟着变，
+           界面才会真的重画（否则签名没变，新条目可能画不出来）。 */
+        var wasPlaceholder = !!state.isPlaceholder;
+        if (wasPlaceholder) {
+          state.isPlaceholder = false;
+          state.isSnapshot = false;
+          state.freshKeys = {};
+          state.freshStamp = (state.freshStamp || 0) + 1;
+        }
+
+        var seen = wasPlaceholder ? {} : seenKeys(state.all);
+        var addedKeys = {};
+        var added = 0;
+        var out = wasPlaceholder ? [] : state.all.slice();
+
+        (fresh || []).forEach(function (x) {
+          var n = normalize(x);
+          if (!n) return;
+
+          var tk = titleKey(n);
+          var uk = urlKey(n);
+          if (seen[tk] || (uk && seen[uk])) return;   /* 旧闻：原样跳过 */
+
+          /* 新条目：只有它需要算热度 */
+          n.__heat = heat(n, 0);
+          seen[tk] = 1;
+          if (uk) seen[uk] = 1;
+          addedKeys[tk] = 1;
+          if (uk) addedKeys[uk] = 1;
+          out.push(n);
+          added++;
+        });
+
+        /* 按时间倒序，再截断到 200 条上限 */
+        var capped = capList(out, MAX_ITEMS);
+
+        /* 被截掉的那些钥匙要从高亮表里删掉，免得它们"复活"时被误判成新条目 */
+        var alive = seenKeys(capped);
+        var freshKeys = {};
+        Object.keys(addedKeys).forEach(function (k) {
+          if (alive[k]) freshKeys[k] = 1;
+        });
+
+        return { list: capped, added: added, freshKeys: freshKeys };
+      }
+
+      /* 合并完之后统一重画 + 刷新页头状态。
+         这里故意不走 applyList()：那会重算所有条目的热度并整体替换列表，
+         而我们要的就是"老的原样留着"，所以别再动它们。
+         keepTime = true 表示"这次其实没拿到新东西"，那就别更新状态时间。 */
+      function applyMerged(keepTime) {
+        state.sourceCount = countSources(state.all);
+        if (!keepTime) state.lastStatusAt = Date.now();
+        renderTop();
+        renderView();
+        renderStats();
+      }
+
       /* ------------------------------------------------------ 缓存 */
       var CACHE_KEY = 'sky_news_cache_v1';
 
@@ -1772,6 +1992,16 @@
 
       function rankIcon(i) { return String(i + 1); }
 
+      /* 这一条是不是"刚刚合并进来的新内容"？
+         是的话渲染时给它挂上 .is-fresh，CSS 里有一段 2 秒的淡金渐隐动画。 */
+      function isFresh(n) {
+        var tk = titleKey(n);
+        var uk = urlKey(n);
+        return !!(state.freshKeys[tk] || (uk && state.freshKeys[uk]));
+      }
+
+      function freshCls(n) { return isFresh(n) ? ' is-fresh' : ''; }
+
       function renderTop() {
         var list = state.all.slice().sort(function (a, b) { return b.__heat - a.__heat; }).slice(0, 10);
         var ul = $('topList');
@@ -1783,11 +2013,18 @@
           return;
         }
 
+        /* 小优化：榜单内容没变就不要再重建一遍 DOM。
+           刷新时只是"补了几条新的"，Top10 常常原样不动，
+           那就没必要让整块 <ol> 闪一下。 */
+        var sign = list.length + '|' + list[0].title + '|' + (list[0].ts || 0);
+        if (ul.getAttribute('data-sign') === sign) return;
+        ul.setAttribute('data-sign', sign);
+
         ul.innerHTML = list.map(function (n, i) {
           var tags = '';
           if (isCN(n)) tags += '<span class="tag is-cn">中国天文</span>';
           if (i < 3) tags += '<span class="tag is-hot">热</span>';
-          return '<li class="top-item">' +
+          return '<li class="top-item' + freshCls(n) + '">' +
             '<span class="top-rank">' + rankIcon(i) + '</span>' +
             '<span class="top-body">' +
             '<a class="top-title" href="' + esc(n.url) + '" target="_blank" rel="noopener noreferrer">' + esc(n.title) + '</a>' +
@@ -1822,15 +2059,19 @@
           sub.textContent = 'Milestones';
           note.textContent = '近年重大事件与突破';
           topicGrid.hidden = false;
-          topicGrid.innerHTML = TOPICS.map(function (t) {
-            return '<article class="topic" style="--topic-glow:' + t.glow + '">' +
-              '<span class="topic-year">' + esc(t.year) + '</span>' +
-              '<h3>' + esc(t.title) + '</h3>' +
-              '<p>' + esc(t.text) + '</p>' +
-              '<div class="topic-stats">' +
-              t.stats.map(function (s) { return '<span>' + esc(s) + '</span>'; }).join('') +
-              '</div></article>';
-          }).join('');
+          /* 静态内容画一次就够了，切回来不必重建 DOM */
+          if (!topicGrid.getAttribute('data-done')) {
+            topicGrid.innerHTML = TOPICS.map(function (t) {
+              return '<article class="topic" style="--topic-glow:' + t.glow + '">' +
+                '<span class="topic-year">' + esc(t.year) + '</span>' +
+                '<h3>' + esc(t.title) + '</h3>' +
+                '<p>' + esc(t.text) + '</p>' +
+                '<div class="topic-stats">' +
+                t.stats.map(function (s) { return '<span>' + esc(s) + '</span>'; }).join('') +
+                '</div></article>';
+            }).join('');
+            topicGrid.setAttribute('data-done', '1');
+          }
           return;
         }
 
@@ -1868,8 +2109,21 @@
         }
 
         grid.hidden = false;
-        grid.innerHTML = list.slice(0, 60).map(function (n) {
-          return '<a class="news-card" href="' + esc(n.url) + '" target="_blank" rel="noopener noreferrer">' +
+        renderCards(grid, list);
+      }
+
+      /* 把一批新闻画成卡片。
+         除了 .is-fresh 高亮，这里还多做了一件小事：
+         内容（条数 + 第一条标题 + 当前栏目）跟上次一样时就不再重建 DOM ——
+         增量刷新往往只补进一两条，整块 60 张卡片重排反而更费时也更晃眼。 */
+      function renderCards(grid, list) {
+        list = list.slice(0, 60);
+        var sign = state.view + '|' + list.length + '|' + list[0].title + '|' + state.freshStamp;
+        if (grid.getAttribute('data-sign') === sign) return;
+        grid.setAttribute('data-sign', sign);
+
+        grid.innerHTML = list.map(function (n) {
+          return '<a class="news-card' + freshCls(n) + '" href="' + esc(n.url) + '" target="_blank" rel="noopener noreferrer">' +
             (n.image ? '<img class="thumb" src="' + esc(n.image) + '" alt="" loading="lazy" ' +
               'onerror="this.remove()">' : '') +
             '<span class="body">' +
@@ -1885,9 +2139,12 @@
       function renderStats() {
         $('statCount').textContent = String(state.all.length);
         $('statSrc').textContent = String(state.sourceCount);
-        var t = state.all.reduce(function (m, n) { return Math.max(m, n.ts || 0); }, 0);
-        $('statTime').textContent = t ? relTime(new Date(t).toISOString()) : (state.fromCache ? '离线缓存' : '—');
-        $('hotUpdated').textContent = state.fromCache ? '离线缓存 · ' + new Date().toLocaleTimeString() : '已更新';
+        /* 更新于：优先显示"我们上次真正拿到数据的时间"（刚刚 / 3 分钟前），
+           拿不到就退回列表里最新一条的时间，再退回离线缓存提示 */
+        $('statTime').textContent = state.lastStatusAt
+          ? statusText(Date.now())
+          : (state.fromCache ? '离线缓存' : '—');
+        updateStatus();
 
         var cn = state.all.filter(isCN).length;
         $('cnt-hot').textContent = String(Math.min(10, state.all.length));
@@ -1898,20 +2155,48 @@
 
       /* ------------------------------------------------------ 主流程 */
 
+      /** 整批换掉列表（首屏缓存、快照兜底、手动粘贴、全量扫描用）。 */
       function applyList(list, fromCache) {
         /* 预先把热度算好，避免每次渲染重复计算 */
         list.forEach(function (n, i) { n.__heat = heat(n, i); });
         state.all = list;
         state.fromCache = !!fromCache;
-        var srcs = {};
-        list.forEach(function (n) { srcs[n.source] = 1; });
-        state.sourceCount = Object.keys(srcs).length;
+        /* 换了一整批：清掉旧的高亮标记，并把"内容签名"往前推一格 */
+        state.freshKeys = {};
+        state.freshStamp = (state.freshStamp || 0) + 1;
+        state.sourceCount = countSources(list);
 
         renderTop();
         renderView();
         renderStats();
       }
 
+      /** 摆出断网占位内容：缓存优先，其次内置快照。
+       *  会打上 isSnapshot 标记，等真数据回来时让位。 */
+      function applyFallback(snapshotOnly) {
+        var cache = readCache();
+        var list = (cache && cache.list && cache.list.length) ? cache.list.map(normalize).filter(Boolean) : [];
+        var snap = false;
+        if (!list.length) { list = SNAPSHOT.map(normalize).filter(Boolean); snap = true; }
+        applyList(list, true);
+        state.isSnapshot = snap && !!snapshotOnly;
+        state.isPlaceholder = state.isSnapshot;
+        state.staleData = !!snapshotOnly;
+        if (state.isSnapshot) { state.stale = true; renderStats(); }
+      }
+
+      /* 首屏吃的缓存算不算"临时替身"？
+         条数太少（< 20）说明上次也没抓到什么，多半是离线时攒的，那就当替身用：
+         真数据回来后整批换掉，页头也才敢说"刚刚更新"。 */
+      function markCacheBase(count) {
+        state.isSnapshot = false;
+        state.isPlaceholder = count < 20;
+        state.staleData = true;
+      }
+
+      /** 显示"正在检索"的骨架态。
+       *  注意：增量刷新不会调它 —— 那会把已经画好的列表整块清空闪一下，
+       *  正是这次改版要消灭的体验。它只留给"屏幕上确实没内容"的场合。 */
       function showLoading() {
         var stateEl = $('viewState');
         stateEl.hidden = false;
@@ -1920,36 +2205,218 @@
         $('topicGrid').hidden = true;
       }
 
-      /** fromUser = 用户主动点刷新 */
+      /* ------------------------------------------------ 刷新按钮的即时反馈
+         点下去立刻禁用 + 变「检索中…」，不让用户觉得"按了没反应"；
+         增量那一段一回来就恢复，后台补全量不占着按钮。 */
+
+      var bTimer = null;
+
+      function beginBusy() {
+        var btn = $('refreshBtn');
+        if (!btn) return;
+        if (bTimer) { clearTimeout(bTimer); bTimer = null; }
+        if (!btn.getAttribute('data-label')) btn.setAttribute('data-label', btn.textContent.trim());
+        btn.disabled = true;
+        btn.classList.add('is-busy');
+        btn.setAttribute('aria-busy', 'true');
+        btn.textContent = '检索中…';
+      }
+
+      function endBusy() {
+        var btn = $('refreshBtn');
+        if (!btn) return;
+        btn.disabled = false;
+        btn.classList.remove('is-busy');
+        btn.setAttribute('aria-busy', 'false');
+        btn.textContent = btn.getAttribute('data-label') || '刷新';
+      }
+
+      /* 成功拿到内容后 0.7 秒再解除"检索中"，让用户能明确看到反馈，
+         不然请求太快时按钮一闪而过，反而像没反应。超时兜底也会强制恢复，
+         保证按钮永远不可能卡在禁用状态。 */
+      function settleBusy() {
+        if (bTimer) clearTimeout(bTimer);
+        bTimer = setTimeout(function () { bTimer = null; endBusy(); }, 700);
+      }
+
+      /* ------------------------------------------------ 页头状态文案
+         #hotUpdated / #statTime 显示真实情况：
+         「刚刚更新」/「3 分钟前更新」/「离线缓存」/「检索中…」 */
+      function statusText(now) {
+        if (state.stale) return '离线缓存 · ' + stampText(state.lastStatusAt);
+        if (!state.lastStatusAt) return '检索中…';
+        var gap = now - state.lastStatusAt;
+        if (gap < 60000) return '刚刚更新';
+        if (gap < 3600000) return Math.round(gap / 60000) + ' 分钟前更新';
+        if (gap < 86400000) return Math.round(gap / 3600000) + ' 小时前更新';
+        return relTime(new Date(state.lastStatusAt).toISOString()) + '更新';
+      }
+
+      function stampText(ms) {
+        if (!ms) return '—';
+        var d = new Date(ms);
+        return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+      }
+
+      /* 只改文案，不重画任何列表 */
+      function updateStatus() {
+        var now = Date.now();
+        var el = $('hotUpdated');
+        if (!el) return;
+        var txt = statusText(now);
+        if (el.textContent !== txt) el.textContent = txt;
+      }
+
+      /* 定时把"刚刚更新"改成"3 分钟前更新"。
+         不开这个定时器的话，页头会一直挂着"刚刚更新"，那就不算真实状态了。 */
+      function startStaleTick() {
+        setInterval(function () { if (!state.loading) updateStatus(); }, 40000);
+      }
+
+      /* ==================================================================
+         增量刷新：refresh() 现在的主角
+         ------------------------------------------------------------------
+         以前是"全量大刷新"：并发 100 条主源 + 6 个 RSS，再整体替换列表，
+         又慢又卡。现在只做三步：
+           1. fetchNewest() 拿主源最新 12 条（很轻）；
+           2. mergeNew() 增量合并 —— 老的原样留着，只追加真正的新条目；
+           3. 重渲染 + 给新条目挂高亮。
+         拿到结果立刻返回，绝不等待全量源；全量源丢到后台静默补一次。
+         ================================================================== */
       function refresh(fromUser) {
-        if (state.loading) return;
+        var now = Date.now();
+
+        /* 守卫一：已经有刷新在跑。手动点最多提示一句，静默刷新直接退出 */
+        if (state.loading) {
+          if (fromUser) toast('正在更新，请稍候…');
+          return;
+        }
+        /* 守卫一·补：后台正在补全量。这时界面内容是最新的，别跟它抢网络 */
+        if (state.scanning) {
+          if (fromUser) toast('正在后台补全量，请稍候…');
+          return;
+        }
+        /* 守卫二：距上次刷新不足 20 秒。手动点是防连点，静默的直接跳过；
+           首刷（state.pending）不受这条限制。 */
+        if (!state.pending && (now - state.lastRefreshAt) < MIN_REFRESH_GAP) {
+          if (fromUser) toast('刚刚已更新');
+          return;
+        }
+
         state.loading = true;
-        if (fromUser) toast('正在重新检索…');
-        if (state.view !== 'topic') showLoading();
+        state.lastRefreshAt = now;
+        state.pending = false;
+        if (fromUser) beginBusy();
 
-        loadAll().then(function (list) {
+        return fetchNewest(NEWEST_LIMIT).then(function (arr) {
+          /* 先记下"合并前"的底子是不是临时替身：mergeNew 会就地把它复位。 */
+          var wasPlaceholder = !state.all.length || !!state.isPlaceholder;
+          var r = mergeNew(arr);
+          state.all = r.list;
+          state.freshKeys = r.freshKeys;
+          /* 底子真的是替身、而且这一刷确实换进了真内容 —— 那才算真的"刚更新"。
+             注意必须两个条件都满足：替身 + 拿到东西。
+             只因为"请求成功"就宣称更新，会在断网时骗人。 */
+          var reallyUpdated = wasPlaceholder && r.added > 0;
+          if (reallyUpdated) {
+            state.isPlaceholder = false;
+            state.staleData = false;
+            state.stale = false;
+          }
+          state.fromCache = false;
+          if (r.added) state.freshStamp = (state.freshStamp || 0) + 1;
+          saveCache(state.all);
+          /* 一条新的都没拿到时，别动状态时间，免得页头拿"刚才"冒充"内容很新" */
+          applyMerged(!r.added && state.staleData);
+
+          if (state.view !== 'topic' && r.added) {
+            if (fromUser) toast('已更新 ' + r.added + ' 条');
+          } else if (fromUser) {
+            toast('已是最新');
+          } else if (state.staleData || state.isPlaceholder) {
+            /* 静默刷新一条新的都没拿到，而屏幕上是旧内容或占位内容 —— 说一句就够。
+               注意这里必须把 isPlaceholder 也算上：断网首屏摆的是内置快照，
+               它并不算"缓存"，只看 staleData 会漏掉这种最常见的情况。 */
+            warnOffline();
+          }
+        }).catch(function (e) {
+          /* 增量失败不慌：先把状态拉回来，再决定要不要动全量源 */
           state.loading = false;
+          endBusy();
+          console.warn('[新闻] 增量刷新失败：', e && e.message ? e.message : e);
+          /* 屏幕上还是占位/旧内容的话，顺手告诉用户一句"现在是离线内容" */
+          if (state.staleData || state.isPlaceholder) warnOffline();
+        }).then(function () {
+          /* 增量这一段结束了，按钮和 loading 守卫都放开 */
+          state.loading = false;
+          settleBusy();
 
-          if (!list.length) {
-            /* 三层源全挂：用快照 + 缓存 */
-            var cache = readCache();
-            var fallback = (cache && cache.list.length) ? cache.list : SNAPSHOT.slice();
-            applyList(fallback.map(normalize).filter(Boolean), true);
+          /* 后台再补一次全量（不 await、不阻塞界面，失败也就算了）。
+             抓到的东西会再合并一次，等于顺手补齐 RSS 里的中国/外国天文条目。 */
+          if (state.all.length) {
+            setTimeout(function () { fullScan(true); }, 250);
+          } else {
+            /* 一条都没有（多半是断网）：用缓存或内置快照兜底，别让页面空着 */
+            applyFallback(true);
             toast('资讯源暂时不可用，已显示离线内容');
+          }
+        });
+      }
+      /* 全量源：主源 100 条 + 6 个 RSS。
+         只在两种时候跑 —— 用户刷新后的后台补扫，或者首屏/兜底时确实没内容。
+         它跑得慢没关系，因为界面早就用增量结果画好了。 */
+      function fullScan(afterIncrement) {
+        /* 闸门：已经在补扫、或者增量刷新正在跑，就别再并发一次。
+           这是"省算力"的一部分 —— 同一时刻只允许一路网络请求在飞。 */
+        if (state.scanning || state.loading) return;
+        state.scanning = true;
+        /* 万一某个源挂住不返回，最多 25 秒也必须把闸门放开，
+           否则后面的刷新会全被这道闸门挡死。 */
+        var gate = setTimeout(function () { state.scanning = false; }, 25000);
+
+        return loadAll().then(function (list) {
+          if (!list || !list.length) {
+            /* 全量源一个都没回来（被墙 / 断网）。
+               这是最常见的"其实没网"场景，必须给用户一句反馈；
+               已经有内容就什么都不动，只是提示。 */
+            if (!state.all.length) applyFallback(true);
+            if (!afterIncrement) warnOffline('资讯源暂时不可用，已显示离线内容');
             return;
           }
-
-          applyList(list, false);
-          saveCache(list);
-          if (fromUser) toast('已更新 ' + list.length + ' 条');
+          /* 全量源拿到的是真数据：无论之前是不是占位，都可以确认内容不再是"离线来的" */
+          state.isPlaceholder = false;
+          state.isSnapshot = false;
+          state.staleData = false;
+          var r = mergeNew(list);
+          state.all = r.list;
+          if (r.added) {
+            state.freshKeys = r.freshKeys;
+            state.freshStamp = (state.freshStamp || 0) + 1;
+          }
+          state.fromCache = false;
+          state.stale = false;
+          saveCache(state.all);
+          applyMerged();
         }).catch(function (e) {
-          state.loading = false;
-          console.warn('[新闻] 全部来源失败：', e);
-          var cache = readCache();
-          var fallback = (cache && cache.list.length) ? cache.list : SNAPSHOT.slice();
-          applyList(fallback.map(normalize).filter(Boolean), true);
-          toast('检索失败，已显示离线内容');
+          console.warn('[新闻] 后台补全量失败（不影响现有内容）：', e && e.message ? e.message : e);
+        }).then(function () {
+          clearTimeout(gate);
+          state.scanning = false;
         });
+      }
+
+      /* 兜底：读缓存，缓存没有就用内置快照。断网也不会白屏 */
+      function showFallback(msg) {
+        applyFallback(true);
+        if (msg) toast(msg);
+      }
+
+      /* 这次刷新没拿到任何新内容（或者干脆没发成功），而屏幕上是旧的/占位内容：
+         提醒一句，并每次加载只提醒一次，别烦人。 */
+      function warnOffline(msg) {
+        if (state.warnedOffline) return;
+        state.warnedOffline = true;
+        toast(msg || '资讯源暂时不可用，正在显示离线内容');
       }
 
       /* ------------------------------------------------------ 交互 */
@@ -2045,27 +2512,43 @@
         var cache = readCache();
         if (cache && cache.list && cache.list.length) {
           applyList(cache.list.map(normalize).filter(Boolean), true);
+          state.lastStatusAt = cache.t || Date.now();
+          state.stale = true;
+          /* 这批内容本身就是缓存里的旧内容，先按"离线来的"记账 */
+          markCacheBase(state.all.length);
+          updateStatus();
+          /* 这里先用"稍等一拍"的方式占住上次刷新时间。
+             关键：不能写成 Date.now() —— 那样 900ms 后那次该跑的计划刷新
+             会被最小间隔守卫当成"刚刷过"挡掉，等于自动更新永远不触发。
+             所以把时间往回拨一点，让计划中的那一刷刚好能通过守卫。 */
+          state.lastRefreshAt = Date.now() - MIN_REFRESH_GAP - 1000;
           var ageH = (Date.now() - cache.t) / 3600000;
-          if (ageH > 6) refresh(false);
-          else {
-            /* 缓存还新鲜，仍然静默刷新一次以拿到更新的内容 */
+          if (ageH > 6) {
+            state.pending = true;   /* 缓存老了，这一刷不等最小间隔 */
+            refresh(false);
+          } else {
+            /* 缓存还新鲜：稍等一拍再静默增量一次，别和首屏渲染抢时间 */
             setTimeout(function () { refresh(false); }, 900);
           }
         } else {
-          /* 没有缓存：先摆快照，再检索 */
-          applyList(SNAPSHOT.map(normalize).filter(Boolean), true);
+          /* 没有缓存：先摆内置快照，再增量检索；
+             这一刷算"首刷"，允许立刻发请求，不需要等最小间隔 */
+          applyFallback(true);
+          state.pending = true;
           refresh(false);
         }
 
-        /* 每 15 分钟自动刷新一次 */
-        setInterval(function () { refresh(false); }, 15 * 60 * 1000);
+        /* 每 1 小时自动增量刷新一次。
+           天文新闻更新没那么快，1 小时足够；改成 1 小时也让源站少挨点请求。 */
+        setInterval(function () { refresh(false); }, AUTO_REFRESH_MS);
 
-        /* 回到前台且超过 10 分钟没更新，就自动刷一次 */
+        /* 回到前台且超过 1 小时没动过，才自动刷一次（阈值从 10 分钟调到 60 分钟，少打扰源站） */
         document.addEventListener('visibilitychange', function () {
           if (document.hidden) return;
-          var last = state.all.reduce(function (m, n) { return Math.max(m, n.ts || 0); }, 0);
-          if (!last || Date.now() - last > 10 * 60 * 1000) refresh(false);
+          if (Date.now() - state.lastRefreshAt > 60 * 60 * 1000) refresh(false);
         });
+
+        startStaleTick();
       }
 
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

@@ -12,19 +12,19 @@
 
   <style>
     :root {
-      --bg: #edf1f7;
+      --bg: #f6efdf;
       --text: #0f1b2b;
       --text-muted: #6a819a;
       --brand: #00AEEC;
       --nav-bg: #0a0e16;
       --nav-text: #f0f2f6;
       --glass-bg: linear-gradient(155deg,
-          rgba(255, 255, 255, .86) 0%,
-          rgba(255, 255, 255, .62) 45%,
-          rgba(255, 255, 255, .78) 100%);
-      --glass-border: rgba(255, 255, 255, .95);
+          rgba(251, 247, 236, .88) 0%,
+          rgba(251, 247, 236, .64) 45%,
+          rgba(251, 247, 236, .80) 100%);
+      --glass-border: rgba(251, 247, 236, .95);
       --glass-shadow: 0 26px 60px -30px rgba(20, 45, 90, .42);
-      --glass-inset: inset 0 1px 0 rgba(255, 255, 255, .95);
+      --glass-inset: inset 0 1px 0 rgba(251, 247, 236, .95);
       --glass-head-border: rgba(15, 27, 43, .10);
       --glass-title: #0f1b2b;
       --glass-sub: rgba(60, 90, 130, .55);
@@ -290,6 +290,32 @@
       .nav-title { font-size: .88rem; letter-spacing: .10em; }
     }
   </style>
+
+  <!-- theme-skin: 全站淡黄底 + 亮度 -->
+  <style>
+    /* 亮度滑杆用的变量。页面自带的淡黄底是最暗的一档，
+       拉到 100% 时由 js/theme-skin.js 换成纯白。 */
+    :root { --bright: 0; }
+  </style>
+  <script>
+    /* 提前把亮度写进 CSS 变量，避免刷新时先闪一下淡黄再从纯白跳回来 */
+    (function () {
+      try {
+        var v = parseFloat(localStorage.getItem('sky_bright'));
+        if (!isFinite(v) || v < 0 || v > 1) v = 0;
+        document.documentElement.style.setProperty('--bright', String(v));
+        if (v > 0) {
+          /* 用一层极淡的白纱叠出"由淡黄变纯白"的过渡，
+             不改动页面已有的任何颜色，最保险 */
+          var s = document.createElement('style');
+          s.id = 'brightVeil';
+          s.textContent = 'html::before{content:"";position:fixed;inset:0;z-index:0;' +
+            'pointer-events:none;background:rgba(255,255,255,' + v.toFixed(3) + ')}';
+          document.head.appendChild(s);
+        }
+      } catch (e) { }
+    })();
+  </script>
 </head>
 
 <body>
