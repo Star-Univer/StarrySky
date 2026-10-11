@@ -127,7 +127,7 @@
   /* ================= 黑夜：纯黑底 + 白线白字 =================
      站主要求这两页是特别的：不跟全站亮度走，白天纯白、黑夜纯黑。
      用系统偏好自动切换，保持极简。 */
-  @media (prefers-color-scheme: dark) {
+  html[data-user-color-scheme="dark"] {
     html, body {
       background: #000000 !important;
       color: #ffffff !important;
@@ -160,7 +160,116 @@
     .sub, .muted, .hint, small {
       color: #aaaaaa !important;
     }
-    /* 数独棋盘：黑底白线 */
+  
+  /* 白天显式样式 ===== 白天显式样式（修复被压平的边框） =====
+     上一轮批量换色时把边框色也换成了近白，白天就"看不见线"了。
+     这里把该有的线条和底色明确写回来；黑夜规则在后面，会正常覆盖。
+
+     注意 --card 这个变量原来**根本没定义**，所以棋盘的 background:var(--card)
+     一直是透明的（页面默认白底看不出来，切黑夜就露馅）。这里补上。 */
+  html:not([data-user-color-scheme="dark"]) {
+    --card: #ffffff;
+    --paper: #ffffff;
+    --ink: #000000;
+    --faint: #cccccc;
+    --muted: #666666;
+  }
+
+  html:not([data-user-color-scheme="dark"]) body {
+    background: #ffffff;
+    color: #000000;
+  }
+
+  /* 棋盘：白底黑线（用 .board .cell 提高权重，压过后面的黑夜 !important） */
+  html:not([data-user-color-scheme="dark"]) .board {
+    background: #ffffff;
+    border-color: #000000;
+  }
+
+  html:not([data-user-color-scheme="dark"]) .board .cell {
+    background: #ffffff;
+    border-right-color: #cccccc;
+    border-bottom-color: #cccccc;
+    color: #000000;
+  }
+
+  /* 3×3 宫的分隔线要粗一点、黑一点 */
+  html:not([data-user-color-scheme="dark"]) .board .cell.br,
+  html:not([data-user-color-scheme="dark"]) .board .cell.bl,
+  html:not([data-user-color-scheme="dark"]) .board .cell.bt,
+  html:not([data-user-color-scheme="dark"]) .board .cell.bb {
+    border-color: #000000;
+  }
+
+  html:not([data-user-color-scheme="dark"]) .board .cell.sel,
+  html:not([data-user-color-scheme="dark"]) .board .cell.same {
+    background: #e8e8e8;
+  }
+
+  html:not([data-user-color-scheme="dark"]) .board .cell.given,
+  html:not([data-user-color-scheme="dark"]) .board .cell.fixed {
+    color: #000000;
+    font-weight: 700;
+  }
+
+  html:not([data-user-color-scheme="dark"]) .board .cell.user {
+    color: #1a4fa0;
+  }
+
+  html:not([data-user-color-scheme="dark"]) .board .cell.err,
+  html:not([data-user-color-scheme="dark"]) .board .cell.error {
+    background: #fdecec;
+    color: #c1442e;
+    border-color: #e8b4b4;
+  }
+
+  /* 按钮：白底黑边黑字；选中态黑底白字 */
+  html:not([data-user-color-scheme="dark"]) .diff-btn,
+  html:not([data-user-color-scheme="dark"]) .btn,
+  html:not([data-user-color-scheme="dark"]) .btn-start,
+  html:not([data-user-color-scheme="dark"]) .num-btn,
+  html:not([data-user-color-scheme="dark"]) .rank-open,
+  html:not([data-user-color-scheme="dark"]) .scope-btn,
+  html:not([data-user-color-scheme="dark"]) .rdiff-btn,
+  html:not([data-user-color-scheme="dark"]) .ov-btn {
+    background: #ffffff;
+    color: #000000;
+    border: 1px solid #000000;
+  }
+
+  html:not([data-user-color-scheme="dark"]) .diff-btn.on,
+  html:not([data-user-color-scheme="dark"]) .scope-btn.on,
+  html:not([data-user-color-scheme="dark"]) .rdiff-btn.on,
+  html:not([data-user-color-scheme="dark"]) .btn.on {
+    background: #000000;
+    color: #ffffff;
+    border-color: #000000;
+  }
+
+  /* 文字层级 */
+  html:not([data-user-color-scheme="dark"]) h1 {
+    color: #000000;
+  }
+
+  html:not([data-user-color-scheme="dark"]) .sub,
+  html:not([data-user-color-scheme="dark"]) .status,
+  html:not([data-user-color-scheme="dark"]) .error-display {
+    color: #666666;
+  }
+
+  /* 排行榜窗口 */
+  html:not([data-user-color-scheme="dark"]) .rank-panel,
+  html:not([data-user-color-scheme="dark"]) .overlay-panel {
+    background: #ffffff;
+    color: #000000;
+    border-color: #000000;
+  }
+
+  html:not([data-user-color-scheme="dark"]) .rank-row {
+    border-bottom-color: #dddddd;
+  }
+
+  /* 数独棋盘：黑底白线 */
     .cell, td, .grid-cell {
       background: #000000 !important;
       border-color: #333333 !important;
@@ -188,9 +297,70 @@
     hr, .divider { border-color: #333333 !important; }
   }
 
-  /* 全站的「亮度白纱」不要盖到这两页上（双保险） */
-  html::before { display: none !important; }
+
+  /* ===== 黑夜变量（全站主题驱动） =====
+     js/theme.js 会给 <html> 加 data-user-color-scheme，
+     这里跟着切变量；原来的 @media 版保留，两种来源都能生效。 */
+  html[data-user-color-scheme="dark"] {
+    --paper: #000000;
+    --ink: #ffffff;
+    --muted: #aaaaaa;
+    --faint: #333333;
+    --rel: #111111;
+    --same: #1a1a1a;
+    --sel: #222222;
+    --user: #ffffff;
+    --err: #ff9a9a;
+    --err-bg: #2a0a0a;
+    --err-bd: #662222;
+    --ok: #7ee2a8;
+    --bg: #000000;
+    --text: #ffffff;
+    --border: #333333;
+    --card-bg: #000000;
+    background: #000000;
+    color: #ffffff;
+  }
+
+  html[data-user-color-scheme="dark"] body {
+    background: #000000 !important;
+    color: #ffffff !important;
+  }
+
+  /* 表格与表头原来写死了白底，黑夜会露出一块白，这里补上 */
+  html[data-user-color-scheme="dark"] table {
+    background: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  html[data-user-color-scheme="dark"] thead th {
+    background: #000000 !important;
+    color: #cccccc !important;
+    border-bottom: 1px solid #333333 !important;
+  }
+
+  html[data-user-color-scheme="dark"] tbody tr,
+  html[data-user-color-scheme="dark"] tbody td {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-color: #333333 !important;
+  }
+
+  html[data-user-color-scheme="dark"] select,
+  html[data-user-color-scheme="dark"] input {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-color: #555555 !important;
+  }
+
+  html[data-user-color-scheme="dark"] select option {
+    background: #000000;
+    color: #ffffff;
+  }
+  /* 黑白主题-属性版 */
 </style>
+  <!-- 全站日夜主题：必须尽早同步加载，第一帧才不会闪 -->
+  <script src="js/theme.js"></script>
 </head>
 <body>
 
@@ -468,6 +638,38 @@
   lastSnap = snap();
 
 })();
+</script>
+
+<!-- 日夜切换（独立页用的小按钮） -->
+<button id="skyThemeBtn" aria-label="切换日夜模式" title="切换日夜模式"
+  style="position:fixed;top:12px;right:12px;z-index:200;width:38px;height:38px;
+         display:flex;align-items:center;justify-content:center;border-radius:50%;
+         border:1px solid currentColor;background:transparent;color:inherit;
+         cursor:pointer;opacity:.75;transition:opacity .2s">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+       stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path class="sky-ico-moon" d="M20.2 14.6A8.6 8.6 0 0 1 9.4 3.8a8.6 8.6 0 1 0 10.8 10.8z"/>
+    <g class="sky-ico-sun">
+      <circle cx="12" cy="12" r="4.4"/>
+      <path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/>
+    </g>
+  </svg>
+</button>
+<script>
+  (function () {
+    var b = document.getElementById('skyThemeBtn');
+    if (!b || !window.SkyTheme) return;
+    function paint() {
+      var light = window.SkyTheme.get() === 'light';
+      b.querySelector('.sky-ico-moon').style.display = light ? 'none' : '';
+      b.querySelector('.sky-ico-sun').style.display = light ? '' : 'none';
+    }
+    b.addEventListener('click', function () { window.SkyTheme.toggle(); paint(); });
+    b.addEventListener('mouseenter', function () { b.style.opacity = '1'; });
+    b.addEventListener('mouseleave', function () { b.style.opacity = '.75'; });
+    window.addEventListener('skythemechange', paint);
+    paint();
+  })();
 </script>
 </body>
 </html>

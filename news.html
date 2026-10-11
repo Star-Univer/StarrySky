@@ -1170,6 +1170,8 @@
 </style>
   <!-- 英文标题 → 中文 的轻量翻译层（纯本地词表，不联网） -->
   <script src="js/news-lang.js"></script>
+  <!-- 全站日夜主题：必须尽早同步加载，第一帧才不会闪 -->
+  <script src="js/theme.js"></script>
 </head>
 
 <body>
@@ -2023,6 +2025,30 @@
       }
 
       function freshCls(n) { return isFresh(n) ? ' is-fresh' : ''; }
+
+      /* 标题中文化。
+         能翻就翻；翻不出来（覆盖率不够）就原样返回英文，
+         绝不硬凑一句错的中文。英文原文会在下面以小字显示，信息不丢。
+         注意：这两个函数被 renderTop / renderCards 共用，
+         必须和它们在**同一个 IIFE 作用域**里，否则会报
+         "__newsTitleZh is not defined"，整页渲染中断。 */
+      function __newsTitleZh(t) {
+        try {
+          if (window.SkyNewsLang && window.SkyNewsLang.translate) {
+            var r = window.SkyNewsLang.translate(t);
+            if (r && r.covered && r.zh) return r.zh;
+          }
+        } catch (e) { }
+        return t;
+      }
+
+      function __newsTitleEn(t) {
+        try {
+          var zh = __newsTitleZh(t);
+          if (zh !== t) return '<div class="news-en">' + esc(t) + '</div>';
+        } catch (e) { }
+        return '';
+      }
 
       function renderTop() {
         var list = state.all.slice().sort(function (a, b) { return b.__heat - a.__heat; }).slice(0, 10);

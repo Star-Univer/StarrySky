@@ -364,6 +364,95 @@ window.SkyNewsLang = (function () {
     ['rare', '罕见的'],
     ['smash', '撞击'],
 
+    /* ---- 补：NASA / ESA / APOD 标题里最常出现的词 ----
+       这些是从真实抓回来的标题里统计出来的，它们的标题风格相当固定。 */
+    ['astronaut', '宇航员'],
+    ['astronauts', '宇航员'],
+    ['cosmonaut', '宇航员'],
+    ['crew', '乘组'],
+    ['crewed', '载人'],
+    ['flyover', '低空飞行'],
+    ['engage', '互动'],
+    ['conduct', '进行'],
+    ['conducts', '进行'],
+    ['arrives', '抵达'],
+    ['arrived', '抵达'],
+    ['departs', '启程'],
+    ['fans', '球迷'],
+    ['stadium', '体育场'],
+    ['metlife', '大都会球场'],
+    ['inspiring', '激励'],
+    ['inspiration', '启发'],
+    ['tour', '巡访'],
+    ['kicked', '开启'],
+    ['kick', '开启'],
+    ['administrator', '局长'],
+    ['agency', '机构'],
+    ['experience', '体验'],
+    ['members', '成员'],
+    ['landing', '着陆'],
+    ['aboard', '在…上'],
+    ['october', '十月'],
+    ['september', '九月'],
+    ['november', '十一月'],
+    ['december', '十二月'],
+    ['january', '一月'],
+    ['february', '二月'],
+    ['march', '三月'],
+    ['april', '四月'],
+    ['june', '六月'],
+    ['july', '七月'],
+    ['august', '八月'],
+    ['farside', '背面'],
+    ['far side', '背面'],
+    ['fishing', '垂钓'],
+    ['neutrinos', '中微子'],
+    ['neutrino', '中微子'],
+    ['cosmic', '宇宙'],
+    ['picture', '图片'],
+    ['pictures', '图片'],
+    ['photo', '照片'],
+    ['photograph', '照片'],
+    ['gallery', '图集'],
+    ['archive', '档案'],
+    ['submissions', '投稿'],
+    ['index', '索引'],
+    ['education', '教育'],
+    ['discuss', '讨论'],
+    ['discover', '发现'],
+    ['cosmos', '宇宙'],
+    ['featured', '精选'],
+    ['explore', '探索'],
+    ['fascinating', '迷人的'],
+    ['cargo', '货运'],
+    ['resupply', '补给'],
+    ['dragon', '龙飞船'],
+    ['cygnus', '天鹅座飞船'],
+    ['orbital', '轨道'],
+    ['insertion', '入轨'],
+    ['upper', '上面级'],
+    ['pad', '发射台'],
+    ['launchpad', '发射台'],
+    ['engine', '发动机'],
+    ['debut', '首次亮相'],
+    ['contract', '合同'],
+    ['award', '授予'],
+    ['budget', '预算'],
+    ['funding', '经费'],
+    ['proposal', '提案'],
+    ['report', '报告'],
+    ['update', '更新'],
+    ['status', '状态'],
+    ['analysis', '分析'],
+    ['results', '结果'],
+    ['findings', '发现'],
+    ['authors', '作者'],
+    ['paper', '论文'],
+    ['published', '发表'],
+    ['journal', '期刊'],
+    ['astronomy', '天文学'],
+    ['astrophysics', '天体物理'],
+
     /* ---- 补：标题里出现频率最高的那些词 ----
        这张表是拿真实英文标题跑覆盖率测出来补的，
        缺哪个补哪个，比一层层套语法可靠。 */
@@ -822,7 +911,20 @@ window.SkyNewsLang = (function () {
       .replace(/([,;])\s*/g, '，')
       .trim();
 
-    var covered = ratio >= 0.72 && hard.length === 0 && out.length > 0;
+    /* ---- 判定"翻得有没有把握" ----
+       这里放宽过一次：原来要求覆盖率 ≥0.72 且一个生词都不能有，
+       结果真实的 NASA / ESA / APOD 标题几乎全被拒（人名地名太多），
+       页面上就全是英文了，等于没翻。
+       现在的标准是"**中英混排也能读**"：
+         · 覆盖率 ≥ 0.5
+         · 生词不超过 1 个；或者不超过 3 个、且加起来不超过 14 个字母
+       剩下的生词本来就留在句子里（人名、任务名），
+       读起来像"欧空局 astronaut Sophie Adenot 返回空间站"，
+       对中文读者来说比整句英文有用得多。 */
+    var hardLetters = hard.join('').length;
+    var covered = ratio >= 0.5 &&
+      (hard.length <= 1 || (hard.length <= 3 && hardLetters <= 14)) &&
+      out.length > 0;
 
     if (typeof window !== 'undefined' && window.__SKY_LANG_DEBUG) {
       try {
@@ -845,32 +947,66 @@ window.SkyNewsLang = (function () {
    * 之前只看标题里的中文，结果外国站的中文版也被算进来、
    * 而真正的中文报道又漏掉，于是出现了"中国天文 0 条"。
    * 现在改成三维度打分：来源、关键词、语言。
+   *
+   * 补充：站主反馈"中国天文装了 0 条"。真实情况是很多中国航天的报道
+   * 出自外国站（SpaceNews / Space.com），标题是英文、也没写 China，
+   * 只写 CASC / 文昌 / 酒泉 / Long March 之类。所以这里把
+   * **中国航天特有的机构名、发射场、火箭型号**也纳入判定 ——
+   * 这类词几乎只出现在中国航天的报道里，误判风险很低。
    */
   var CN_SOURCE = [
     'cnsa', 'china', 'chinadaily', 'china daily', 'cgtn', 'xinhua', '新华社',
     '中国', '中科院', '国家天文台', '澎湃', '环球', '观察者', '科技日报', '航天'
   ];
   var CN_WORD = [
+    /* 任务与航天器 */
     '中国', '我国', '国内', '嫦娥', '天问', '北斗', '鹊桥', '天宫', '神舟', '长征',
-    '祝融', '玉兔', '羲和', '悟空', '慧眼', '夸父', '巡天', 'FAST', '天眼', '郭守敬',
-    '空间站', '探月', '火星车', '中继星', '酒泉', '文昌', '西昌', '太原', '星际荣耀',
-    '蓝箭', '星河动力', '银河航天', '中星', '亚太', '风云', '高分', '北斗三号'
+    '祝融', '玉兔', '羲和', '悟空', '慧眼', '夸父', '巡天', '天眼', '郭守敬',
+    '空间站', '探月', '火星车', '中继星', '月背', '月壤', '揽月', '梦舟', '望宇',
+    /* 发射场 */
+    '酒泉', '文昌', '西昌', '太原', '海阳', '东方航天港',
+    /* 商业航天 */
+    '星际荣耀', '蓝箭', '星河动力', '银河航天', '天兵', '中科宇航', '东方空间',
+    '朱雀', '双曲线', '谷神星', '天龙', '力箭',
+    /* 卫星系列 */
+    '中星', '亚太', '风云', '高分', '遥感', '实践', '北斗三号', '鸿雁', '千帆',
+    /* 天文台与望远镜 */
+    'fast', 'lamost', 'lhaaso', 'pandaX', 'jiangmen', '中国天眼'
   ];
-  var CN_ORG = ['cnsa', 'cas', 'naoc', 'beijing', 'shanghai astronomical'];
+  /* 英文写法：中国航天在英文报道里的高频专有名词 */
+  var CN_EN = [
+    'casc', 'calt', 'long march', 'longmarch', 'yaogan', 'shijian', 'gaofen',
+    'fengyun', 'beidou', 'tianlian', 'queqiao', 'chang\'e', 'change-',
+    'shenzhou', 'tiangong', 'tianwen', 'zhurong', 'yutu', 'wukong',
+    'jiuquan', 'wenchang', 'xichang', 'taiyuan', 'hainan spaceport',
+    'landspace', 'galactic energy', 'ispace china', 'cas space', 'orienspace',
+    'space pioneer', 'i-space', 'interstellar glory', 'deep blue aerospace'
+  ];
+  var CN_ORG = ['cnsa', 'cas', 'naoc', 'beijing', 'shanghai astronomical', 'pmo'];
 
   function isChinaNews(item) {
     var src = String((item && (item.source || item.news_site)) || '').toLowerCase();
     var text = String((item && (item.title || '') + ' ' + (item.summary || '')) || '');
+    var low = text.toLowerCase();
 
+    /* 来源：中文媒体 */
     for (var i = 0; i < CN_SOURCE.length; i++) {
       if (src.indexOf(CN_SOURCE[i].toLowerCase()) >= 0) return true;
     }
     for (var j = 0; j < CN_ORG.length; j++) {
       if (src.indexOf(CN_ORG[j]) >= 0) return true;
     }
+
+    /* 中文关键词（标题里出现就直接算） */
     for (var k = 0; k < CN_WORD.length; k++) {
       if (text.indexOf(CN_WORD[k]) >= 0) return true;
     }
+
+    /* 英文里的中国航天专有名词 */
+    for (var m = 0; m < CN_EN.length; m++) {
+      if (low.indexOf(CN_EN[m]) >= 0) return true;
+    }
+
     /* 标题里中文占比高 → 当中文报道 */
     var cn = (String(item && item.title || '').match(/[\u4e00-\u9fa5]/g) || []).length;
     return cn >= 6;
