@@ -1,23 +1,73 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-page="mono">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>数独 · 九宫格</title>
 <style>
+  /* ============================================================
+     主题变量
+     ------------------------------------------------------------
+     为什么全部写成变量：下面要用 @media (prefers-color-scheme: dark)
+     整体覆盖一遍。只要所有颜色都走变量，深色模式就不用改任何一条规则。
+     站主明确要求这一页是"白天纯白黑字、黑夜纯黑白字"的独立主题，
+     所以这里不放淡黄底、也不做亮度换算，只做黑/白色阶的反转。
+     ============================================================ */
   :root{
-    --ink:#121110;
-    --paper:#ffffff;
-    --muted:#8a857d;
-    --faint:#e2dfda;
-    --rel:#f7f6f4;
-    --same:#eceae6;
-    --sel:#e2ded7;
-    --user:#31506b;
-    --err:#c1442e;
-    --err-bg:#fdecec;
-    --err-bd:#e8b4b4;
-    --ok:#2b8a4e;
+    --ink:#000000;                    /* 主文字 / 粗线（深色模式反转为白） */
+    --paper:#ffffff;                  /* 页面底色 */
+    --card:#ffffff;                   /* 卡片 / 棋盘 / 按钮底色 */
+    --glass:rgba(255,255,255,.88);    /* 返回按钮那种半透明玻璃底 */
+    --hover:#f0f0f0;                  /* hover / 淡灰底 */
+    --muted:#555555;                  /* 次要文字 */
+    --muted-2:#666666;                /* 更弱的文字（计数、"错误："标签） */
+    --faint:#dddddd;                  /* 细分隔线 / 边框 */
+    --faint-2:#bbbbbb;                /* 略强的边框 */
+    --rel:#ffffff;                    /* 同行同列的相关格 */
+    --same:#eeeeee;                   /* 相同数字格 */
+    --sel:#dddddd;                    /* 选中格 */
+    --user:#000000;                   /* 用户填入的数字 */
+    --err:#000000;
+    --err-bg:#f2f2f2;
+    --err-bd:#999999;
+    --err-soft:#d89090;
+    --ok:#000000;
+    --warm:#666666;                   /* 站点那一点点暖色，用在"生成中"提示 */
+    --scrim:rgba(18,17,16,.62);       /* 弹层遮罩 */
+    --on-ink:#ffffff;                 /* 压在 --ink 底色上的文字色 */
+    --gold:#d9a520;                   /* 排行榜：金框 */
+    --silver:#b3b8bf;                 /* 排行榜：银框 */
+    --bronze:#c08040;                 /* 排行榜：铜框 */
+  }
+
+  /* 深色模式：纯黑底 + 白线白字（不跟随站点其它页面的淡黄主题） */
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ink:#ffffff;
+      --paper:#000000;
+      --card:#000000;
+      --glass:rgba(0,0,0,.72);
+      --hover:#1c1c1c;
+      --muted:#9c9c9c;
+      --muted-2:#6e6e6e;
+      --faint:#3a3a3a;
+      --faint-2:#5a5a5a;
+      --rel:#0d0d0d;
+      --same:#1a1a1a;
+      --sel:#2a2a2a;
+      --user:#9fc4e8;
+      --err:#ff6b52;
+      --err-bg:#2a1414;
+      --err-bd:#5c2b25;
+      --err-soft:#b8543f;
+      --ok:#5ed88a;
+      --warm:#d8b070;
+      --scrim:rgba(255,255,255,.14);
+      --on-ink:#000000;
+      --gold:#e8bb45;
+      --silver:#cdd3da;
+      --bronze:#d9944f;
+    }
   }
 
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -45,7 +95,7 @@
     display:flex; align-items:center; justify-content:center;
     border-radius:50%;
     color:var(--ink);
-    background:rgba(255,255,255,.88);
+    background:var(--glass);
     border:1px solid var(--faint);
     -webkit-backdrop-filter:blur(8px);
     backdrop-filter:blur(8px);
@@ -53,7 +103,7 @@
     transition:background .25s, transform .25s, border-color .25s;
   }
   .back-btn svg{ width:22px; height:22px; display:block; }
-  .back-btn:hover{ background:#f6f1e6; border-color:#c9c4bc; transform:translateY(-1px); }
+  .back-btn:hover{ background:var(--hover); border-color:var(--faint-2); transform:translateY(-1px); }
   .back-btn:active{ transform:scale(.94); }
 
   /* ===== 标题 ===== */
@@ -90,7 +140,7 @@
     padding:11px 0;
     border:1px solid var(--faint);
     border-radius:9px;
-    background:#fbf7ec;
+    background:var(--card);
     color:var(--muted);
     font-family:inherit;
     font-size:.88rem;
@@ -104,7 +154,7 @@
   .diff-btn.on{
     background:var(--ink);
     border-color:var(--ink);
-    color:#fff;
+    color:var(--on-ink);
   }
 
   /* ===== 错误次数显示：整行居中、数字固定宽度 ===== */
@@ -118,7 +168,7 @@
     font-size:.82rem;
     font-weight:600;
     letter-spacing:.1em;
-    color:#b0aaa2;
+    color:var(--muted-2);
     line-height:1;
   }
   .error-display .err-label{
@@ -151,7 +201,7 @@
     transition:color .3s;
   }
   .status.done{ color:var(--ok); font-weight:700; }
-  .status.loading{ color:#b08d57; }
+  .status.loading{ color:var(--warm); }
 
   /* ===== 棋盘 ===== */
   .board{
@@ -163,7 +213,7 @@
     border:2px solid var(--ink);
     border-radius:3px;
     overflow:hidden;
-    background:#fbf7ec;
+    background:var(--card);
   }
 
   .cell{
@@ -222,7 +272,7 @@
     padding:14px 0 16px;
     border:1px solid var(--faint);
     border-radius:9px;
-    background:#fbf7ec;
+    background:var(--card);
     color:var(--ink);
     font-family:inherit;
     font-size:1.02rem;
@@ -230,7 +280,7 @@
     cursor:pointer;
     transition:background .18s, transform .12s, opacity .25s, border-color .25s, color .25s;
   }
-  .num-btn:active{ background:#f4efe4; transform:scale(.96); }
+  .num-btn:active{ background:var(--hover); transform:scale(.96); }
 
   .num-count{
     position:absolute;
@@ -240,7 +290,7 @@
     font-weight:500;
     letter-spacing:0;
     line-height:1;
-    color:#bdb8b0;
+    color:var(--muted-2);
     pointer-events:none;
     transition:color .25s;
   }
@@ -249,11 +299,11 @@
     opacity:.35;
     cursor:not-allowed;
     pointer-events:none;
-    background:#f6f1e6;
-    border-color:#eceae6;
+    background:var(--hover);
+    border-color:var(--faint);
   }
   .num-btn.complete .num-count{
-    color:#c9c4bc;
+    color:var(--muted-2);
   }
 
   .num-btn.wrong{
@@ -266,7 +316,7 @@
     color:var(--err);
   }
   .num-btn.wrong .num-count{
-    color:#d89090;
+    color:var(--err-soft);
   }
 
   @keyframes numShake{
@@ -298,7 +348,7 @@
     border:none;
     border-radius:10px;
     background:var(--ink);
-    color:#fff;
+    color:var(--on-ink);
     font-family:inherit;
     font-size:1rem;
     font-weight:600;
@@ -318,7 +368,7 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    background:rgba(18,17,16,.62);
+    background:var(--scrim);
     -webkit-backdrop-filter:blur(3px);
     backdrop-filter:blur(3px);
     opacity:0;
@@ -333,7 +383,8 @@
   .overlay-panel{
     width:min(84vw, 360px);
     min-height:min(50vh, 360px);
-    background:#fbf7ec;
+    background:var(--card);
+    border:1px solid var(--faint);
     border-radius:20px;
     box-shadow:0 30px 70px -25px rgba(0,0,0,.5);
     padding:34px 26px 30px;
@@ -364,7 +415,7 @@
     align-items:baseline;
     justify-content:space-between;
     padding:10px 14px;
-    background:#f8f4e9;
+    background:var(--card);
     border-radius:10px;
   }
   .ov-label{
@@ -390,7 +441,7 @@
     border:none;
     border-radius:10px;
     background:var(--ink);
-    color:#fff;
+    color:var(--on-ink);
     font-family:inherit;
     font-size:.9rem;
     font-weight:600;
@@ -401,6 +452,405 @@
   }
   .ov-btn:active{ transform:translateY(1px); }
   .ov-btn:hover{ opacity:.9; }
+
+  /* ============================================================
+     排行榜 · 入口按钮（放在难度按钮组下面）
+     ============================================================ */
+  .rank-bar{
+    display:flex;
+    justify-content:flex-end;
+    width:min(92vw, 420px);
+    margin:0 auto 10px;
+  }
+  .rank-open{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:7px 15px;
+    border:1px solid var(--faint);
+    border-radius:999px;
+    background:var(--card);
+    color:var(--muted);
+    font-family:inherit;
+    font-size:.74rem;
+    font-weight:600;
+    letter-spacing:.22em;
+    text-indent:.22em;
+    cursor:pointer;
+    transition:background .22s, color .22s, border-color .22s, transform .15s;
+  }
+  .rank-open:hover{ background:var(--hover); color:var(--ink); border-color:var(--faint-2); }
+  .rank-open:active{ transform:scale(.96); }
+  .rank-open svg{ width:13px; height:13px; display:block; }
+
+  /* ============================================================
+     排行榜 · 弹窗
+     ------------------------------------------------------------
+     站主特别强调：窗口不能忽大忽小。
+     做法：面板给死尺寸（宽 min(92vw,520px)，高 min(80vh,620px)），
+     内部用 flex 纵向排布，只有中间的 .rank-body 允许滚动。
+     所以无论榜单是 0 条还是 100 条，窗口大小都一模一样。
+     ============================================================ */
+  .rank-modal{
+    position:fixed;
+    inset:0;
+    z-index:300;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    background:var(--scrim);
+    -webkit-backdrop-filter:blur(3px);
+    backdrop-filter:blur(3px);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease;
+  }
+  .rank-modal.show{ opacity:1; pointer-events:auto; }
+
+  .rank-panel{
+    width:min(92vw, 520px);
+    height:min(80vh, 620px);       /* 固定高度：内容多少都不改变窗口大小 */
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    padding:16px 16px 14px;
+    background:var(--paper);
+    border:1px solid var(--faint);
+    border-radius:18px;
+    box-shadow:0 30px 70px -25px rgba(0,0,0,.5);
+    transform:scale(.96);
+    transition:transform .3s cubic-bezier(.2,.7,.3,1);
+  }
+  .rank-modal.show .rank-panel{ transform:scale(1); }
+
+  .rank-head{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding-bottom:11px;
+    border-bottom:1px solid var(--faint);
+  }
+  .rank-title{
+    font-size:.78rem;
+    font-weight:800;
+    letter-spacing:.3em;
+    text-indent:.3em;
+    color:var(--ink);
+  }
+  /* "本机榜" 小标记：Supabase 不可用时才出现 */
+  .rank-flag{
+    padding:2px 8px;
+    border:1px solid var(--warm);
+    border-radius:999px;
+    color:var(--warm);
+    font-size:.6rem;
+    font-weight:700;
+    letter-spacing:.1em;
+    white-space:nowrap;
+  }
+  .rank-flag[hidden]{ display:none; }
+  .rank-spacer{ flex:1 1 auto; }
+  .rank-close{
+    flex:0 0 auto;
+    width:30px; height:30px;
+    display:grid; place-items:center;
+    border:1px solid var(--faint);
+    border-radius:50%;
+    background:var(--card);
+    color:var(--muted);
+    font-family:inherit;
+    font-size:1rem;
+    line-height:1;
+    cursor:pointer;
+    transition:background .2s, color .2s;
+  }
+  .rank-close:hover{ background:var(--hover); color:var(--ink); }
+
+  /* 本周 / 历史 切换 */
+  .rank-scopes{
+    flex:0 0 auto;
+    display:flex;
+    gap:6px;
+    margin:11px 0 8px;
+    padding:3px;
+    border:1px solid var(--faint);
+    border-radius:10px;
+    background:var(--card);
+  }
+  .scope-btn{
+    flex:1;
+    padding:8px 0;
+    border:none;
+    border-radius:8px;
+    background:transparent;
+    color:var(--muted);
+    font-family:inherit;
+    font-size:.78rem;
+    font-weight:700;
+    letter-spacing:.16em;
+    text-indent:.16em;
+    cursor:pointer;
+    transition:background .22s, color .22s;
+  }
+  .scope-btn.on{ background:var(--ink); color:var(--on-ink); }
+
+  /* 难度：窗口里也能切，切完直接重查该难度的榜 */
+  .rank-diffs{
+    flex:0 0 auto;
+    display:flex;
+    gap:6px;
+    margin-bottom:9px;
+  }
+  .rdiff-btn{
+    flex:1;
+    padding:7px 0;
+    border:1px solid var(--faint);
+    border-radius:8px;
+    background:var(--card);
+    color:var(--muted);
+    font-family:inherit;
+    font-size:.74rem;
+    font-weight:600;
+    letter-spacing:.1em;
+    text-indent:.1em;
+    cursor:pointer;
+    transition:background .22s, color .22s, border-color .22s;
+  }
+  .rdiff-btn.on{ background:var(--ink); border-color:var(--ink); color:var(--on-ink); }
+
+  /* 列表：整个弹窗里唯一可滚动的区域 */
+  .rank-body{
+    flex:1 1 auto;
+    min-height:0;              /* 关键：没有这行，flex 子项不会收缩，滚动条会失效 */
+    overflow-y:auto;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    padding-right:2px;
+  }
+  .rank-body::-webkit-scrollbar{ width:6px; }
+  .rank-body::-webkit-scrollbar-thumb{ background:var(--faint-2); border-radius:3px; }
+
+  .rank-row{
+    display:grid;
+    grid-template-columns:26px 36px minmax(0,1fr) auto auto;
+    align-items:center;
+    column-gap:8px;
+    padding:8px 9px;
+    border:1px solid transparent;
+    border-radius:11px;
+  }
+  .rank-row + .rank-row{ margin-top:2px; }
+  .rank-row.me{ background:var(--rel); border-color:var(--faint); }
+  .rank-row.is-admin{ position:relative; padding-right:46px; }  /* 给右侧删除按钮留位 */
+
+  .rank-no{
+    text-align:center;
+    font-size:.72rem;
+    font-weight:800;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum";
+  }
+  .rank-row.top .rank-no{ color:var(--ink); }
+
+  /* ============================================================
+     头像 + 头像框
+     ------------------------------------------------------------
+     做法：.rank-ava 自带 2px 内边距，这 2px 露出来的就是"框"。
+     换框只要换它的 background 渐变即可，不用额外套一层元素。
+     层级：星空 > 金 > 银 > 铜（frameWeight 里定义）。
+     ============================================================ */
+  .rank-ava{
+    width:36px; height:36px;
+    flex:0 0 auto;
+    padding:2px;                 /* 这 2px 就是头像框的粗细 */
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    background:var(--faint);     /* 默认：没有名次 → 一条普通灰边，不发光 */
+  }
+  .rank-ava img{
+    width:100%; height:100%;
+    display:block;
+    object-fit:cover;
+    border-radius:50%;
+    background:var(--card);
+  }
+  .ava-letter{
+    width:100%; height:100%;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    background:var(--hover);
+    color:var(--muted);
+    font-size:.8rem;
+    font-weight:800;
+    line-height:1;
+  }
+  /* 金 */
+  .rank-ava.frame-gold{
+    background:linear-gradient(135deg, #f6e3a1 0%, #d9a520 55%, #a87a12 100%);
+    box-shadow:0 0 9px -1px rgba(217,165,32,.6);
+  }
+  /* 银 */
+  .rank-ava.frame-silver{
+    background:linear-gradient(135deg, #eef1f4 0%, #b3b8bf 55%, #868c94 100%);
+    box-shadow:0 0 9px -1px rgba(179,184,191,.55);
+  }
+  /* 铜 */
+  .rank-ava.frame-bronze{
+    background:linear-gradient(135deg, #eccaa4 0%, #c08040 55%, #8b5522 100%);
+    box-shadow:0 0 9px -1px rgba(192,128,64,.55);
+  }
+  /* 星空：历史榜 1-10 名的永久框。
+     颜色直接取首页「星空」两个字的渐变，再叠一层轻微闪烁，
+     让它在纯黑白的榜单里显得"贵"一点。 */
+  .rank-ava.frame-star{
+    background:linear-gradient(135deg, #ff9aec 0%, #a9c6ff 50%, #5b8ce0 100%);
+    background-size:220% 220%;
+    animation:starShimmer 4.2s ease-in-out infinite;
+    box-shadow:0 0 10px -1px rgba(169,198,255,.7);
+  }
+  @keyframes starShimmer{
+    0%   { background-position:0% 50%; }
+    50%  { background-position:100% 50%; }
+    100% { background-position:0% 50%; }
+  }
+
+  /* 棋子徽章：只有「本周排名」挂（王后 ♛ / 车 ♜ / 兵 ♟），颜色跟头像框同级 */
+  .rank-piece{
+    width:16px;
+    flex:0 0 auto;
+    text-align:center;
+    font-size:.92rem;
+    line-height:1;
+  }
+  .rank-piece.piece-gold{   color:var(--gold); }
+  .rank-piece.piece-silver{ color:var(--silver); }
+  .rank-piece.piece-bronze{ color:var(--bronze); }
+
+  .rank-who{ min-width:0; display:flex; flex-direction:column; gap:2px; }
+  .rank-name{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:.82rem;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .rank-meta{
+    font-size:.62rem;
+    font-weight:600;
+    color:var(--muted-2);
+    letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum";
+  }
+  .rank-time{
+    font-size:.62rem;
+    color:var(--muted);
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum";
+  }
+
+  /* 管理员删除按钮（只有 piao022400@qq.com 登录后才渲染） */
+  .rank-del{
+    position:absolute;
+    right:8px;
+    top:50%;
+    transform:translateY(-50%);
+    padding:4px 8px;
+    border:1px solid var(--err-bd);
+    border-radius:8px;
+    background:var(--err-bg);
+    color:var(--err);
+    font-family:inherit;
+    font-size:.62rem;
+    font-weight:700;
+    cursor:pointer;
+    transition:opacity .2s;
+  }
+  .rank-del:hover{ opacity:.78; }
+
+  /* 空榜 / 加载中 / 未登录提示 */
+  .rank-hint{
+    padding:26px 12px;
+    text-align:center;
+    font-size:.76rem;
+    line-height:2;
+    color:var(--muted);
+  }
+  .rank-hint b{ color:var(--ink); }
+  .rank-hint .sub{ display:block; margin-top:6px; font-size:.66rem; color:var(--muted-2); }
+  .rank-login{
+    display:inline-block;
+    margin-top:12px;
+    padding:10px 22px;
+    border-radius:10px;
+    background:var(--ink);
+    color:var(--on-ink);
+    font-size:.8rem;
+    font-weight:700;
+    letter-spacing:.16em;
+    text-indent:.16em;
+    text-decoration:none;
+  }
+  .rank-login-box{ text-align:center; padding:6px 0 2px; }
+  .rank-login-box .rank-login{ margin-top:0; }
+  .rank-login-tip{ margin-top:9px; font-size:.66rem; color:var(--muted-2); }
+  /* 底部那行"隐形排名"上的小标签 */
+  .mine-tag{ font-style:normal; font-weight:800; color:var(--warm); }
+
+  /* 底部：本设备"隐形排名" */
+  .rank-foot{
+    flex:0 0 auto;
+    margin-top:10px;
+    padding-top:9px;
+    border-top:1px solid var(--faint);
+  }
+  .rank-foot[hidden]{ display:none; }
+  .rank-foot .rank-row{ background:var(--rel); border-color:var(--faint); padding-top:6px; padding-bottom:6px; }
+
+  /* ============================================================
+     小提示条（记录成功 / 管理员删除结果）
+     ============================================================ */
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:28px;
+    z-index:400;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    max-width:min(92vw, 460px);
+    padding:11px 16px;
+    border:1px solid var(--faint);
+    border-radius:12px;
+    background:var(--ink);
+    color:var(--on-ink);
+    font-size:.76rem;
+    font-weight:600;
+    line-height:1.6;
+    box-shadow:0 16px 40px -18px rgba(0,0,0,.6);
+    opacity:0;
+    pointer-events:none;
+    transform:translate(-50%, 16px);
+    transition:opacity .28s ease, transform .28s ease;
+  }
+  .toast.show{ opacity:1; transform:translate(-50%, 0); pointer-events:auto; }
+  .toast a{
+    flex:0 0 auto;
+    color:var(--on-ink);
+    font-weight:800;
+    text-decoration:none;
+    border-bottom:1px solid currentColor;
+    padding-bottom:1px;
+    white-space:nowrap;
+  }
 
   @media (prefers-reduced-motion: reduce){
     *{ transition:none !important; animation:none !important; }
@@ -413,34 +863,81 @@
     .num-btn{ padding:12px 0 14px; font-size:.95rem; }
     .num-count{ font-size:.5rem; right:4px; bottom:2px; }
     .overlay-panel{ padding:28px 20px 24px; gap:12px; }
+    /* 排行榜：窄屏把行压紧一点，保证"名次/头像/昵称/时间/棋子"都还在 */
+    .rank-panel{ padding:14px 12px 12px; }
+    .rank-row{ grid-template-columns:22px 32px minmax(0,1fr) auto auto; column-gap:6px; padding:7px 6px; }
+    .rank-ava{ width:32px; height:32px; }
+    .rank-row.is-admin{ padding-right:40px; }
+    .rank-time{ font-size:.58rem; }
   }
-</style>
 
-  <!-- theme-skin: 全站淡黄底 + 亮度 -->
-  <style>
-    /* 亮度滑杆用的变量。页面自带的淡黄底是最暗的一档，
-       拉到 100% 时由 js/theme-skin.js 换成纯白。 */
-    :root { --bright: 0; }
-  </style>
-  <script>
-    /* 提前把亮度写进 CSS 变量，避免刷新时先闪一下淡黄再从纯白跳回来 */
-    (function () {
-      try {
-        var v = parseFloat(localStorage.getItem('sky_bright'));
-        if (!isFinite(v) || v < 0 || v > 1) v = 0;
-        document.documentElement.style.setProperty('--bright', String(v));
-        if (v > 0) {
-          /* 用一层极淡的白纱叠出"由淡黄变纯白"的过渡，
-             不改动页面已有的任何颜色，最保险 */
-          var s = document.createElement('style');
-          s.id = 'brightVeil';
-          s.textContent = 'html::before{content:"";position:fixed;inset:0;z-index:0;' +
-            'pointer-events:none;background:rgba(255,255,255,' + v.toFixed(3) + ')}';
-          document.head.appendChild(s);
-        }
-      } catch (e) { }
-    })();
-  </script>
+  /* ================= 黑夜：纯黑底 + 白线白字 =================
+     站主要求这两页是特别的：不跟全站亮度走，白天纯白、黑夜纯黑。
+     用系统偏好自动切换，保持极简。 */
+  @media (prefers-color-scheme: dark) {
+    html, body {
+      background: #000000 !important;
+      color: #ffffff !important;
+    }
+    .board, .card, .panel, .app > *, .stat, .team, .row {
+      background: #000000 !important;
+      border-color: #333333 !important;
+      box-shadow: none !important;
+    }
+    .back-btn {
+      background: #000000 !important;
+      border-color: #333333 !important;
+      color: #ffffff !important;
+      box-shadow: none !important;
+    }
+    button, .btn, .btn-new, .btn-undo, .diff-btn {
+      background: #000000 !important;
+      color: #ffffff !important;
+      border-color: #444444 !important;
+      box-shadow: none !important;
+    }
+    button.on, .diff-btn.on, .btn.on {
+      background: #ffffff !important;
+      color: #000000 !important;
+      border-color: #ffffff !important;
+    }
+    h1, h2, h3, .tname, .title, .wins, .score {
+      color: #ffffff !important;
+    }
+    .sub, .muted, .hint, small {
+      color: #aaaaaa !important;
+    }
+    /* 数独棋盘：黑底白线 */
+    .cell, td, .grid-cell {
+      background: #000000 !important;
+      border-color: #333333 !important;
+      color: #ffffff !important;
+    }
+    .cell.given, .cell.fixed { color: #ffffff !important; font-weight: 700; }
+    .cell.user { color: #ffffff !important; }
+    .cell.sel, .cell.selected { background: #1a1a1a !important; }
+    .cell.rel, .cell.same { background: #111111 !important; }
+    .cell.err, .cell.error {
+      background: #2a0a0a !important;
+      color: #ff9a9a !important;
+      border-color: #662222 !important;
+    }
+    .num-btn, .keypad button {
+      background: #000000 !important;
+      color: #ffffff !important;
+      border-color: #333333 !important;
+    }
+    input, textarea, select {
+      background: #000000 !important;
+      color: #ffffff !important;
+      border-color: #444444 !important;
+    }
+    hr, .divider { border-color: #333333 !important; }
+  }
+
+  /* 全站的「亮度白纱」不要盖到这两页上（双保险） */
+  html::before { display: none !important; }
+</style>
 </head>
 <body>
 
@@ -462,6 +959,16 @@
   <button class="diff-btn" data-level="simple">简</button>
   <button class="diff-btn" data-level="hard">难</button>
   <button class="diff-btn" data-level="nightmare">噩梦</button>
+</div>
+
+<!-- 排行榜入口：先在上面选好难度，再点这里，进去就是该难度的榜 -->
+<div class="rank-bar">
+  <button class="rank-open" id="btnRank" aria-haspopup="dialog">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>排 行 榜
+  </button>
 </div>
 
 <!-- 错误次数 -->
@@ -516,13 +1023,67 @@
   </div>
 </div>
 
+<!-- ============================================================
+     排行榜弹窗
+     ------------------------------------------------------------
+     · 面板固定尺寸，只有 .rank-body 内部滚动（站主要求：窗口不许忽大忽小）
+     · 顶部两个范围：本周排名 / 历史排名（历史必须登录才能看）
+     · 下面四个难度按钮：窗口里也能切，切完立刻重查
+     · 底部 .rank-foot 放"本设备的隐形排名"
+     ============================================================ -->
+<div class="rank-modal" id="rankModal" aria-hidden="true">
+  <div class="rank-panel" role="dialog" aria-modal="true" aria-label="排行榜">
+
+    <div class="rank-head">
+      <span class="rank-title">排 行 榜</span>
+      <span class="rank-flag" id="rankFlag" hidden>本机榜</span>
+      <span class="rank-spacer"></span>
+      <button class="rank-close" id="rankClose" aria-label="关闭排行榜">×</button>
+    </div>
+
+    <div class="rank-scopes" id="rankScopes">
+      <button class="scope-btn on" data-scope="week">本周排名</button>
+      <button class="scope-btn" data-scope="history">历史排名</button>
+    </div>
+
+    <div class="rank-diffs" id="rankDiffs">
+      <button class="rdiff-btn on" data-level="easy">易</button>
+      <button class="rdiff-btn" data-level="simple">简</button>
+      <button class="rdiff-btn" data-level="hard">难</button>
+      <button class="rdiff-btn" data-level="nightmare">噩梦</button>
+    </div>
+
+    <div class="rank-body" id="rankBody"></div>
+
+    <div class="rank-foot" id="rankFoot" hidden></div>
+  </div>
+</div>
+
+<!-- 小提示条 -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Supabase SDK：CDN 有可能加载不出来（离线 / 被墙），
+     所以下面所有用到它的地方都有 if (!window.supabase) 兜底，拿不到就走本机榜 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 "use strict";
 
 /* ============================================================
- *  一、常量
+ *  ★ 纯函数区（排行榜的"规则"全在这里）
+ * ------------------------------------------------------------
+ *  为什么单独圈出这一段：它不碰 DOM、不碰 localStorage、不发网络请求，
+ *  所以可以整段抽出来丢进 Node 做逻辑自测（末尾会挂到 window.__sudokuRank）。
+ *  以后改规则时请保持"只依赖入参"，否则自测脚本就跑不起来了。
+ *
+ *  ===== __SUDOKU_RANK_PURE_BEGIN__ =====
  * ============================================================ */
 
+/* ------------------------------------------------------------
+ *  一、数独本身的常量
+ * ------------------------------------------------------------ */
+
+/* 每个难度挖几个洞：洞越多，给的条件越少，越难 */
 const HOLES = {
   easy:      42,
   simple:    50,
@@ -530,6 +1091,7 @@ const HOLES = {
   nightmare: 62
 };
 
+/* 生成题目最多花多久（毫秒）：超时就收手，免得"噩梦"难度把页面卡死 */
 const TIME_LIMIT = {
   easy:      1200,
   simple:    2000,
@@ -537,7 +1099,212 @@ const TIME_LIMIT = {
   nightmare: 3600
 };
 
-const DIFF_NAME = { easy:'易', simple:'简', hard:'难', nightmare:'噩梦' };
+/* 难度中文名：状态行、结算面板、排行榜文案都在用 */
+const DIFF_NAME  = { easy:'易', simple:'简', hard:'难', nightmare:'噩梦' };
+const DIFF_ORDER = ['easy', 'simple', 'hard', 'nightmare'];
+
+/* ------------------------------------------------------------
+ *  二、排行榜常量
+ * ------------------------------------------------------------ */
+
+/* 「本周排名」只看最近 7 天：超过 7 天的记录在展示时自动不显示（不删数据） */
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+/* 每周榜 / 历史榜都最多展示 100 条 */
+const BOARD_LIMIT = 100;
+
+/* 头像框层级权重：数字越大越强。
+   站主明确要求的优先级就是这一行：星空 > 金 > 银 > 铜 */
+const FRAME_WEIGHT = { star:4, gold:3, silver:2, bronze:1 };
+
+/* 棋子徽章字符（只有本周榜挂），颜色跟着同级头像框走 */
+const PIECE_CHAR = { gold:'♛', silver:'♜', bronze:'♟' };   /* 王后 / 车 / 兵 */
+
+/* ------------------------------------------------------------
+ *  三、名次 → 头像框 / 棋子
+ * ------------------------------------------------------------ */
+
+/* 本周排名（限时框：这条记录 7 天后自己就从榜上消失了，框也就没了） */
+function frameForWeek(rank){
+  if(rank >= 1  && rank <= 10)  return 'gold';
+  if(rank >= 11 && rank <= 50)  return 'silver';
+  if(rank >= 51 && rank <= 100) return 'bronze';
+  return null;
+}
+
+/* 历史排名（永久框，比本周榜多一档 101-500 的铜） */
+function frameForHistory(rank){
+  if(rank >= 1   && rank <= 10)  return 'star';
+  if(rank >= 11  && rank <= 50)  return 'gold';
+  if(rank >= 51  && rank <= 100) return 'silver';
+  if(rank >= 101 && rank <= 500) return 'bronze';
+  return null;
+}
+
+/* 统一入口：scope = 'week' | 'history' */
+function frameForRank(rank, scope){
+  return scope === 'history' ? frameForHistory(rank) : frameForWeek(rank);
+}
+
+/* 棋子徽章：历史榜不挂棋子，只挂头像框 */
+function pieceForRank(rank, scope){
+  if(scope === 'history') return null;
+  const f = frameForWeek(rank);
+  return f ? PIECE_CHAR[f] : null;
+}
+
+/* 同一个人可能同时出现在本周榜和历史榜里 → 只显示最强的那一个框。
+   入参是若干框名（可能含 null），返回权重最高的那个。 */
+function strongestFrame(frames){
+  let best = null;
+  for(const f of (frames || [])){
+    if(!f) continue;
+    if(best === null || (FRAME_WEIGHT[f] || 0) > (FRAME_WEIGHT[best] || 0)) best = f;
+  }
+  return best;
+}
+
+/* 底部「我的名次」那一行专用：
+   把本周名次、历史名次的框各算一个，再按 星空>金>银>铜 取最强的那个。 */
+function myBestFrame(rankWeek, rankHistory){
+  return strongestFrame([
+    rankWeek    ? frameForWeek(rankWeek)       : null,
+    rankHistory ? frameForHistory(rankHistory) : null
+  ]);
+}
+
+/* ------------------------------------------------------------
+ *  四、时间：7 天过滤 / 相对时间 / 日期
+ * ------------------------------------------------------------ */
+
+/* 是否还在 7 天内。
+   边界取"包含"：距现在正好 7 天仍算在榜，超过 7 天才算过期
+   （站主原话"超过 7 天在展示时自动不显示"，所以这里用 <=）。 */
+function within7Days(createdAtMs, nowMs){
+  const diff = nowMs - createdAtMs;
+  if(!isFinite(diff)) return false;
+  return diff <= WEEK_MS;
+}
+
+/* 本周榜显示相对时间：刚刚 / N 分钟前 / N 小时前 / N 天前 */
+function fmtRelative(createdAtMs, nowMs){
+  const sec = Math.floor((nowMs - createdAtMs) / 1000);
+  if(!isFinite(sec) || sec < 60) return '刚刚';
+  if(sec < 3600)  return Math.floor(sec / 60)   + ' 分钟前';
+  if(sec < 86400) return Math.floor(sec / 3600) + ' 小时前';
+  return Math.floor(sec / 86400) + ' 天前';
+}
+
+/* 历史榜显示日期：今年的省略年份（03-14），往年的带上年份（2025-03-14） */
+function fmtDate(createdAtMs, nowMs){
+  const d = new Date(createdAtMs);
+  if(isNaN(d.getTime())) return '—';
+  const p  = n => String(n).padStart(2, '0');
+  const md = p(d.getMonth() + 1) + '-' + p(d.getDate());
+  return d.getFullYear() === new Date(nowMs).getFullYear()
+    ? md
+    : d.getFullYear() + '-' + md;
+}
+
+/* ------------------------------------------------------------
+ *  五、记录规范化 / 排序 / 算名次
+ * ------------------------------------------------------------ */
+
+/* 把"云端返回的行"和"本机存的行"统一成同一种形状。
+   为什么：两条来源的字段可能缺失（表刚建好、老数据没头像、匿名没 user_id），
+   统一之后排序和渲染都只认这一种结构，不用到处判空。 */
+function normalizeRow(row, src){
+  const raw = row || {};
+  const t   = raw.created_at ? Date.parse(raw.created_at) : NaN;
+  return {
+    id:          raw.id != null ? raw.id : null,
+    src:         src || 'remote',            /* 'remote' = 云端，'local' = 本机 */
+    user_id:     raw.user_id || null,
+    device:      raw.device  || null,
+    nickname:    raw.nickname || '游客',
+    avatar:      raw.avatar || '',
+    difficulty:  raw.difficulty || 'easy',
+    seconds:     Number(raw.seconds) || 0,
+    errors:      Number(raw.errors)  || 0,
+    created_at:  raw.created_at || new Date(0).toISOString(),
+    createdAtMs: isFinite(t) ? t : 0
+  };
+}
+
+/* 排序规则（榜上越快越靠前）：
+   1) 用时短的排前面
+   2) 用时相同 → 错误次数少的排前面
+   3) 还相同 → 先交的排前面 */
+function compareRecords(a, b){
+  if(a.seconds !== b.seconds) return a.seconds - b.seconds;
+  if(a.errors  !== b.errors)  return a.errors  - b.errors;
+  return a.createdAtMs - b.createdAtMs;
+}
+
+/* 身份标识：登录用户看 user_id，匿名用户靠 device 区分。
+   "这条是不是我"、两榜合并取最强框，都走这个函数。 */
+function identityOf(rec){
+  if(!rec) return '';
+  if(rec.user_id) return 'u:' + rec.user_id;
+  return 'd:' + (rec.device || '');
+}
+
+/* 名次 = 排在它前面的记录条数 + 1（完全并列时同名次，竞赛式排名） */
+function computeRank(list, target){
+  let before = 0;
+  for(const r of (list || [])){
+    if(compareRecords(r, target) < 0) before++;
+  }
+  return before + 1;
+}
+
+/* 从一堆记录里筛出"某难度 + 某范围"的榜，排好序并截断到 100 条。
+   scope === 'week' 时顺带做 7 天过滤 —— 过期记录在展示时自动消失。
+   注意：名字叫 buildRankBoard 而不是 buildBoard，
+   因为上面棋盘那边已经有一个 buildBoard()（生成 81 个格子），同名会互相覆盖。 */
+function buildRankBoard(rows, difficulty, scope, nowMs, limit){
+  const max = limit || BOARD_LIMIT;
+  const out = [];
+  for(const r of (rows || [])){
+    if(!r || r.difficulty !== difficulty) continue;
+    if(scope === 'week' && !within7Days(r.createdAtMs, nowMs)) continue;
+    out.push(r);
+  }
+  out.sort(compareRecords);
+  return out.slice(0, max);
+}
+
+/* 本设备在这张榜上的最好成绩与名次。
+   注意这里**不做 100 条截断**，所以哪怕排在 500 名开外，
+   底部那行"隐形排名"也能算出真实名次。 */
+function findMine(rows, difficulty, scope, nowMs, mineKey){
+  if(!mineKey) return null;
+
+  /* 先按"难度 + 范围"过滤出这张榜的全部候选（未截断） */
+  const inScope = (rows || []).filter(r =>
+    r && r.difficulty === difficulty &&
+    (scope !== 'week' || within7Days(r.createdAtMs, nowMs))
+  );
+
+  const mine = inScope.filter(r => identityOf(r) === mineKey).sort(compareRecords);
+  if(!mine.length) return null;
+
+  const best = mine[0];
+  return { rank: computeRank(inScope, best), record: best };
+}
+
+/* 把这些纯函数挂到 window 上，方便：
+   · 打开控制台手动验算；
+   · Node 测试脚本把这整段抽出来 eval（不依赖 DOM）。 */
+window.__sudokuRank = {
+  DIFF_NAME, DIFF_ORDER, WEEK_MS, BOARD_LIMIT, FRAME_WEIGHT, PIECE_CHAR,
+  frameForWeek, frameForHistory, frameForRank, pieceForRank,
+  strongestFrame, myBestFrame,
+  within7Days, fmtRelative, fmtDate,
+  normalizeRow, compareRecords, identityOf, computeRank, buildRankBoard, findMine
+};
+
+/* ===== __SUDOKU_RANK_PURE_END__ ===== */
 
 /* ============================================================
  *  二、数独生成
@@ -971,6 +1738,10 @@ function endGame(){
   document.getElementById('ovErr').textContent  = errorCount + ' 次';
 
   overlayEl.classList.add('show');
+
+  /* 通关后把这局成绩写进排行榜（本机必写，云端能用就再写一份）。
+     写在最后：先让结算面板出来，不要因为网络慢把"完成"卡住。 */
+  recordScore();
 }
 
 /* 恢复到空白网格初始界面 */
@@ -1020,20 +1791,23 @@ numpadEl.addEventListener('click', (e) => {
   inputNum(Number(btn.dataset.n));
 });
 
-/* 难度切换 */
+/* 切换难度。
+   抽成函数是因为现在有"两套"难度按钮：页面上方那组，和排行榜窗口里那组。
+   两边都调它，保证任何时候两处的选中状态都是一致的。 */
+function setLevel(lv){
+  if(!DIFF_NAME[lv]) return;
+  level = lv;
+  diffGroup.querySelectorAll('.diff-btn').forEach(b => {
+    b.classList.toggle('on', b.dataset.level === lv);
+  });
+  if(!playing) updateStatus(false);
+}
+
+/* 难度切换（页面上的那组） */
 diffGroup.addEventListener('click', (e) => {
   const btn = e.target.closest('.diff-btn');
   if(!btn) return;
-
-  level = btn.dataset.level;
-
-  diffGroup.querySelectorAll('.diff-btn').forEach(b => {
-    b.classList.toggle('on', b === btn);
-  });
-
-  if(!playing){
-    updateStatus(false);
-  }
+  setLevel(btn.dataset.level);
 });
 
 /* 开始 / 重新开始 */
@@ -1060,6 +1834,11 @@ document.getElementById('btnNewGame').addEventListener('click', () => {
 
 /* 键盘操作 */
 document.addEventListener('keydown', (e) => {
+  /* 排行榜窗口开着时，键盘只服务于弹窗（Esc 关闭），不往棋盘里填数字 */
+  if(rankState.open){
+    if(e.key === 'Escape'){ e.preventDefault(); closeRank(); }
+    return;
+  }
   if(!playing) return;
 
   if(e.key >= '1' && e.key <= '9'){
@@ -1073,6 +1852,753 @@ document.addEventListener('keydown', (e) => {
   else if(e.key === 'ArrowLeft'){   e.preventDefault(); moveSel(-1); }
   else if(e.key === 'ArrowRight'){  e.preventDefault(); moveSel(1);  }
   else if(e.key === 'Escape'){      selected = -1; render(); }
+});
+
+/* ============================================================
+ *  十一、排行榜系统
+ * ------------------------------------------------------------
+ *  【建表 SQL —— 站主复制到 Supabase 的 SQL Editor 跑一次即可】
+ *
+ *  create table if not exists sudoku_scores (
+ *    id bigint generated by default as identity primary key,
+ *    user_id uuid, device text, nickname text, avatar text,
+ *    difficulty text not null, seconds int not null, errors int default 0,
+ *    created_at timestamptz default now()
+ *  );
+ *
+ *  -- 榜是按「难度 + 时间」筛、按「用时」排的，补两条索引快很多
+ *  create index if not exists sudoku_scores_diff_time on sudoku_scores (difficulty, created_at desc);
+ *  create index if not exists sudoku_scores_diff_sec  on sudoku_scores (difficulty, seconds);
+ *
+ *  -- 允许匿名读写（RLS 打开时；不需要登录也能上榜）
+ *  alter table sudoku_scores enable row level security;
+ *  create policy "sudoku read"  on sudoku_scores for select using (true);
+ *  create policy "sudoku write" on sudoku_scores for insert with check (true);
+ *  -- 删除只给管理员用，这里用客户端身份做不到强隔离，
+ *  -- 所以下面代码里还会用邮箱二次校验（前端层面的保护）
+ *  create policy "sudoku delete" on sudoku_scores for delete using (true);
+ *
+ *  【重要】就算表没建、CDN 被墙、完全离线，这个页面也不会崩：
+ *  所有查询失败都会退化成下面的"本机榜"（localStorage）。
+ * ============================================================ */
+
+/* ------------------------------------------------------------
+ *  1. Supabase 连接
+ * ------------------------------------------------------------ */
+
+/* 站点统一的 Supabase 项目，和首页 / 留言板用的是同一个 */
+var SUPABASE_URL      = 'https://icjptvrlmmnxamgnemvz.supabase.co';
+var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanB0dnJsbW1ueGFtZ25lbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5OTY5NDAsImV4cCI6MjEwNjU3Mjk0MH0.2PiF0gJet82QnQpHd8Il_6bvTPLtBeypVOYRHG_W9YU';
+
+/* CDN 有可能根本加载不出来（离线 / 被墙），所以：
+   先判断 window.supabase 在不在，再 try 一次 createClient。
+   任何一步失败都让 supabase 保持 null，后面全部走本机兜底。 */
+var supabase = null;
+if (window.supabase) {
+  try {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (err) {
+    supabase = null;
+    console.warn('[排行榜] Supabase 初始化失败，已切换为本机榜：', err);
+  }
+} else {
+  console.warn('[排行榜] 没拿到 Supabase SDK（CDN 没加载成功），已切换为本机榜。');
+}
+
+/* 开发者邮箱：用它判断当前登录的是不是站主，是的话榜上每行出现删除按钮 */
+const ADMIN_EMAIL = 'piao022400@qq.com';
+
+/* ------------------------------------------------------------
+ *  2. localStorage 用到的 key
+ * ------------------------------------------------------------ */
+
+const LS_SCORES      = 'sudoku_scores_local';  /* 本机成绩数组（本机兜底榜） */
+const LS_DEVICE_ID   = 'sudoku_device_id';     /* 本机设备标识，匿名记录靠它区分 */
+const LS_DEVICE_NAME = 'sudoku_device_name';   /* 匿名昵称："游客" + 4 位随机数 */
+const LS_AVATAR      = 'sky_avatar';           /* 头像：首页存的那个 key，优先读它 */
+
+/* localStorage 在隐私模式 / 塞满时会直接抛异常，所以统一包一层 */
+function lsGet(key, dft){
+  try { const v = localStorage.getItem(key); return v === null ? dft : v; }
+  catch (e) { return dft; }
+}
+function lsSet(key, val){
+  try { localStorage.setItem(key, val); } catch (e) { /* 存不了就算了，不影响玩 */ }
+}
+
+/* 设备标识：第一次进页面时生成一次，之后一直用它 */
+function getDeviceId(){
+  let id = lsGet(LS_DEVICE_ID, '');
+  if(!id){
+    id = 'd-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+    lsSet(LS_DEVICE_ID, id);
+  }
+  return id;
+}
+
+/* 匿名昵称：游客 + 4 位随机数，存在本机，下次来还是同一个名字 */
+function getGuestName(){
+  let n = lsGet(LS_DEVICE_NAME, '');
+  if(!n){
+    n = '游客' + String(Math.floor(1000 + Math.random() * 9000));
+    lsSet(LS_DEVICE_NAME, n);
+  }
+  return n;
+}
+
+const DEVICE_ID = getDeviceId();
+
+/* ------------------------------------------------------------
+ *  3. 本机榜（localStorage）读写
+ * ------------------------------------------------------------ */
+
+function readLocalScores(){
+  try{
+    const arr = JSON.parse(lsGet(LS_SCORES, '[]'));
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+
+function writeLocalScores(arr){
+  /* 只留最近 500 条：避免 localStorage 攒到 5MB 上限后整个写入失败 */
+  const kept = arr.slice()
+    .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
+    .slice(0, 500);
+  lsSet(LS_SCORES, JSON.stringify(kept));
+}
+
+/* 追加一条本机成绩。id 用本机自增 —— 和云端的 id 互不干扰，
+   删除时两边各删各的（不会因为 id 撞号误删别人的记录）。 */
+function addLocalScore(rec){
+  const arr = readLocalScores();
+  let maxId = 0;
+  for(const r of arr) maxId = Math.max(maxId, Number(r.id) || 0);
+
+  const copy = Object.assign({}, rec, { id: maxId + 1 });
+  arr.push(copy);
+  writeLocalScores(arr);
+  return copy;
+}
+
+/* 删本机记录：按 id 删；同时把"同一次提交的镜像"也删掉
+   （同一局我们会先写本机、再写云端，两边用的是同一个 created_at） */
+function removeLocalScore(id, mirror){
+  const kept = readLocalScores().filter(r => {
+    if(Number(r.id) === Number(id)) return false;
+    if(mirror && r.created_at === mirror.created_at &&
+       Number(r.seconds) === Number(mirror.seconds) &&
+       r.difficulty === mirror.difficulty) return false;
+    return true;
+  });
+  writeLocalScores(kept);
+}
+
+/* ------------------------------------------------------------
+ *  4. 排行榜运行状态
+ * ------------------------------------------------------------ */
+
+const rankState = {
+  open:       false,
+  scope:      'week',    /* 'week' 本周排名 | 'history' 历史排名 */
+  difficulty: 'easy',
+  rows:       [],        /* 当前榜（已截断 100 条，用来渲染） */
+  allRows:    [],        /* 当前榜（不截断，用来算"我的名次"） */
+  mine:       null,      /* 我在这张榜上的 { rank, record } */
+  otherMine:  null,      /* 我在另一张榜上的名次（只为算"最强头像框"） */
+  localOnly:  false,     /* true = 只读到本机数据，界面显示"本机榜" */
+  user:       null,
+  isAdmin:    false,
+  loading:    false
+};
+
+/* 请求序号：用户快速连点难度/范围时，用它丢弃过期请求的结果，
+   否则先发的慢请求后回来会把新榜单覆盖掉 */
+let rankReqSeq = 0;
+
+/* 我的身份标识：登录了看 user_id，没登录看设备号 */
+function myIdentityKey(){
+  return rankState.user ? ('u:' + rankState.user.id) : ('d:' + DEVICE_ID);
+}
+
+/* 昵称：登录用户用其用户名，匿名用本机存的"游客xxxx" */
+function nicknameOf(user){
+  if(!user) return getGuestName();
+  const m = user.user_metadata || {};
+  return m.username || m.name || (user.email || '').split('@')[0] || getGuestName();
+}
+
+/* 头像：优先读本机 sky_avatar（首页存的那份，立刻能用、不依赖网络），
+   没有再退回 Supabase 的 user_metadata.avatar（换设备能带回来） */
+function avatarOf(user){
+  const local = lsGet(LS_AVATAR, '');
+  if(local) return local;
+  if(user && user.user_metadata && user.user_metadata.avatar) return user.user_metadata.avatar;
+  return '';
+}
+
+/* 我自己的昵称 + 头像（底部"我的名次"那行要用） */
+function myProfile(){
+  return { nickname: nicknameOf(rankState.user), avatar: avatarOf(rankState.user) };
+}
+
+/* 刷新登录态 + 管理员身份。拿不到 SDK 就一直是"未登录"。 */
+async function refreshAuth(){
+  rankState.user    = null;
+  rankState.isAdmin = false;
+  if(!supabase) return;
+  try{
+    const res  = await supabase.auth.getUser();
+    const user = res && res.data ? res.data.user : null;
+    rankState.user    = user || null;
+    rankState.isAdmin = !!user && String(user.email || '').toLowerCase() === ADMIN_EMAIL;
+  }catch(e){
+    /* 没登录 / 网络不通都会走到这里，一律当未登录处理 */
+  }
+}
+
+/* ------------------------------------------------------------
+ *  5. 取数：云端优先，失败就退化成"本机榜"
+ * ------------------------------------------------------------ */
+
+/* 从云端查一张榜。表不存在 / 没网 / 权限不够都会抛错，由调用方接住。 */
+async function fetchRemoteBoard(difficulty, scope){
+  let q = supabase
+    .from('sudoku_scores')
+    .select('id,user_id,device,nickname,avatar,difficulty,seconds,errors,created_at')
+    .eq('difficulty', difficulty)
+    .order('seconds',    { ascending: true })    /* 快的在前 */
+    .order('errors',     { ascending: true })    /* 一样快就比错误少 */
+    .order('created_at', { ascending: true })    /* 再一样就先交的在前 */
+    .limit(BOARD_LIMIT);
+
+  /* 本周榜只取最近 7 天的记录 */
+  if(scope === 'week'){
+    q = q.gte('created_at', new Date(Date.now() - WEEK_MS).toISOString());
+  }
+
+  const res = await q;
+  if(res.error) throw res.error;
+  return res.data || [];
+}
+
+/* 统一取数入口，返回 { rows, localOnly }。
+   云端能用就只读云端；云端不行就只读本机，并把 localOnly 标成 true
+   （界面据此显示"本机榜"标记）。 */
+async function loadRows(difficulty, scope){
+  if(supabase){
+    try{
+      const data = await fetchRemoteBoard(difficulty, scope);
+      return { rows: data.map(r => normalizeRow(r, 'remote')), localOnly: false };
+    }catch(err){
+      console.warn('[排行榜] 云端查询失败（表没建 / 没网 / 权限不足），改用本机榜：', err);
+    }
+  }
+  return { rows: readLocalScores().map(r => normalizeRow(r, 'local')), localOnly: true };
+}
+
+/* ------------------------------------------------------------
+ *  6. 渲染
+ * ------------------------------------------------------------ */
+
+/* 转义：昵称是用户自己填的，直接塞进 innerHTML 会有 XSS 风险 */
+function escHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+  ));
+}
+
+/* 头像块：有头像就用图片，没有就用昵称首字方块（和首页保持一致的做法） */
+function avatarHTML(rec, frame){
+  const cls = 'rank-ava' + (frame ? ' frame-' + frame : '');
+  const av  = rec.avatar || '';
+  if(/^data:image\//.test(av) || /^https?:\/\//.test(av)){
+    return '<span class="' + cls + '"><img src="' + escHtml(av) + '" alt=""></span>';
+  }
+  const ch = (rec.nickname || '游').trim().charAt(0) || '游';
+  return '<span class="' + cls + '"><span class="ava-letter">' + escHtml(ch) + '</span></span>';
+}
+
+/* 一行榜：名次 + 头像（带框）+ 昵称/用时/错误 + 时间 + 棋子徽章
+   （管理员登录时，行尾再多一个"删"） */
+function rowHTML(rec, rank, scope, isAdmin){
+  const frame = frameForRank(rank, scope);
+  const piece = pieceForRank(rank, scope);
+  const time  = scope === 'week'
+    ? fmtRelative(rec.createdAtMs, Date.now())
+    : fmtDate(rec.createdAtMs, Date.now());
+  const isMe  = identityOf(rec) === myIdentityKey();
+
+  let del = '';
+  if(isAdmin){
+    /* 把删除需要的信息全挂在 data-* 上，事件里就不用再去翻 state */
+    del = '<button class="rank-del"'
+        + ' data-src="'     + escHtml(String(rec.src))        + '"'
+        + ' data-id="'      + escHtml(String(rec.id))         + '"'
+        + ' data-user="'    + escHtml(rec.user_id || '')      + '"'
+        + ' data-nick="'    + escHtml(rec.nickname)           + '"'
+        + ' data-diff="'    + escHtml(rec.difficulty)         + '"'
+        + ' data-seconds="' + escHtml(String(rec.seconds))    + '"'
+        + ' data-created="' + escHtml(rec.created_at)         + '"'
+        + ' data-rank="'    + rank                            + '"'
+        + ' title="删除这条记录">删</button>';
+  }
+
+  /* 棋子徽章的配色跟同级头像框走（金框配金后，银框配银车，铜框配铜兵） */
+  const pieceHTML = piece
+    ? '<span class="rank-piece piece-' + frame + '">' + piece + '</span>'
+    : '';
+
+  return '<div class="rank-row' + (rank <= 10 ? ' top' : '')
+       + (isMe ? ' me' : '') + (isAdmin ? ' is-admin' : '') + '">'
+       +   '<span class="rank-no">' + rank + '</span>'
+       +   avatarHTML(rec, frame)
+       +   '<span class="rank-who">'
+       +     '<span class="rank-name" title="' + escHtml(rec.nickname) + '">' + escHtml(rec.nickname) + '</span>'
+       +     '<span class="rank-meta">' + fmtTime(rec.seconds) + ' · 错 ' + rec.errors + '</span>'
+       +   '</span>'
+       +   '<span class="rank-time">' + escHtml(time) + '</span>'
+       +   pieceHTML
+       +   del
+       + '</div>';
+}
+
+/* 榜单主体 */
+function renderRankBody(){
+  const body = document.getElementById('rankBody');
+  const scope = rankState.scope;
+  const diff  = rankState.difficulty;
+
+  /* 历史榜必须登录：没登录就只给一句提示（"去登录"按钮在底部） */
+  if(scope === 'history' && !rankState.user){
+    body.innerHTML = '<div class="rank-hint">'
+      + '「历史排名」需要登录后才能查看<br>'
+      + '<span class="sub">本周排名任何人都能看</span>'
+      + '</div>';
+    return;
+  }
+
+  if(rankState.loading){
+    body.innerHTML = '<div class="rank-hint">正在读取「' + escHtml(DIFF_NAME[diff]) + '」'
+      + (scope === 'week' ? '本周' : '历史') + '排名…</div>';
+    return;
+  }
+
+  if(!rankState.rows.length){
+    body.innerHTML = '<div class="rank-hint">'
+      + (scope === 'week'
+          ? '最近 7 天还没有「' + escHtml(DIFF_NAME[diff]) + '」的通关记录<br><span class="sub">去成为第一个吧</span>'
+          : '「' + escHtml(DIFF_NAME[diff]) + '」还没有历史记录')
+      + '</div>';
+    return;
+  }
+
+  body.innerHTML = rankState.rows
+    .map((r, i) => rowHTML(r, i + 1, scope, rankState.isAdmin))
+    .join('');
+}
+
+/* 底部：未登录看历史榜时是"去登录"，否则是本设备的"隐形排名" */
+function renderRankFoot(){
+  const foot  = document.getElementById('rankFoot');
+  const scope = rankState.scope;
+
+  /* 站主指定：未登录切到「历史排名」时，窗口下方显示「前往登录 / 注册」 */
+  if(scope === 'history' && !rankState.user){
+    foot.hidden = false;
+    foot.innerHTML = '<div class="rank-login-box">'
+      + '<a class="rank-login" href="index.html">前往登录 / 注册</a>'
+      + '<div class="rank-login-tip">回首页后点右上角头像即可登录</div>'
+      + '</div>';
+    return;
+  }
+
+  /* 本设备连一次都没通关过 → 这一行不出现 */
+  const localMine = readLocalScores().some(r => r && r.device === DEVICE_ID);
+  if(!rankState.mine && !localMine){
+    foot.hidden = true;
+    foot.innerHTML = '';
+    return;
+  }
+
+  const diff = rankState.difficulty;
+
+  /* 本机在别的难度有记录，但当前这个难度还没有 → 也显示一行，只是没有名次 */
+  if(!rankState.mine){
+    const me = myProfile();
+    foot.hidden = false;
+    foot.innerHTML = '<div class="rank-row">'
+      + '<span class="rank-no">—</span>'
+      + avatarHTML({ nickname: me.nickname, avatar: me.avatar }, null)
+      + '<span class="rank-who">'
+      +   '<span class="rank-name">' + escHtml(me.nickname) + '</span>'
+      +   '<span class="rank-meta"><i class="mine-tag">我的名次</i> · 本机在「'
+      +     escHtml(DIFF_NAME[diff]) + '」还没有记录</span>'
+      + '</span>'
+      + '</div>';
+    return;
+  }
+
+  const { rank, record } = rankState.mine;
+
+  /* ★ 优先级规则：同一个人可能两个榜都在。
+     本周名次和历史名次各算一个框，只显示最强的那一个（星空 > 金 > 银 > 铜）。
+     另一张榜的名次来自 rankState.otherMine（云端能看的话会一起查回来）。 */
+  const rankWeek    = scope === 'week'    ? rank : (rankState.otherMine ? rankState.otherMine.rank : null);
+  const rankHistory = scope === 'history' ? rank : (rankState.otherMine ? rankState.otherMine.rank : null);
+  const frame = myBestFrame(rankWeek, rankHistory) || frameForRank(rank, scope);
+
+  /* 棋子徽章只跟"本周榜"的名次走 */
+  const piece = rankWeek ? pieceForRank(rankWeek, 'week') : null;
+  const pieceHTML = piece
+    ? '<span class="rank-piece piece-' + frameForWeek(rankWeek) + '">' + piece + '</span>'
+    : '';
+
+  const time = scope === 'week'
+    ? fmtRelative(record.createdAtMs, Date.now())
+    : fmtDate(record.createdAtMs, Date.now());
+
+  foot.hidden = false;
+  foot.innerHTML = '<div class="rank-row top">'
+    + '<span class="rank-no">' + rank + '</span>'
+    + avatarHTML(record, frame)
+    + '<span class="rank-who">'
+    +   '<span class="rank-name" title="' + escHtml(record.nickname) + '">' + escHtml(record.nickname) + '</span>'
+    +   '<span class="rank-meta"><i class="mine-tag">我的名次</i> · '
+    +     fmtTime(record.seconds) + ' · 错 ' + record.errors + '</span>'
+    + '</span>'
+    + '<span class="rank-time">' + escHtml(time) + '</span>'
+    + pieceHTML
+    + '</div>';
+}
+
+/* 按钮的选中态 + "本机榜"标记 */
+function syncRankButtons(){
+  document.querySelectorAll('#rankScopes .scope-btn').forEach(b => {
+    b.classList.toggle('on', b.dataset.scope === rankState.scope);
+  });
+  document.querySelectorAll('#rankDiffs .rdiff-btn').forEach(b => {
+    b.classList.toggle('on', b.dataset.level === rankState.difficulty);
+  });
+  document.getElementById('rankFlag').hidden = !rankState.localOnly;
+}
+
+/* ------------------------------------------------------------
+ *  7. 加载榜单
+ * ------------------------------------------------------------ */
+
+async function refreshRankBoard(){
+  const difficulty = rankState.difficulty;
+  const scope      = rankState.scope;
+  const seq        = ++rankReqSeq;
+
+  /* 历史榜必须登录：没登录就不发请求，只渲染引导 */
+  if(scope === 'history' && !rankState.user){
+    rankState.loading   = false;
+    rankState.rows      = [];
+    rankState.allRows   = [];
+    rankState.mine      = null;
+    rankState.otherMine = null;
+    rankState.localOnly = false;
+    syncRankButtons();
+    renderRankBody();
+    renderRankFoot();
+    return;
+  }
+
+  rankState.loading   = true;
+  rankState.mine      = null;
+  rankState.otherMine = null;
+  renderRankBody();
+  renderRankFoot();
+
+  /* 本次请求的"现在"，一次算好，免得边界上前后不一致 */
+  const now = Date.now();
+
+  /* 顺带把另一张榜也查回来，只为算"我在那边是多少名"，
+     这样才能实现 星空>金>银>铜 的跨榜优先级。
+     历史榜要登录才看得到，未登录时就不查它。 */
+  const otherScope  = scope === 'week' ? 'history' : 'week';
+  const canSeeOther = otherScope === 'week' || !!rankState.user;
+
+  const [main, other] = await Promise.all([
+    loadRows(difficulty, scope),
+    canSeeOther ? loadRows(difficulty, otherScope).catch(() => null) : Promise.resolve(null)
+  ]);
+
+  /* 期间用户又切了难度/范围 → 这次结果作废 */
+  if(seq !== rankReqSeq) return;
+
+  rankState.localOnly = main.localOnly;
+
+  /* allRows 不截断：底部"隐形排名"要用它算真实名次 */
+  rankState.allRows   = buildRankBoard(main.rows, difficulty, scope, now, Infinity);
+  rankState.rows      = rankState.allRows.slice(0, BOARD_LIMIT);
+  rankState.mine      = findMine(main.rows, difficulty, scope, now, myIdentityKey());
+  rankState.otherMine = other
+    ? findMine(other.rows, difficulty, otherScope, now, myIdentityKey())
+    : null;
+
+  rankState.loading = false;
+  syncRankButtons();
+  renderRankBody();
+  renderRankFoot();
+}
+
+/* ------------------------------------------------------------
+ *  8. 开关弹窗
+ * ------------------------------------------------------------ */
+
+let bodyOverflowBackup = '';
+
+async function openRank(){
+  /* 复用"先点难度，再点排行榜"的交互：
+     打开时把窗口里的难度同步成页面上选中的那个 */
+  rankState.difficulty = level;
+
+  /* 已经开着就别重复备份 overflow，否则关掉时会还原成 "hidden"，页面卡住不能滚 */
+  if(!rankState.open){
+    bodyOverflowBackup = document.body.style.overflow;
+  }
+  rankState.open = true;
+
+  const modal = document.getElementById('rankModal');
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+
+  /* 弹窗打开时锁住页面滚动，关掉再还原 */
+  document.body.style.overflow = 'hidden';
+
+  await refreshAuth();      /* 先确认登录态，再决定历史榜能不能看 */
+  syncRankButtons();
+  await refreshRankBoard();
+}
+
+function closeRank(){
+  rankState.open = false;
+  const modal = document.getElementById('rankModal');
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = bodyOverflowBackup;
+}
+
+/* ------------------------------------------------------------
+ *  9. 小提示条
+ * ------------------------------------------------------------ */
+
+let toastTimer = null;
+
+function toast(html, ms){
+  const el = document.getElementById('toast');
+  el.innerHTML = html;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), ms || 4200);
+}
+
+/* ------------------------------------------------------------
+ *  10. 完赛自动记录
+ *      —— endGame() 的最后会调它
+ * ------------------------------------------------------------ */
+
+/* 判断榜上是不是已经有"我刚交的这条"。
+   云端的 created_at 字符串格式和本机不完全是同一种写法，
+   所以按时间戳近似比（3 秒内算同一条）。 */
+function hasSameEntry(list, mine){
+  return list.some(r =>
+    r.seconds === mine.seconds &&
+    Math.abs(r.createdAtMs - mine.createdAtMs) < 3000
+  );
+}
+
+async function recordScore(){
+  /* 先把这一局的基本信息攒好（未登录时就是"游客"身份） */
+  const rec = {
+    user_id:    null,
+    device:     DEVICE_ID,
+    nickname:   getGuestName(),
+    avatar:     avatarOf(null),
+    difficulty: level,
+    seconds:    elapsed,
+    errors:     errorCount,
+    /* 本机和云端用同一个时间戳，删记录时才能把两边对应起来 */
+    created_at: new Date().toISOString()
+  };
+
+  /* 尽量确认一次登录态：登录了就带上 user_id + 真实昵称 + 头像 */
+  await refreshAuth();
+  if(rankState.user){
+    rec.user_id  = rankState.user.id;
+    rec.nickname = nicknameOf(rankState.user);
+    rec.avatar   = avatarOf(rankState.user);
+  }
+
+  /* 本机永远先写一份：断网 / 表没建 / CDN 被墙时，排行榜照样能用 */
+  const localRec = addLocalScore(rec);
+
+  /* 有 Supabase 就再写一份到云端 */
+  let savedRemote = false;
+  if(supabase){
+    try{
+      const res = await supabase.from('sudoku_scores').insert([{
+        user_id:    rec.user_id,
+        device:     rec.device,
+        nickname:   rec.nickname,
+        avatar:     rec.avatar,
+        difficulty: rec.difficulty,
+        seconds:    rec.seconds,
+        errors:     rec.errors,
+        created_at: rec.created_at
+      }]);
+      if(res.error) throw res.error;
+      savedRemote = true;
+    }catch(err){
+      console.warn('[排行榜] 成绩写入云端失败，已只存本机：', err);
+    }
+  }
+
+  /* 算一下这局在本周榜上的名次 → 弹个小提示 */
+  try{
+    const { rows, localOnly } = await loadRows(rec.difficulty, 'week');
+    const list = rows.slice();
+    const mine = normalizeRow(localRec, savedRemote && !localOnly ? 'remote' : 'local');
+
+    /* 云端刚写完可能有一点点延迟，查不到就把本机这条补进去，保证名次算得出来 */
+    if(!hasSameEntry(list, mine)) list.push(mine);
+
+    const rank = computeRank(
+      buildRankBoard(list, rec.difficulty, 'week', Date.now(), Infinity),
+      mine
+    );
+    toast('已记录 · 本周第 ' + rank + ' 名', 3600);
+  }catch(err){
+    console.warn('[排行榜] 名次计算失败：', err);
+    toast(savedRemote ? '已记录' : '已记录到本机（云端暂不可用）', 3600);
+  }
+}
+
+/* ------------------------------------------------------------
+ *  11. 管理员删除
+ *      1) 二次确认 → 2) 删记录 → 3) 给被删的人发站内信 → 4) 提示 + 刷新
+ * ------------------------------------------------------------ */
+
+async function deleteScore(btn){
+  const ds = btn.dataset;
+
+  const rec = {
+    src:        ds.src,
+    id:         ds.id,
+    user_id:    ds.user || null,
+    nickname:   ds.nick || '',
+    difficulty: ds.diff,
+    seconds:    Number(ds.seconds) || 0,
+    created_at: ds.created || '',
+    rank:       Number(ds.rank) || 0
+  };
+
+  const scopeLabel = rankState.scope === 'week' ? '本周' : '历史';
+
+  /* ---- 1) 二次确认，避免误删 ---- */
+  const ok = window.confirm(
+    '确定删除这条排行榜记录吗？\n\n'
+    + '昵称：' + (rec.nickname || '（无）') + '\n'
+    + '难度：' + DIFF_NAME[rec.difficulty] + '\n'
+    + scopeLabel + '名次：第 ' + rec.rank + ' 名\n\n'
+    + (rec.user_id
+        ? '删除后会往 messages 表插一条站内信通知该用户。'
+        : '这是一条匿名游客记录，不会发站内信。')
+  );
+  if(!ok) return;
+
+  btn.disabled = true;
+
+  /* ---- 2) 删记录：远端删 sudoku_scores，本机删 sudoku_scores_local ---- */
+  let remoteOk = true;
+  if(rec.src === 'remote' && supabase){
+    try{
+      const res = await supabase.from('sudoku_scores').delete().eq('id', rec.id);
+      if(res.error) throw res.error;
+    }catch(err){
+      remoteOk = false;
+      console.warn('[排行榜] 云端删除失败：', err);
+    }
+  }
+  removeLocalScore(rec.id, rec);
+
+  /* ---- 3) 给被删的用户发站内信（写进 messages 表的 content 字段） ----
+         匿名记录没有 user_id，跳过并提示。 */
+  const isAnon = !rec.user_id;
+  let mailed = false;
+
+  if(!isAnon){
+    const content = '您在数独推理的「' + DIFF_NAME[rec.difficulty] + '」'
+      + scopeLabel + '排名（第 ' + rec.rank + ' 名）已被删除，'
+      + '若有问题请到留言板给开发者回信。';
+    if(supabase){
+      try{
+        const res = await supabase.from('messages').insert([{
+          user_id:  rec.user_id,
+          username: '开发者',
+          content:  content
+        }]);
+        if(res.error) throw res.error;
+        mailed = true;
+      }catch(err){
+        console.warn('[排行榜] 站内信发送失败：', err);
+      }
+    }
+  }
+
+  /* ---- 4) 结果提示：带一个「去留言板」跳转按钮 ---- */
+  let msg = remoteOk ? '已删除该记录' : '云端删除失败，已清除本机记录';
+  if(isAnon){
+    msg += '；该记录是匿名游客，未发站内信';
+  }else if(mailed){
+    msg += '；已给该用户发站内信';
+  }else{
+    msg += '；站内信发送失败';
+  }
+  toast(escHtml(msg) + ' <a href="index.html">去留言板</a>', 6000);
+
+  /* ---- 5) 刷新榜单 ---- */
+  await refreshRankBoard();
+}
+
+/* ------------------------------------------------------------
+ *  12. 排行榜事件绑定
+ * ------------------------------------------------------------ */
+
+document.getElementById('btnRank').addEventListener('click', openRank);
+document.getElementById('rankClose').addEventListener('click', closeRank);
+
+/* 点遮罩空白处也能关（点面板内部不关） */
+document.getElementById('rankModal').addEventListener('click', (e) => {
+  if(e.target.id === 'rankModal') closeRank();
+});
+
+/* 范围切换：本周 / 历史，切完立刻重查 */
+document.getElementById('rankScopes').addEventListener('click', (e) => {
+  const btn = e.target.closest('.scope-btn');
+  if(!btn || btn.dataset.scope === rankState.scope) return;
+  rankState.scope = btn.dataset.scope;
+  syncRankButtons();
+  refreshRankBoard();
+});
+
+/* 窗口内切难度：切完直接重查该难度的榜。
+   顺便把页面上方那组难度按钮也切过去，关掉窗口继续玩时两边是一致的。 */
+document.getElementById('rankDiffs').addEventListener('click', (e) => {
+  const btn = e.target.closest('.rdiff-btn');
+  if(!btn || btn.dataset.level === rankState.difficulty) return;
+  rankState.difficulty = btn.dataset.level;
+  setLevel(btn.dataset.level);
+  syncRankButtons();
+  refreshRankBoard();
+});
+
+/* 管理员点"删"（按钮只在管理员登录后才渲染出来） */
+document.getElementById('rankBody').addEventListener('click', (e) => {
+  const btn = e.target.closest('.rank-del');
+  if(btn) deleteScore(btn);
 });
 
 </script>

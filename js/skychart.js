@@ -257,30 +257,52 @@ window.SkyChart = (function () {
    */
   function inlineChart() {
     if (!el.stage || el.stage.getAttribute('data-inlined') === '1') return;
-    var src = el.stage.getAttribute('data-src');
-    if (!src) { bindStageClicks(); return; }
+    var src = el.stage.getAttribute('data-src') || 'assets/chart-ink-inline.svg';
+    var jsSrc = src.replace(/\.svg$/, '.js');
 
-    fetch(src, { cache: 'force-cache' })
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.text();
+    loadScript(jsSrc)
+      .then(function () {
+        var svg = window.__chartSvg;
+        if (!svg) throw new Error('脚本已加载但没有拿到 __chartSvg');
+        injectChart(svg);
       })
-      .then(function (text) {
-        el.stage.innerHTML = text;
-        el.stage.setAttribute('data-inlined', '1');
-        el.stage.classList.add('is-ready');
-        bindStageClicks();
+      .catch(function (e1) {
+        /* 脚本也拿不到，再试一次 fetch（http(s) 环境下通常能成） */
+        if (window.console) console.warn('[星图] 脚本方式失败，改试 fetch：', e1);
+        return fetch(src, { cache: 'force-cache' })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+          .then(injectChart);
       })
-      .catch(function (err) {
-        /* 读不到就退回 <img> 显示，至少图还在 */
-        if (window.console) console.warn('[星图] 内联失败，改用图片显示：', err);
+      .catch(function (e2) {
+        if (window.console) console.warn('[星图] 内联失败，改用图片显示：', e2);
         var img = doc.createElement('img');
         img.src = 'assets/chart-ink.svg';
         img.alt = '三垣二十八宿古籍星图';
         img.className = 'chart-fallback-img';
+        el.stage.innerHTML = '';
         el.stage.appendChild(img);
         el.stage.classList.add('is-fallback');
       });
+  }
+
+  /** 插一个 <script>，加载完 resolve，失败 reject */
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var s = doc.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.onload = function () { resolve(); };
+      s.onerror = function () { reject(new Error('加载失败: ' + src)); };
+      doc.head.appendChild(s);
+    });
+  }
+
+  /** 把 SVG 源码塞进容器，并绑好交互 */
+  function injectChart(svgText) {
+    el.stage.innerHTML = svgText;
+    el.stage.setAttribute('data-inlined', '1');
+    el.stage.classList.add('is-ready');
+    bindStageClicks();
   }
 
   /** 星图里的元素被点击 → 打开对应详解 */
@@ -503,8 +525,6 @@ window.SkyChart = (function () {
   /* ------------------------------------------------------------------ 初始化 */
   function init() {
     el.mask = doc.getElementById('chartMask');
-    if (!el.mask) return;
-    el.body = el.mask.querySelector('.chart-body');
     el.list = doc.getElementById('chartList');
     el.detail = doc.getElementById('chartDetail');
     el.stage = doc.getElementById('chartStage');
@@ -513,29 +533,53 @@ window.SkyChart = (function () {
     el.search = doc.getElementById('chartSearch');
     el.closeBtn = doc.getElementById('chartClose');
 
+    /* 面板专用的元素（独立页 古星图.html 没有这些，所以都要判空） */
+    if (el.mask) {
+      el.body = el.mask.querySelector('.chart-body');
+      el.mask.addEventListener('click', function (e) {
+        if (e.target === el.mask) close();
+      });
+    }
+
     var opener = doc.getElementById('chartOpenBtn');
     if (opener) opener.addEventListener('click', open);
     if (el.closeBtn) el.closeBtn.addEventListener('click', close);
     var detailClose = doc.getElementById('detailClose');
     if (detailClose) detailClose.addEventListener('click', closeDetail);
-    el.mask.addEventListener('click', function (e) {
-      if (e.target === el.mask) close();
-    });
     doc.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && isOpen()) close();
     });
 
-    /* 星图：如果页面上已经放好了内联 SVG 就直接用，否则去读文件 */
-    if (el.stage) {
-      if (el.stage.querySelector('.chart-root')) {
-        el.stage.setAttribute('data-inlined', '1');
-        el.stage.classList.add('is-ready');
-        bindStageClicks();
-      }
+    /* 关键判断：这一页是不是"独立页"（没有遮罩）。
+       独立页要把星图直接画出来 —— 原来这里没有区分，
+       而下面的早退（if (!el.mask) return）会让独立页什么都不做，
+       于是古星图.html 是空白的。 */
+    if (!el.stage) { window.__openSkyChart = open; return; }
+
+    if (el.stage.querySelector('.chart-root')) {
+      /* 页面上已经放好了内联 SVG，直接用 */
+      el.stage.setAttribute('data-inlined', '1');
+      el.stage.classList.add('is-ready');
+      bindStageClicks();
+      if (!el.mask) buildSidebarIfNeeded();
+    } else if (!el.mask) {
+      /* 没有遮罩 = 独立页，立刻把左侧目录、页签和星图都建出来 */
+      buildSidebarIfNeeded();
+      bindSearch();
+      inlineChart();
     }
 
     /* 对外暴露，方便首页标题栏调用 */
     window.__openSkyChart = open;
+  }
+
+  /** 独立页用：把左侧目录和下方页签也一起建出来 */
+  function buildSidebarIfNeeded() {
+    if (built) return;
+    built = true;
+    buildSidebar();
+    buildTabs();
+    if (!activeXiu) show('角宿', false);
   }
 
   if (doc.readyState === 'loading') {
@@ -552,6 +596,7 @@ window.SkyChart = (function () {
     showSystem: showSystem,
     highlight: highlightChart,
     locate: locate,
+    inline: inlineChart,
     closeDetail: closeDetail
   };
 })();

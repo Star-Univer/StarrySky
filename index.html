@@ -26,7 +26,8 @@
   <!-- 美化版主样式表（设计令牌 / 星野 / 导航 / 卡片 / 星图 / 设置面板） -->
   <link rel="stylesheet" href="css/sky.css" />
 
-  <!-- 功能脚本：星野主控 + 古籍星图面板（defer：解析完再执行，等 DOM 就绪） -->
+  <!-- 功能脚本：星野主控 + 古籍星图面板 + 新闻标题翻译（defer：解析完再执行） -->
+  <script src="js/news-lang.js" defer></script>
   <script src="js/skydeck.js" defer></script>
   <script src="js/starlore.js" defer></script>
   <script src="js/skychart.js" defer></script>
@@ -676,7 +677,7 @@
       </div>
 
       <!-- ================= 已登录：设置（两栏） ================= -->
-      <div class="auth-view" id="userView" hidden>
+      <div class="auth-view" id="userView" hidden style="flex:1 1 auto; min-height:0; flex-direction:column;">
 
         <!-- ---- 用户信息头 ---- -->
         <div class="user-head">
@@ -934,8 +935,6 @@
                   <span class="setting-desc">当前 <b id="volumeLabel">45</b>%</span>
                 </div>
                 <div class="setting-ctl">
-                  <button class="auth-submit ghost" id="musicTestBtn" type="button"
-                    style="width:auto;margin:0;padding:8px 13px;font-size:.74rem;">试听</button>
                   <input type="range" id="volumeSlider" min="0" max="100" value="45" aria-label="音乐音量">
                 </div>
               </div>
@@ -2522,21 +2521,11 @@
 
       musicBtn.setAttribute('aria-checked', musicOn() ? 'true' : 'false');
 
-      /* ===== 音乐：试听按钮（站主要求"播放音乐"要能直接听到） ===== */
-      var musicTestBtn = document.getElementById('musicTestBtn');
-      if (musicTestBtn) {
-        musicTestBtn.addEventListener('click', function () {
-          var playing = musicBtn.getAttribute('aria-checked') === 'true';
-          setMusic(!playing, true);
-          musicTestBtn.textContent = playing ? '试听' : '暂停';
-        });
-        /* 面板打开时按当前状态把按钮文案摆正 */
-        var syncTestLabel = function () {
-          musicTestBtn.textContent = musicBtn.getAttribute('aria-checked') === 'true' ? '暂停' : '试听';
-        };
-        syncTestLabel();
-        musicBtn.addEventListener('click', syncTestLabel);
-      }
+      /* ===== 音乐开关（站主要求去掉那个额外按钮，只留一个开关） =====
+         早期版本这里有个"播放/暂停"小按钮，现在统一由上面的开关控制，
+         所以把可能残留的元素清掉，避免出现两个控件。 */
+      var musicBtnExtra = document.getElementById('musicTestBtn');
+      if (musicBtnExtra) musicBtnExtra.remove();
 
       /* ===== 修改密码（阅读分组里的那一份，和"安全"里的等价） ===== */
       var pwInlineBtn = document.getElementById('updatePasswordBtnInline');
@@ -2935,15 +2924,33 @@
           var cache = readCache();
           var list = cache ? cache.list.slice() : FALLBACK.slice();
           if (cache) list.sort(function (a, b) { return heat(b) - heat(a); });
+
+          /* 站主要求：首页这一栏只放 **10 条**，而且必须是**中文标题**，
+             点了直接跳原文 —— 不是只给一个链接。 */
           list = list.slice(0, 10);
+
+          /* 英文标题 → 中文（用 js/news-lang.js 的本地词表，不联网） */
+          function zh(t) {
+            try {
+              if (window.SkyNewsLang && window.SkyNewsLang.translate) {
+                var r = window.SkyNewsLang.translate(t);
+                if (r && r.covered) return r.zh;
+              }
+            } catch (e) { }
+            return t;
+          }
 
           box.innerHTML = list.map(function (n, i) {
             var url = n.url || 'news.html';
+            var title = zh(n.title || '');
+            var isTranslated = title !== n.title;
             return '<a class="news-row" href="' + esc(url) + '"' +
               (n.url ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' +
               '<span class="news-rank">' + (i + 1) + '</span>' +
               '<span class="news-meta">' +
-              '<span class="news-t">' + esc(n.title || '') + '</span>' +
+              '<span class="news-t">' + esc(title) + '</span>' +
+              /* 翻译过的话，把英文原文做一行小字留在下面，便于核对 */
+              (isTranslated ? '<span class="news-en">' + esc(n.title) + '</span>' : '') +
               '<span class="news-s">' + esc(n.source || '') +
               (n.published ? ' · ' + esc(rel(n.published)) : '') + '</span>' +
               '</span></a>';

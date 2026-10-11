@@ -1159,7 +1159,17 @@
           transition-duration: .001ms !important;
         }
       }
-  </style>
+        /* 英文原文副标题：小一号、淡一点，做参考用 */
+      .news-en {
+        margin-top: 4px;
+        font-size: .68rem;
+        line-height: 1.6;
+        color: var(--text-faint);
+        opacity: .85;
+      }
+</style>
+  <!-- 英文标题 → 中文 的轻量翻译层（纯本地词表，不联网） -->
+  <script src="js/news-lang.js"></script>
 </head>
 
 <body>
@@ -1749,13 +1759,25 @@
 
       /* -------------------------------------------------- 分类与热度打分 */
 
+      /* 各栏显示条数上限（站主明确要求：热点只 10 条，其余三栏各 20 条） */
+      var LIMIT_HOT = 10;
+      var LIMIT_CN = 20;
+      var LIMIT_INTL = 20;
+
       function isCN(n) {
+        /* 用 js/news-lang.js 里的共享判定。
+           原来的实现只看标题里的中文字数，导致：
+             · 中文来源的国际新闻被算进"外国天文"
+             · 真正的中文报道反而漏掉 → 出现过"中国天文 0 条"
+           现在按「来源 + 关键词 + 语言」三维度判定。 */
+        if (window.SkyNewsLang && window.SkyNewsLang.isChinaNews) {
+          return window.SkyNewsLang.isChinaNews(n);
+        }
         var s = (n.source || '').toLowerCase();
-        var t = n.title + ' ' + n.summary;
+        var tx = (n.title || '') + ' ' + (n.summary || '');
         for (var i = 0; i < CN_SRC.length; i++) if (s.indexOf(CN_SRC[i].toLowerCase()) >= 0) return true;
-        for (var j = 0; j < CN_WORD.length; j++) if (t.indexOf(CN_WORD[j]) >= 0) return true;
-        /* 含大量中文字符也算中文报道 */
-        var cn = (n.title.match(/[\u4e00-\u9fa5]/g) || []).length;
+        for (var j = 0; j < CN_WORD.length; j++) if (tx.indexOf(CN_WORD[j]) >= 0) return true;
+        var cn = ((n.title || '').match(/[\u4e00-\u9fa5]/g) || []).length;
         return cn >= 6;
       }
 
@@ -2027,7 +2049,7 @@
           return '<li class="top-item' + freshCls(n) + '">' +
             '<span class="top-rank">' + rankIcon(i) + '</span>' +
             '<span class="top-body">' +
-            '<a class="top-title" href="' + esc(n.url) + '" target="_blank" rel="noopener noreferrer">' + esc(n.title) + '</a>' +
+            '<a class="top-title" href="' + esc(n.url) + '" target="_blank" rel="noopener noreferrer">' + esc(__newsTitleZh(n.title)) + '</a>' +
             (n.summary ? '<div class="top-sum">' + esc(n.summary) + '</div>' : '') +
             '<div class="top-meta">' +
             '<span class="tag">' + esc(n.source) + '</span>' +
@@ -2097,8 +2119,13 @@
 
         if (!list.length) {
           stateEl.hidden = false;
+          /* "中国天文"曾经出现 0 条的情况：给出能直接用的办法，
+             而不是一句干巴巴的"没有内容" */
+          var hint = state.view === 'cn'
+            ? '这一轮没有检索到中国大陆来源的报道。<br>可以点「重新检索」，或者用「离线数据」手动粘贴几条中文新闻。'
+            : '这个栏目暂时没有检索到内容。';
           stateEl.innerHTML =
-            '<div>这个栏目暂时没有检索到内容。</div>' +
+            '<div>' + hint + '</div>' +
             '<div class="state-actions">' +
             '<button class="btn" id="retryInline2" type="button">重新检索</button>' +
             '<button class="btn" id="pasteInline" type="button">手动粘贴数据</button>' +
@@ -2116,8 +2143,16 @@
          除了 .is-fresh 高亮，这里还多做了一件小事：
          内容（条数 + 第一条标题 + 当前栏目）跟上次一样时就不再重建 DOM ——
          增量刷新往往只补进一两条，整块 60 张卡片重排反而更费时也更晃眼。 */
+      function limitForView() {
+        if (state.view === 'cn') return LIMIT_CN;
+        if (state.view === 'intl') return LIMIT_INTL;
+        if (state.view === 'hot') return LIMIT_HOT;
+        return LIMIT_INTL;      /* 专题栏目 20 条 */
+      }
+
       function renderCards(grid, list) {
-        list = list.slice(0, 60);
+        /* 按当前栏目取对应上限，别再多画 */
+        list = list.slice(0, limitForView());
         var sign = state.view + '|' + list.length + '|' + list[0].title + '|' + state.freshStamp;
         if (grid.getAttribute('data-sign') === sign) return;
         grid.setAttribute('data-sign', sign);
@@ -2127,7 +2162,8 @@
             (n.image ? '<img class="thumb" src="' + esc(n.image) + '" alt="" loading="lazy" ' +
               'onerror="this.remove()">' : '') +
             '<span class="body">' +
-            '<h3>' + esc(n.title) + '</h3>' +
+            '<h3>' + esc(__newsTitleZh(n.title)) + '</h3>' +
+            __newsTitleEn(n.title) +
             (n.summary ? '<p>' + esc(n.summary) + '</p>' : '') +
             '<span class="meta">' +
             '<span class="tag' + (isCN(n) ? ' is-cn' : '') + '">' + esc(n.source) + '</span>' +
