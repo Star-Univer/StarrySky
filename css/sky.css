@@ -4209,10 +4209,24 @@ html[data-glass="off"] .glass-card::after {
     overflow-x: auto;
   }
 
+  /* 关键：基础样式里 .setting-tab 是 width:100%（竖排时铺满），
+     窄屏改成横排后必须把宽度让出来，否则每一个都占满一行，
+     六个页签会撑成 2600px 的横向滚动条 —— 手机上只看得见第一个。 */
   .setting-tab {
+    width: auto;
     flex: 0 0 auto;
-    padding: 9px 12px;
+    padding: 9px 13px;
     font-size: .8rem;
+    white-space: nowrap;
+  }
+
+  /* 让"还能往右滑"这件事看得出来 */
+  .settings-nav {
+    scroll-snap-type: x proximity;
+  }
+
+  .setting-tab {
+    scroll-snap-align: start;
   }
 
   .setting-tab .tab-badge {
@@ -5378,4 +5392,72 @@ html.is-scrolling .stage {
 html.is-switching * {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
+}
+
+
+/* ============ 23. 手机端设置面板（≤640px） ============
+   问题：面板比屏幕宽，右侧设置项被切掉，看起来"设置项特别少"。
+   原因：卡片沿用了桌面的最小宽度 + 每行"标签在左、控件在右"的布局，
+   窄屏下两列并排就必然溢出。这里改成单列、控件换行到下一行。 */
+@media (max-width: 640px) {
+  .auth-card {
+    width: 100%;
+    max-width: calc(100vw - 20px);
+    padding: 18px 14px 16px;
+    overflow-x: hidden;
+  }
+
+  .auth-split {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .settings-nav {
+    gap: 4px;
+  }
+
+  /* 每行改为上下排列：说明一行，控件一行 */
+  .setting-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 9px;
+  }
+
+  .setting-ctl {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  /* 滑块、分段按钮都别超宽 */
+  .setting-ctl input[type="range"],
+  .bright-slider,
+  .bright-slider input[type="range"] {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .seg {
+    flex-wrap: wrap;
+  }
+
+  .theme-swatches,
+  .swatch-row {
+    flex-wrap: wrap;
+  }
+
+  .settings-body,
+  .setting-pane {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+}
+
+/* 版本标记：让站主一眼确认服务器上跑的是哪一版 */
+.build-tag {
+  margin: 14px 0 0;
+  font-size: .62rem;
+  letter-spacing: .08em;
+  color: var(--glass-item-desc);
+  opacity: .7;
+  text-align: center;
 }
