@@ -5498,3 +5498,77 @@ html.is-switching * {
     animation: none;
   }
 }
+
+
+/* ============ 25. 原版星空（从 _backup 原样恢复） ============
+   站主的原版就是这套：nebula 径向渐变 + 手写 SVG 星点 + 轨道平移。
+   之前我换成了程序化星野，属于擅自改动，现在按原版还原，并作为默认。 */
+
+/* 原版 `.sky` 依赖 --sky 变量，这里给个兜底 */
+.sky-orig {
+  --sky: #05080f;
+}
+
+.sky { position: fixed; inset: -12%; z-index: 0; background: var(--sky); transform: scale(1.12); transition: transform 1.05s cubic-bezier(.76, 0, .24, 1), background .5s ease; will-change: transform; pointer-events: none; backface-visibility: hidden; }
+.nebula { position: absolute; inset: 0; background: radial-gradient(circle at 12% 22%, rgba(30, 80, 160, .25), transparent 42%), radial-gradient(circle at 80% 60%, rgba(70, 50, 150, .20), transparent 48%), radial-gradient(circle at 40% 90%, rgba(20, 120, 180, .18), transparent 45%), radial-gradient(circle at 92% 15%, rgba(40, 70, 140, .22), transparent 38%), radial-gradient(circle at 55% 35%, rgba(100, 80, 180, .10), transparent 40%); filter: blur(24px); animation: nebulaDrift 60s ease-in-out infinite alternate; }
+.nebula { filter: blur(28px); opacity: .95; }
+.stars-wrap { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.stars-track { position: absolute; top: 0; left: 0; width: 200%; height: 100%; display: flex; animation: scrollStars 110s linear infinite; will-change: transform; }
+.stars-copy { flex: 0 0 50%; height: 100%; position: relative; }
+.stars-copy svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.stars-track { animation-duration: 160s; }
+
+@keyframes scrollStars {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes starTwinkle {
+  0%   { opacity: .30; }
+  100% { opacity: .95; }
+}
+
+/* 只有选「原版」时才显示原版星空，同时把我那套收起来 */
+.sky-orig { display: none; }
+html[data-bg-style="orig"] .sky-orig { display: block; }
+html[data-bg-style="orig"] .sky-field { display: none; }
+
+/* 其余方案下隐藏原版 */
+html[data-bg-style="one"] .sky-orig,
+html[data-bg-style="two"] .sky-orig,
+html[data-bg-style="three"] .sky-orig { display: none; }
+
+/* 高亮（原版按钮） */
+html[data-bg-style="orig"] .seg-btn[data-bg="orig"] {
+  background: var(--bili, #00AEEC);
+  color: #04121c;
+  font-weight: 800;
+}
+
+
+/* 原版 SVG 星点/连线的样式（之前漏抓，导致星点变成黑点） */
+.c-line {
+  stroke: rgba(180, 210, 255, .30);
+  stroke-width: 1.1;
+  fill: none;
+}
+
+.c-star {
+  fill: #ffffff;
+  animation: starTwinkle 4.5s ease-in-out infinite alternate;
+  transform-origin: center;
+}
+
+.c-star:nth-of-type(3n+1) { animation-duration: 3.8s; }
+.c-star:nth-of-type(3n+2) { animation-duration: 5.2s; }
+.c-star:nth-of-type(3n+3) { animation-duration: 6.4s; }
+
+.c-star.bright {
+  fill: #dde9ff;
+  filter: drop-shadow(0 0 4px rgba(200, 220, 255, .85));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .c-star { animation: none; }
+  .stars-track { animation: none; }
+}
