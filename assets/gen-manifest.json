@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-11T13:23:46.415Z",
+  "generated": "2026-10-17T15:43:42.942Z",
   "seeds": {
     "deep": "0xA17C0DE",
     "mid": "0xB2E5A11",
@@ -25,5 +25,5 @@
     "chart-ink-inline.js",
     "starcat.json"
   ],
-  "totalKB": 4984.7
+  "totalKB": 2532.2
 }

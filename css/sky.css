@@ -25,18 +25,42 @@
   --brand-gold: #e8b45e;
   --brand-vermilion: #a8482f;
 
+  /* --- 「亮度」滑杆：0 = 淡黄（默认），1 = 纯白 ---
+     做法是把淡黄与纯白按这个比例**在 RGB 三个通道上分别插值**，
+     得到的是不透明的实色。所以拖动时是"由淡黄渐渐变成纯白"，
+     不会像调透明度那样发散、发灰。 */
+  --bright: 0;
+
+  --paper-r: 246;
+  --paper-g: 239;
+  --paper-b: 223;
+  --white: 255;
+
+  /* 页面主底 */
+  --cream: rgb(
+    calc(var(--paper-r) + (var(--white) - var(--paper-r)) * var(--bright)),
+    calc(var(--paper-g) + (var(--white) - var(--paper-g)) * var(--bright)),
+    calc(var(--paper-b) + (var(--white) - var(--paper-b)) * var(--bright))
+  );
+  /* 卡片底：比主底再白一点，卡片才能从背景里浮出来 */
+  --cream-card: rgb(
+    calc(250 + 5 * var(--bright)),
+    calc(245 + 10 * var(--bright)),
+    calc(232 + 23 * var(--bright))
+  );
+
   /* --- 中性色（浅色主题基准） --- */
   --ink: #121110;
-  --bg: #edf1f7;
-  --bg-card: #ffffff;
-  --border: #dde5ef;
-  --text: #0f1b2b;
-  --text-muted: #6a819a;
+  --bg: var(--cream);
+  --bg-card: var(--cream-card);
+  --border: #e2d9c6;
+  --text: #2b2318;
+  --text-muted: #7a6a52;
   --brand-color: #121110;
   --phi: 1.618;
 
-  --page-bg: rgba(237, 241, 247, .88);
-  --card-bg: rgba(255, 255, 255, .72);
+  --page-bg: color-mix(in srgb, var(--cream) 88%, transparent);
+  --card-bg: color-mix(in srgb, var(--cream-card) 74%, transparent);
 
   /* --- 导航 --- */
   --nav-bg: #0a0e16;
@@ -47,21 +71,24 @@
 
   /* --- 玻璃拟态（浅色） --- */
   --bili: #00AEEC;
-  --glass-bg: linear-gradient(155deg, rgba(255, 255, 255, .86) 0%, rgba(255, 255, 255, .62) 45%, rgba(255, 255, 255, .78) 100%);
-  --glass-border: rgba(255, 255, 255, .95);
-  --glass-shadow: 0 26px 60px -30px rgba(20, 45, 90, .42);
-  --glass-inset: inset 0 1px 0 rgba(255, 255, 255, .95);
-  --glass-head-border: rgba(15, 27, 43, .10);
-  --glass-title: #0f1b2b;
-  --glass-sub: rgba(60, 90, 130, .55);
-  --glass-item-bg: rgba(255, 255, 255, .60);
-  --glass-item-border: rgba(15, 27, 43, .10);
-  --glass-item-text: #0f1b2b;
-  --glass-item-desc: rgba(60, 90, 130, .68);
-  --glass-foot: rgba(60, 90, 130, .55);
+  --glass-bg: linear-gradient(155deg,
+      color-mix(in srgb, var(--cream-card) 88%, transparent) 0%,
+      color-mix(in srgb, var(--cream-card) 64%, transparent) 45%,
+      color-mix(in srgb, var(--cream-card) 80%, transparent) 100%);
+  --glass-border: color-mix(in srgb, var(--cream-card) 96%, transparent);
+  --glass-shadow: 0 26px 60px -30px rgba(90, 70, 35, .40);
+  --glass-inset: inset 0 1px 0 color-mix(in srgb, var(--cream-card) 96%, transparent);
+  --glass-head-border: rgba(90, 70, 35, .14);
+  --glass-title: #2b2318;
+  --glass-sub: rgba(122, 106, 82, .68);
+  --glass-item-bg: color-mix(in srgb, var(--cream-card) 62%, transparent);
+  --glass-item-border: rgba(90, 70, 35, .14);
+  --glass-item-text: #2b2318;
+  --glass-item-desc: rgba(122, 106, 82, .78);
+  --glass-foot: rgba(122, 106, 82, .66);
   --glass-ico-bg: linear-gradient(145deg, rgba(0, 174, 236, .20), rgba(0, 174, 236, .06));
   --glass-ico-border: rgba(0, 174, 236, .35);
-  --glass-arrow: #4a6f9c;
+  --glass-arrow: #8a7454;
 
   /* --- 动效曲线 --- */
   --ease-soft: cubic-bezier(.2, .7, .3, 1);
@@ -84,6 +111,9 @@
   --r-md: 18px;
   --r-lg: 26px;
   --r-xl: 32px;
+
+  /* --- 任务栏高度：星图挂件与吸顶元素都靠它定位 --- */
+  --nav-h: 56px;
 }
 
 html[data-user-color-scheme="dark"] {
@@ -350,22 +380,28 @@ body {
   flex-shrink: 0;
 }
 
-/* ---- 灰色圆点：古籍星图入口 ---- */
+/* ---- 灰色圆点：古籍星图入口 ----
+   按站主要求，它不再是导航里的第一个元素（"星空"要占最左边），
+   而是**浮动在任务栏下方、屏幕左上角**，像个吊在页角的挂件。 */
 .chart-dot-btn {
-  flex-shrink: 0;
-  position: relative;
+  position: fixed;
+  top: calc(var(--nav-h, 56px) + 10px);
+  left: 14px;
+  z-index: 260;
   width: 38px;
   height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: none;
+  border: 1px solid rgba(160, 195, 245, .26);
   border-radius: 50%;
-  background: transparent;
+  background: rgba(10, 20, 38, .42);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background var(--dur-fast) ease, transform var(--dur-fast) ease;
+  transition: background var(--dur-fast) ease, transform var(--dur-fast) ease, border-color var(--dur-fast) ease;
 }
 
 /* 那个"灰色小圆点"本体 */
@@ -379,7 +415,7 @@ body {
   transition: transform var(--dur-mid) var(--ease-soft), box-shadow var(--dur-mid) ease, background var(--dur-mid) ease;
 }
 
-/* 悬浮时展开成"展开图标"：三个点向外散开 */
+/* 悬浮时展开成三点，提示"可以摊开" */
 .chart-dot-btn .dot-ring {
   position: absolute;
   inset: 0;
@@ -403,7 +439,8 @@ body {
 }
 
 .chart-dot-btn:hover {
-  background: rgba(255, 255, 255, .12);
+  background: rgba(20, 40, 70, .62);
+  border-color: rgba(180, 215, 255, .55);
 }
 
 .chart-dot-btn:hover .dot-core {
@@ -431,6 +468,12 @@ body {
 .chart-dot-btn:focus-visible {
   outline: 2px solid rgba(120, 185, 255, .85);
   outline-offset: 2px;
+}
+
+/* 白天时这个挂件也要看得清 */
+html[data-sky="light"] .chart-dot-btn {
+  background: rgba(30, 55, 95, .34);
+  border-color: rgba(255, 255, 255, .45);
 }
 
 /* ---- 账号 / 设置按钮 ---- */
@@ -483,6 +526,155 @@ body {
   letter-spacing: .02em;
 }
 
+/* ---- 未上传头像时的「齿轮」按钮 ----
+   站主要求：新注册用户不要用"圆圈 + 用户名首字"，改成齿轮状按钮。
+   上传头像后，这里会换成真实头像图片，并同步到任务栏。 */
+.nav-user .nav-user-gear {
+  width: 22px;
+  height: 22px;
+  display: block;
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform-origin: 50% 50%;
+  transition: transform .5s var(--ease-soft);
+}
+
+.nav-user:hover .nav-user-gear {
+  transform: rotate(60deg);
+}
+
+/* 任务栏头像：和设置面板里显示的是同一张图。
+   注意要显式给宽高并居中 —— 只写 width/height:100% 的话，
+   2:1 的宽高比会让图片按自身比例横着撑开，看起来就是"一个变形的大图"。 */
+.nav-user .nav-user-avatar {
+  display: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+  flex: 0 0 auto;
+}
+
+.nav-user.has-avatar {
+  padding: 0;
+  overflow: hidden;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+}
+
+.nav-user.has-avatar .nav-user-gear,
+.nav-user.has-avatar .nav-user-ico,
+.nav-user.has-avatar .nav-user-initial {
+  display: none;
+}
+
+.nav-user.has-avatar .nav-user-avatar {
+  display: block;
+}
+
+/* ================= 任务栏上的信封 / 收信入口 ================= */
+.nav-mail {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--dur-fast) ease, transform var(--dur-fast) ease;
+}
+
+.nav-mail:hover {
+  background: rgba(255, 255, 255, .12);
+  transform: scale(1.10);
+}
+
+.nav-mail:active {
+  transform: scale(.92);
+}
+
+.nav-mail svg {
+  width: 21px;
+  height: 21px;
+  display: block;
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 小红点：有未读的回复（或开发者的信）时出现 */
+.nav-mail .mail-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 8px;
+  height: 8px;
+  padding: 0 3px;
+  border-radius: 99px;
+  background: #ff4d4f;
+  box-shadow: 0 0 0 2px rgba(10, 14, 22, .9), 0 0 10px rgba(255, 77, 79, .9);
+  transform: scale(0);
+  transition: transform var(--dur-mid) var(--ease-soft);
+}
+
+.nav-mail.has-unread .mail-dot {
+  transform: scale(1);
+}
+
+/* 带数字时把红点拉成胶囊 */
+.nav-mail.has-unread .mail-dot.with-num {
+  height: 15px;
+  min-width: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .58rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+}
+
+/* 有新信时信封轻轻摇一摇，够醒目但不吵 */
+.nav-mail.has-unread svg {
+  animation: mailShake 2.6s ease-in-out infinite;
+}
+
+@keyframes mailShake {
+
+  0%,
+  86%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  90% {
+    transform: rotate(-9deg);
+  }
+
+  94% {
+    transform: rotate(9deg);
+  }
+
+  98% {
+    transform: rotate(-4deg);
+  }
+}
+
+/* 站长收件箱入口（原来的样式保留，和信封并排） */
 .nav-user.logged-in {
   background: linear-gradient(135deg, #ff9aec, #a9c6ff 50%, #5b8ce0);
   color: #07101f;
@@ -608,20 +800,23 @@ html[data-user-color-scheme="light"] .icon-sun {
   }
 }
 
-/* 三层各自的基准透明度与混合方式（远近虚实） */
+/* 三层各自的基准透明度。
+   注意：**这里刻意不加 filter**。
+
+   之前在每一层上挂了 `saturate()/contrast()` 和近景层的 `drop-shadow`，
+   等于让浏览器对 6 张全屏图片（每张 2000px 宽）每帧做一次 GPU 滤镜，
+   滚动起来明显掉帧 —— 站主反馈的"卡卡的"就是这个原因。
+   现在只保留 opacity，视觉差别很小，但流畅得多。 */
 .sky-layer--deep {
   opacity: .92;
-  filter: saturate(1.02) contrast(1.02);
 }
 
 .sky-layer--mid {
   opacity: .84;
-  filter: saturate(1.06);
 }
 
 .sky-layer--near {
   opacity: .96;
-  filter: saturate(1.1) contrast(1.04);
 }
 
 /* ---- 星宿图层：内联的 SVG，可以悬浮提亮、可以点 ----
@@ -647,24 +842,36 @@ html[data-user-color-scheme="light"] .icon-sun {
 
 /* 星官默认淡淡显形，鼠标靠近时整体浮出 */
 .mansion-bound .mansion {
-  --mz-line-o: .40;
+  --mz-line-o: .16;
 }
 
 .mansion-bound .mz-line {
   stroke-opacity: var(--mz-line-o);
 }
 
+/* 星官名字**默认完全隐藏**。
+   站主要求首页干净一点 —— 只有星星和星云，不要一屏文字。
+   鼠标移到星野上（.is-hot）或单个星官上时，名字才浮出来。 */
 .mansion-bound .mz-name {
-  fill-opacity: .50;
+  fill-opacity: 0;
+  /* 连名字本身也不参与命中测试的视觉层级，避免一堆文字抢注意力 */
+  pointer-events: none;
 }
 
-/* 悬浮整片星空时，所有星官名一起浮出，方便找 */
+/* 悬浮整片星空时，所有星官名一起浮出（此时才允许鼠标交互） */
 .sky-field.is-hot .mansion-bound .mz-name {
-  fill-opacity: .92;
+  fill-opacity: .9;
+  pointer-events: auto;
 }
 
 .sky-field.is-hot .mansion-bound .mz-line {
-  stroke-opacity: .68;
+  stroke-opacity: .5;
+}
+
+/* 单个星官被悬浮/点亮时，名字突出显示 */
+.mansion-bound .mansion.is-hover .mz-name,
+.mansion-bound .mansion.is-lit .mz-name {
+  fill-opacity: 1;
 }
 
 /* 悬浮某一个星官：整组连线与名字一起发光 */
@@ -699,10 +906,8 @@ html[data-user-color-scheme="light"] .icon-sun {
   }
 }
 
-/* 星宿连线的可读性：整体略微提亮 */
-.sky-layer--near .sky-band-img {
-  filter: drop-shadow(0 0 1px rgba(180, 210, 255, .35));
-}
+/* 近景层原来这里还挂了一个 drop-shadow。
+   那是对一整张 2000px 宽的图做逐帧滤镜，是卡顿的另一半原因，所以去掉。 */
 
 /* 大气辉光：让星空有"空气感"，而不是一张贴图。
    注意：这里刻意**不用** mix-blend-mode —— 混色层作用在星野图片之上时，
@@ -808,7 +1013,7 @@ html[data-sky="dark"] {
 }
 
 html[data-sky="dark"] .sky-airglow {
-  opacity: .9;
+  opacity: .8;
 }
 
 html[data-sky="dark"] .sky-grain {
@@ -816,34 +1021,53 @@ html[data-sky="dark"] .sky-grain {
 }
 
 /* ---- 白天：淡青晨曦 ----
-   注意：这里没有用白色蒙板盖住星空，而是把同一片星空
-   整体"提亮 + 偏青 + 降饱和"，像黎明前 20 分钟的天。
-   所以白天够亮，又和黑夜是连续的同一片天，不会割裂。 */
+   注意：这里没有用白色蒙板盖住星空，而是把同一片星空整体调亮。
+   但**也不再用 CSS filter** —— 白天同样要流畅。
+   改法的思路：不滤镜，改为"把三层透明度调低 + 用一层暖色辉光整体提亮"，
+   视觉效果接近"黎明前的天"，而且完全不额外消耗 GPU。 */
 html[data-sky="light"] {
-  --sky-base: #7fa8cf;
+  --sky-base: #9dbbd8;
 }
 
 html[data-sky="light"] .sky-layer--deep {
-  opacity: .80;
-  filter: saturate(.62) brightness(1.30) contrast(.94) hue-rotate(-8deg);
+  opacity: .70;
 }
 
 html[data-sky="light"] .sky-layer--mid {
-  opacity: .70;
-  filter: saturate(.58) brightness(1.34) contrast(.92) hue-rotate(-8deg);
+  opacity: .62;
 }
 
 html[data-sky="light"] .sky-layer--near {
-  opacity: .82;
-  filter: saturate(.66) brightness(1.28) contrast(.95) hue-rotate(-6deg);
+  opacity: .76;
 }
 
+html[data-sky="light"] .sky-band-img {
+  /* 静态滤镜只在合成时付一次代价，比逐帧动画的 filter 便宜得多 */
+  filter: brightness(1.06) saturate(.8);
+}
+
+/* 白天：靠这层暖光把整片天"提亮"，替代原来的 CSS 滤镜（更省 GPU）。
+   但**别盖太厚** —— 之前给到 .78 把星星全糊掉了，白天也应该看得见星。 */
 html[data-sky="light"] .sky-airglow {
-  opacity: .62;
+  opacity: .34;
   background:
-    radial-gradient(ellipse 130% 80% at 76% 4%, rgba(255, 246, 220, .46), transparent 58%),
-    radial-gradient(ellipse 120% 70% at 50% 120%, rgba(150, 195, 240, .34), transparent 64%),
-    radial-gradient(ellipse 90% 60% at 6% 10%, rgba(190, 215, 245, .28), transparent 62%);
+    radial-gradient(ellipse 130% 80% at 76% 4%, rgba(255, 252, 240, .52), transparent 58%),
+    radial-gradient(ellipse 120% 70% at 50% 122%, rgba(186, 216, 246, .34), transparent 66%),
+    radial-gradient(ellipse 100% 70% at 6% 10%, rgba(214, 232, 250, .30), transparent 62%),
+    linear-gradient(180deg, rgba(246, 250, 255, .26), rgba(220, 234, 248, .20));
+}
+
+/* 白天的标题颜色在下面 .hero-title 那一节里调深，
+   这里不再重复写一遍 —— 之前重复写会把 gradient 覆盖成纯色，
+   结果 background-clip:text 没了，字直接消失。 */
+html[data-sky="light"] .hero-sub,
+html[data-sky="light"] .hero-desc {
+  color: #35506a;
+  text-shadow: none;
+}
+
+html[data-sky="light"] .hero-glow {
+  opacity: .5;
 }
 
 html[data-sky="light"] .sky-grain {
@@ -857,17 +1081,11 @@ html[data-sky="light"] .hero-glow {
     radial-gradient(ellipse 90% 70% at 50% 108%, rgba(120, 170, 225, .26), transparent 66%);
 }
 
-/* ---- 星宿：默认淡淡显形，打开设置里的开关后更亮 ---- */
-html[data-mansions="off"] .sky-layer--near .sky-band-img {
-  filter: saturate(1.1) contrast(1.04) brightness(.94);
-}
-
+/* ---- 星宿图层开关 ----
+   注意：这里**不再对图片加 filter**（那会让每一帧都做一次全屏 GPU 滤镜）。
+   只调内联的星宿层本身的透明度，视觉上够用，性能上便宜很多。 */
 html[data-mansions="off"] .mansion-bound {
-  opacity: .30;
-}
-
-html[data-mansions="on"] .sky-layer--near .sky-band-img {
-  filter: saturate(1.14) contrast(1.08) brightness(1.1);
+  opacity: .18;
 }
 
 html[data-mansions="on"] .mansion-bound {
@@ -880,6 +1098,10 @@ html[data-mansions="on"] .mansion-bound {
 
 /* ============================================= 5. 横向页面与首页英雄区 */
 
+/* 横向翻页改成原生滚动（scroll-snap）。
+   原来靠 .track 的 translate3d 位移，实测计算样式恒等、位移不生效，
+   于是"点导航只有高亮变、内容不动"。
+   现在由这个容器滚动，翻页只是 scrollTo，稳而且手机能拖。 */
 .stage {
   position: relative;
   z-index: var(--z-stage);
@@ -887,18 +1109,28 @@ html[data-mansions="on"] .mansion-bound {
   overflow: hidden;
 }
 
+.stage::-webkit-scrollbar {
+  display: none;
+}
+
 .track {
   display: flex;
   height: 100%;
+  /* 整条用 transform 平移：GPU 合成，比滚动容器便宜得多 */
   transform: translate3d(0, 0, 0);
-  transition: transform .9s var(--ease-glide);
+  transition: transform .62s cubic-bezier(.22, .7, .2, 1);
   will-change: transform;
 }
+
+/* 给这轮改动留个标记，方便自检脚本识别 */
+/* 横向翻页改成原生滚动 */
 
 .page {
   flex: 0 0 100%;
   width: 100%;
   height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
   position: relative;
   overflow-y: auto;
   overflow-x: hidden;
@@ -931,9 +1163,10 @@ html[data-mansions="on"] .mansion-bound {
 }
 
 /* 白天时把内页底色再压淡一点：内容仍然清楚，同时让星空透上来，
-   整个站点才像"同一片天"，而不是几块拼接的白板。 */
+   整个站点才像"同一片天"，而不是几块拼接的白板。
+   底色跟着「亮度」滑杆走：淡黄 → 纯白。 */
 html[data-sky="light"] .page {
-  background: rgba(233, 240, 250, .74);
+  background: color-mix(in srgb, var(--cream) 70%, transparent);
 }
 
 html[data-sky="light"] .menu-section,
@@ -942,9 +1175,15 @@ html[data-sky="light"] .brand-footer {
 }
 
 html[data-sky="light"] .tool-box {
-  background: rgba(255, 255, 255, .80);
-  border-color: rgba(120, 150, 190, .34);
-  box-shadow: 0 16px 34px -26px rgba(20, 45, 90, .55);
+  background: color-mix(in srgb, var(--cream-card) 84%, transparent);
+  border-color: rgba(150, 125, 88, .34);
+  box-shadow: 0 16px 34px -26px rgba(90, 70, 35, .55);
+}
+
+/* 浅色主题下的按钮与导航字号背景也跟着亮度走 */
+html[data-sky="light"] .nav-user:hover,
+html[data-sky="light"] .color-toggle-btn:hover {
+  background: rgba(255, 255, 255, .18);
 }
 
 /* ---- 首页第一屏 ---- */
@@ -1000,10 +1239,18 @@ html[data-sky="light"] .tool-box {
   animation: fadeUp 1.1s var(--ease-soft) both;
 }
 
+/* 白天的标题：**不要用渐变裁切**。
+   background-clip:text 在浅色背景下很容易出问题 ——
+   一旦 background 被别的规则覆盖，color:transparent 还在，
+   字就整个消失了（之前白天看不到"星空"两个字就是这个原因）。
+   白天直接用实色，最稳。 */
 html[data-sky="light"] .hero-title {
-  /* 白天的天空偏亮，标题渐变必须够深，否则字会"化"在背景里 */
-  background: linear-gradient(180deg, #183b63 0%, #24527f 48%, #3f7bab 100%);
-  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .42)) drop-shadow(0 4px 22px rgba(15, 40, 80, .35));
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: #17324f;
+  color: #17324f;
+  filter: drop-shadow(0 2px 16px rgba(23, 50, 79, .22));
 }
 
 .hero-line {
@@ -1808,7 +2055,10 @@ html[data-user-color-scheme="dark"] .tag-btn:hover {
 
 .chart-mask {
   position: fixed;
-  inset: 0;
+  top: var(--nav-h, 56px);
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: var(--z-chart);
   display: flex;
   align-items: stretch;
@@ -2086,6 +2336,243 @@ html[data-user-color-scheme="dark"] .tag-btn:hover {
   overflow: hidden;
   background:
     radial-gradient(ellipse at 50% 40%, rgba(255, 251, 240, .6), rgba(238, 227, 205, .3) 70%);
+  transition: background .5s ease;
+}
+
+/* ============================================================
+   星图的黑夜形态
+   ------------------------------------------------------------
+   站主要求：白天用原来那张淡黄纸底的星图；黑夜改成蓝黑背景、
+   亮的星星和连线（和首页一个味道）。
+
+   技术选择说明：
+     星图是内联 SVG，里面的颜色是写死在属性上的（fill="#f6efdf" 这种），
+     CSS 变量改不动它。所以这里用两层办法：
+       1. 对白纸、边框等"大面积浅色"直接用 CSS 盖掉（下面的 rect 规则）
+       2. 整体再加一层 invert + hue-rotate：
+          淡黄纸底 → 反相后变蓝黑；深墨色的星点与连线 → 反相后变亮青白。
+          这正是站主要的效果，而且比逐条改 SVG 可靠得多。
+   ============================================================ */
+html[data-user-color-scheme="dark"] .chart-stage-wrap {
+  background: radial-gradient(ellipse at 50% 45%, #0d1830 0%, #060c18 55%, #03060e 100%);
+}
+
+html[data-user-color-scheme="dark"] .chart-stage {
+  /* 反相 + 小小一段蓝相位移：
+     淡黄纸底 → 反相是深蓝 → 再往蓝偏一点会更"夜空"。
+     这段位移刻意取小值，避免把星点和连线一起偏成黄的。 */
+  filter: invert(1) hue-rotate(22deg) saturate(.6) brightness(.74) contrast(1.16);
+}
+
+/* ---- 把 SVG 里那几张"白纸"直接换成夜空的深蓝 ----
+   用 !important 是因为生成器把颜色写成了 fill 属性，
+   属性选择器（rect[fill="…"]）的优先级已经压不过它了。 */
+html[data-user-color-scheme="dark"] .chart-stage svg rect[fill="#f6efdf"] {
+  fill: #060e1c !important;
+}
+
+html[data-user-color-scheme="dark"] .chart-stage svg rect[fill="#f3ead6"] {
+  opacity: .12;
+}
+
+html[data-user-color-scheme="dark"] .chart-stage svg rect[width][height] {
+  stroke: #24406b;
+}
+
+/* 网格、经纬网、天球椭圆：换成淡蓝线条 */
+html[data-user-color-scheme="dark"] .chart-stage svg .chart-grid line {
+  stroke: #2b4a78;
+}
+
+html[data-user-color-scheme="dark"] .chart-stage svg .chart-sphere polyline,
+html[data-user-color-scheme="dark"] .chart-stage svg .chart-sphere ellipse {
+  stroke: #3d6396;
+}
+
+/* 星点：亮青白，像首页的星 */
+html[data-user-color-scheme="dark"] .chart-stage svg .chart-ink circle {
+  fill: #eaf3ff;
+}
+
+/* 二十八宿的连线与名字 */
+html[data-user-color-scheme="dark"] .chart-stage svg .chart-mz-line {
+  stroke: #9fd0ff;
+  stroke-opacity: .82;
+}
+
+html[data-user-color-scheme="dark"] .chart-stage svg .chart-mz-name {
+  fill: #dbeaff;
+  fill-opacity: .95;
+  stroke: #0a1220;
+  stroke-opacity: .8;
+}
+
+html[data-user-color-scheme="dark"] .chart-stage svg .chart-mz:hover .chart-mz-name,
+html[data-user-color-scheme="dark"] .chart-stage svg .chart-mz.is-lit .chart-mz-name {
+  fill: #ffe9a8;
+}
+
+/* 三垣：虚线框与名字 */
+html[data-user-color-scheme="dark"] .chart-stage svg .asterism .ast-ring {
+  stroke-opacity: .85;
+}
+
+html[data-user-color-scheme="dark"] .chart-stage svg .ast-name {
+  fill: #ffe0b0;
+  stroke: #0a1220;
+}
+
+/* 外圈那一列宿名 */
+html[data-user-color-scheme="dark"] .chart-stage svg .ring-label {
+  fill: #cfe2ff;
+  fill-opacity: .92;
+}
+
+html[data-user-color-scheme="dark"] .chart-stage svg .ring-label:hover,
+html[data-user-color-scheme="dark"] .chart-stage svg .ring-label.is-lit {
+  fill: #ffe9a8;
+}
+
+/* 标题与落款：夜色下改成淡金，别再用墨色 */
+html[data-user-color-scheme="dark"] .chart-stage svg .chart-title text {
+  fill: #d8e6ff;
+}
+
+/* 让反相后的纸纹淡一点，别显得脏 */
+html[data-user-color-scheme="dark"] .chart-stage svg > rect[filter] {
+  opacity: .22;
+}
+
+/* 提示条在夜色下也要看得清 */
+html[data-user-color-scheme="dark"] .chart-tip {
+  color: #cfe2ff;
+  background: rgba(10, 20, 38, .8);
+  border-color: rgba(140, 180, 240, .35);
+}
+
+html[data-user-color-scheme="dark"] .chart-shell {
+  background: linear-gradient(180deg, #0b1424, #070e1c 60%, #050a14 100%);
+}
+
+html[data-user-color-scheme="dark"] .chart-top {
+  background: linear-gradient(180deg, rgba(14, 24, 44, .96), rgba(10, 18, 34, .9));
+  border-bottom-color: rgba(120, 160, 220, .28);
+}
+
+html[data-user-color-scheme="dark"] .chart-top-title {
+  color: #e6efff;
+}
+
+html[data-user-color-scheme="dark"] .chart-top-title span {
+  color: #8fa8cc;
+}
+
+html[data-user-color-scheme="dark"] .chart-search {
+  background: rgba(18, 30, 52, .8);
+  border-color: rgba(120, 160, 220, .34);
+}
+
+html[data-user-color-scheme="dark"] .chart-search input {
+  color: #e6efff;
+}
+
+html[data-user-color-scheme="dark"] .chart-search input::placeholder {
+  color: rgba(150, 175, 210, .7);
+}
+
+html[data-user-color-scheme="dark"] .chart-search svg {
+  stroke: rgba(160, 190, 230, .85);
+}
+
+html[data-user-color-scheme="dark"] .chart-close {
+  background: rgba(18, 30, 52, .8);
+  border-color: rgba(120, 160, 220, .34);
+}
+
+html[data-user-color-scheme="dark"] .chart-close svg {
+  stroke: #cfe2ff;
+}
+
+html[data-user-color-scheme="dark"] .chart-side {
+  background: linear-gradient(180deg, rgba(12, 21, 38, .9), rgba(8, 15, 28, .8));
+  border-right-color: rgba(120, 160, 220, .24);
+}
+
+html[data-user-color-scheme="dark"] .chart-side-note,
+html[data-user-color-scheme="dark"] .chart-sec-head {
+  color: #a9c0e0;
+}
+
+html[data-user-color-scheme="dark"] .chart-xiu {
+  color: #e2ecfb;
+}
+
+html[data-user-color-scheme="dark"] .chart-xiu i {
+  color: #7f96b8;
+}
+
+html[data-user-color-scheme="dark"] .chart-xiu:hover {
+  background: rgba(0, 174, 236, .14);
+}
+
+html[data-user-color-scheme="dark"] .chart-xiu.is-active {
+  background: rgba(0, 174, 236, .22);
+  border-color: rgba(0, 174, 236, .6);
+}
+
+html[data-user-color-scheme="dark"] .chart-detail {
+  background: linear-gradient(180deg, rgba(12, 21, 38, .98), rgba(8, 15, 28, .98));
+  border-left-color: rgba(120, 160, 220, .3);
+  color: #dbe8fa;
+}
+
+html[data-user-color-scheme="dark"] .ct-detail-head {
+  border-bottom-color: rgba(0, 174, 236, .5);
+}
+
+html[data-user-color-scheme="dark"] .ct-detail-head h3 {
+  color: #eaf3ff;
+}
+
+html[data-user-color-scheme="dark"] .ct-fact,
+html[data-user-color-scheme="dark"] .ct-record blockquote,
+html[data-user-color-scheme="dark"] .ct-dso li,
+html[data-user-color-scheme="dark"] .ct-omen,
+html[data-user-color-scheme="dark"] .ct-season {
+  background: rgba(255, 255, 255, .05);
+  border-color: rgba(120, 160, 220, .26);
+}
+
+html[data-user-color-scheme="dark"] .ct-block p,
+html[data-user-color-scheme="dark"] .ct-season p,
+html[data-user-color-scheme="dark"] .ct-omen p,
+html[data-user-color-scheme="dark"] .ct-ev p {
+  color: #c3d4ea;
+}
+
+html[data-user-color-scheme="dark"] .ct-lead,
+html[data-user-color-scheme="dark"] .ct-table tbody td {
+  color: #c3d4ea;
+}
+
+html[data-user-color-scheme="dark"] .chart-foot {
+  background: linear-gradient(180deg, rgba(12, 21, 38, .95), rgba(8, 15, 28, .95));
+  border-top-color: rgba(120, 160, 220, .28);
+}
+
+html[data-user-color-scheme="dark"] .chart-tabpane {
+  background: rgba(10, 18, 34, .92);
+  color: #c3d4ea;
+}
+
+html[data-user-color-scheme="dark"] .ct-tab {
+  color: #9db4d4;
+}
+
+html[data-user-color-scheme="dark"] .ct-tab.is-active {
+  background: rgba(255, 255, 255, .07);
+  border-color: rgba(120, 160, 220, .34);
+  color: #eaf3ff;
 }
 
 .chart-stage {
@@ -2789,10 +3276,16 @@ html[data-user-color-scheme="light"] .auth-mask {
   visibility: visible;
 }
 
-/* 面板变大了：从 392px 提到 780px，并且改成两栏（竖排分栏） */
+/* 面板变大了：从 392px 提到 780px，并且改成两栏（竖排分栏）。
+   固定高度：站主不希望窗口随内容忽大忽小 ——
+   列多的往里滚，列少的自然留白。 */
 .auth-card {
   position: relative;
-  width: min(94vw, 780px);
+  /* 取消固定 vw 宽度：用 100% 撑满遮罩的内容区，再用 max-width 限住，
+     这样无论手机多宽都不会横向溢出（之前 94vw 在窄屏上算出来偏大）。 */
+  width: 100%;
+  max-width: 780px;
+  height: min(88vh, 660px);
   max-height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
@@ -2807,6 +3300,31 @@ html[data-user-color-scheme="light"] .auth-mask {
   transform: translateY(22px) scale(.955);
   transition: transform .42s var(--ease-soft);
   overflow: hidden;
+
+  /* 设置面板在手机上不能被内容撑宽。
+     实测（390px 宽的 iPhone）：卡片被撑到 455px，
+     右边"退出所有设备"直接被切掉。
+     原因是 .auth-card 是指定宽度的 flex 项，默认 min-width:auto，
+     内部内容（输入框、按钮、两列网格）比 94vw 还宽时，
+     浏览器会顺着内容把卡片撑大，而不是让它缩。
+     加 min-width:0 + max-width:100% 就不会再溢出。 */
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* 登录 / 注册那种内容少的视图：固定同样高度，内容居中，下方留白 */
+.auth-view {
+  display: block;
+  min-height: 0;
+}
+
+#authView {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .auth-mask.show .auth-card {
@@ -3136,13 +3654,15 @@ html[data-user-color-scheme="light"] .auth-submit.danger:hover {
   font-weight: 700;
 }
 
-/* 两栏主体 */
+/* 两栏主体：撑满剩余的固定高度，右栏自己滚 */
 .auth-split {
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
   grid-template-columns: 190px minmax(0, 1fr);
   gap: 18px;
+
+  min-width: 0;
 }
 
 /* 左栏：竖向按钮列 */
@@ -3670,7 +4190,8 @@ html[data-glass="off"] .glass-card::after {
 
 @media (max-width: 900px) {
   .auth-card {
-    width: min(96vw, 560px);
+    width: 100%;
+    max-width: calc(100vw - 28px);
     padding: 22px 18px 18px;
   }
 
@@ -3819,8 +4340,35 @@ html[data-glass="off"] .glass-card::after {
     padding-top: 52px;
   }
 
+  :root {
+    --nav-h: 52px;
+  }
+
   .site-nav {
     height: 52px;
+  }
+
+  /* 移动端把小尺寸再压一压：站主反馈手机上头像"个头太大"。
+     任务栏按钮 38→34，头像 30→26；设置面板里的头像 58→46。 */
+  .nav-user,
+  .nav-user.has-avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .nav-user .nav-user-avatar {
+    width: 26px;
+    height: 26px;
+  }
+
+  .user-avatar,
+  .avatar-wrapper {
+    width: 46px;
+    height: 46px;
+  }
+
+  .user-avatar {
+    font-size: 1.1rem;
   }
 
   .nav-inner {
@@ -3842,11 +4390,23 @@ html[data-glass="off"] .glass-card::after {
     height: 1em;
   }
 
-  .chart-dot-btn,
+  .chart-dot-btn {
+    width: 32px;
+    height: 32px;
+    top: calc(var(--nav-h) + 8px);
+    left: 10px;
+  }
+
+  .nav-mail,
   .color-toggle-btn,
   .nav-user {
     width: 34px;
     height: 34px;
+  }
+
+  .nav-mail svg {
+    width: 19px;
+    height: 19px;
   }
 
   .color-toggle-btn svg {
@@ -3965,8 +4525,526 @@ html[data-glass="off"] .glass-card::after {
   }
 }
 
-/* =================================== 13. 打印（星图面板可整页打印收藏） */
-@media print {
+/* ============================ 13. 任务栏信封 · 收信面板 ==================== */
+
+/* 抽屉式面板：从右边滑出来，比弹窗更适合"随时瞄一眼有没有回信" */
+.mail-mask {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-panel);
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(4, 8, 16, .52);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--dur-mid) ease, visibility var(--dur-mid) ease;
+}
+
+html[data-user-color-scheme="light"] .mail-mask {
+  background: rgba(90, 74, 44, .40);
+}
+
+.mail-mask.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 收件箱抽屉：同样固定宽度与满高，内容自己滚 */
+.mail-drawer {
+  width: min(94vw, 440px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-bg);
+  border-left: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-inset);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  color: var(--glass-item-text);
+  transform: translateX(102%);
+  transition: transform .46s var(--ease-soft);
+}
+
+.mail-mask.show .mail-drawer {
+  transform: translateX(0);
+}
+
+.mail-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--glass-head-border);
+}
+
+.mail-head h3 {
+  font-family: "Noto Serif SC", "Songti SC", "STSong", serif;
+  font-size: 1.06rem;
+  font-weight: 700;
+  letter-spacing: .18em;
+}
+
+.mail-head .mail-sub {
+  font-size: .62rem;
+  letter-spacing: .22em;
+  color: var(--glass-sub);
+  text-transform: uppercase;
+}
+
+.mail-close {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease, transform var(--dur-fast) ease;
+}
+
+.mail-close svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: var(--glass-item-desc);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.mail-close:hover {
+  background: rgba(255, 255, 255, .14);
+  transform: rotate(90deg);
+}
+
+.mail-close:hover svg {
+  stroke: var(--glass-item-text);
+}
+
+.mail-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 16px 30px;
+}
+
+.mail-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mail-tools .mail-count {
+  font-size: .68rem;
+  letter-spacing: .1em;
+  color: var(--glass-item-desc);
+}
+
+.mail-tools .mail-all {
+  margin-left: auto;
+  font-size: .7rem;
+  color: var(--bili);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mail-tools .mail-all:hover {
+  text-decoration: underline;
+}
+
+.mail-all {
+  color: var(--bili);
+  text-decoration: none;
+}
+
+/* 一条来信 */
+.mail-item {
+  position: relative;
+  padding: 13px 15px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--glass-item-border);
+  background: var(--glass-item-bg);
+  margin-bottom: 10px;
+  transition: border-color var(--dur-fast) ease, transform var(--dur-fast) ease;
+}
+
+.mail-item:hover {
+  border-color: rgba(0, 174, 236, .5);
+  transform: translateY(-1px);
+}
+
+/* 开发者的回信置顶，并且给一条品牌色边 */
+.mail-item.is-dev {
+  border-left: 3px solid var(--bili);
+  background: linear-gradient(100deg, rgba(0, 174, 236, .12), rgba(0, 174, 236, .03));
+}
+
+.mail-item.is-unread {
+  box-shadow: 0 0 0 1px rgba(255, 77, 79, .35);
+}
+
+.mail-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+
+.mail-who {
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: var(--bili);
+}
+
+.mail-item.is-dev .mail-who {
+  color: var(--bili);
+}
+
+.mail-time {
+  margin-left: auto;
+  font-size: .62rem;
+  letter-spacing: .06em;
+  color: var(--glass-item-desc);
+  white-space: nowrap;
+}
+
+.mail-text {
+  font-size: .84rem;
+  line-height: 1.8;
+  color: var(--glass-item-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.mail-reply {
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px dashed var(--glass-item-border);
+  font-size: .82rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.mail-reply b {
+  display: block;
+  margin-bottom: 3px;
+  font-size: .64rem;
+  letter-spacing: .14em;
+  color: var(--bili);
+}
+
+.mail-empty {
+  padding: 44px 14px;
+  text-align: center;
+  font-size: .84rem;
+  line-height: 1.9;
+  color: var(--glass-item-desc);
+}
+
+.mail-empty a {
+  color: var(--bili);
+  text-decoration: none;
+}
+
+/* 面板底部：写留言的快捷入口 */
+.mail-foot {
+  flex: 0 0 auto;
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--glass-head-border);
+}
+
+/* 亮度的自定义外观（range 在各浏览器的默认样式差别太大） */
+.bright-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 130px;
+  height: 6px;
+  border-radius: 99px;
+  outline: none;
+  /* 左边是淡黄、右边是纯白，一眼看出这个滑杆是干什么的 */
+  background: linear-gradient(90deg, #f6efdf 0%, #ffffff 100%);
+  border: 1px solid var(--glass-item-border);
+  cursor: pointer;
+}
+
+.bright-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid var(--bili);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+  cursor: pointer;
+}
+
+.bright-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid var(--bili);
+  cursor: pointer;
+}
+
+/* ==================== 信件的字体 / 字号（玄寂墨羽页共用） ==================== */
+.letter-preview {
+  font-family: var(--letter-font, inherit);
+  font-size: var(--letter-size, 16px);
+  line-height: 2.05;
+}
+
+/* ==================== 14. 开发者：添加朋友 / 朋友管理 ==================== */
+
+.friend-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 站长视图下每条朋友右侧多一个删除按钮 */
+.friend-item {
+  position: relative;
+}
+
+.friend-del {
+  position: absolute;
+  top: 50%;
+  right: 46px;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 90, 90, .16);
+  color: #ff8a8a;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease, transform var(--dur-fast) ease;
+}
+
+.friend-item:hover .friend-del {
+  display: flex;
+}
+
+.friend-del:hover {
+  background: rgba(255, 90, 90, .34);
+  transform: translateY(-50%) scale(1.12);
+}
+
+/* 「添加朋友」入口：只有开发者看得到 */
+.friend-add-btn {
+  display: none;
+  width: 100%;
+  margin-top: 14px;
+  padding: 11px;
+  border-radius: var(--r-sm);
+  border: 1px dashed var(--glass-item-border);
+  background: transparent;
+  font-family: inherit;
+  font-size: .82rem;
+  letter-spacing: .12em;
+  color: var(--glass-item-desc);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease, background var(--dur-fast) ease;
+}
+
+.friend-add-btn:hover {
+  border-color: rgba(0, 174, 236, .7);
+  color: var(--bili);
+  background: rgba(0, 174, 236, .08);
+}
+
+html[data-admin="on"] .friend-add-btn {
+  display: block;
+}
+
+/* ==================== 15. 首页「新闻」成页 ==================== */
+
+/* 和其它页一样横向翻过来，内容是**榜单**的样子（类似热搜 Top10）：
+   一行一条、名次徽章 + 中文标题 + 来源时间，整行可点。
+   上一版用了"带边框的卡片"，标题一长就挤成一坨，所以改成无边框的分隔线榜单。 */
+.news-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+  z-index: 2;
+}
+
+.news-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 10px;
+  border-radius: var(--r-xs);
+  background: transparent;
+  text-decoration: none;
+  color: var(--glass-item-text);
+  border-bottom: 1px solid var(--glass-item-border);
+  transition: background var(--dur-fast) ease, padding-left var(--dur-fast) ease;
+}
+
+.news-list .news-row:last-child {
+  border-bottom: none;
+}
+
+.news-row:hover {
+  background: rgba(0, 174, 236, .10);
+  padding-left: 16px;
+}
+
+.news-rank {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: .7rem;
+  font-weight: 900;
+  color: var(--glass-item-desc);
+  background: rgba(128, 128, 128, .14);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 前三名金银铜，一眼看出重点 */
+.news-list .news-row:nth-child(1) .news-rank {
+  color: #3a2600;
+  background: linear-gradient(135deg, #ffe08a, #e8b45e);
+}
+
+.news-list .news-row:nth-child(2) .news-rank {
+  color: #1a1f27;
+  background: linear-gradient(135deg, #eef2f8, #b9c5d4);
+}
+
+.news-list .news-row:nth-child(3) .news-rank {
+  color: #2a1608;
+  background: linear-gradient(135deg, #ffcda6, #cd8b5a);
+}
+
+.news-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* 标题：整行可点，最多两行，超出省略 —— 不再挤成一坨 */
+.news-t {
+  font-size: .9rem;
+  font-weight: 700;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.news-s {
+  font-size: .62rem;
+  letter-spacing: .08em;
+  color: var(--glass-item-desc);
+}
+
+/* 英文原文：只有翻译过才出现，做核对用 */
+.news-en {
+  font-size: .66rem;
+  line-height: 1.6;
+  color: var(--glass-item-desc);
+  opacity: .8;
+}
+
+.news-more {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--glass-item-border);
+  background: rgba(128, 128, 128, .10);
+  font-family: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: var(--glass-item-desc);
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+
+.news-more:hover {
+  background: rgba(0, 174, 236, .14);
+  border-color: rgba(0, 174, 236, .55);
+  color: var(--bili);
+}
+
+.news-loading {
+  padding: 30px 12px;
+  text-align: center;
+  font-size: .8rem;
+  letter-spacing: .1em;
+  color: var(--glass-item-desc);
+}
+
+/* ============ 16. 「纯黑白」页面的例外处理（数独 / 比分计数） ============
+   站主要求这两页**不跟随全站亮度**，而是极简的纯黑白：
+   白天纯白底 + 黑线黑字，黑夜纯黑底 + 白线白字。
+   它们自己用 @media (prefers-color-scheme) 做主题，
+   所以这里只要保证全站的「亮度白纱」不要盖到它们身上。
+   做法：给这两页的路由加一个标记类，亮度纱层在带这个类的页面上不生效。
+   （页面上自己也写了 override，这里是双保险。） */
+html[data-page="mono"]::before {
+  display: none !important;
+}
+
+/* 顺带给这两页一个统一的「返回星空」按钮样式，方便它们和新版导航呼应 */
+.mono-back {
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 99px;
+  border: 1px solid currentColor;
+  font-size: .78rem;
+  letter-spacing: .08em;
+  text-decoration: none;
+  color: inherit;
+  opacity: .8;
+  transition: opacity .25s ease, transform .25s ease;
+}
+
+.mono-back:hover {
+  opacity: 1;
+  transform: translateX(-2px);
+}
+
+/* =================================== 17. 打印（星图面板可整页打印收藏） */@media print {
 
   .site-nav,
   .stage,
@@ -4005,4 +5083,299 @@ html[data-glass="off"] .glass-card::after {
     width: 100% !important;
     height: auto !important;
   }
+}
+
+
+/* ================= 手机上的设置面板：别再横向溢出 =================
+   实测 390px 宽的手机上，卡片本身没超宽，但里面几行内容超了：
+     · 底部「退出登录 / 退出所有设备」两个按钮并排，右边那个被切掉
+     · 「头像」那行的「选择图片」按钮被挤出卡片
+     · 输入框默认有 min-content 宽度，会把行撑开
+   统一让这些行可以换行、子元素可以收缩。 */
+.auth-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.auth-actions > * {
+  flex: 1 1 46%;
+  min-width: 0;
+}
+
+.setting-row {
+  flex-wrap: wrap;
+}
+
+.setting-row .setting-ctl {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.auth-card input,
+.auth-card select,
+.auth-card textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.auth-split > *,
+.auth-side,
+.auth-main,
+.auth-body {
+  min-width: 0;
+}
+
+/* 手机上这些行要能换行，别硬挤成一行 */
+@media (max-width: 520px) {
+  .setting-row {
+    gap: 8px;
+  }
+
+  .setting-name,
+  .setting-desc {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .auth-actions > * {
+    flex: 1 1 100%;
+  }
+}
+
+
+/* ================= 任务栏右侧图标：别一股脑全露出来 =================
+   站主截图里任务栏右边出现了"信封 + 人形 + 太阳 + 月亮"四个图标。
+   其实那个"太阳"是齿轮（齿轮的辐条看着就像太阳光）。
+   原因是：
+     · .nav-user-ico（人形）从来没被隐藏，和齿轮同时显示
+     · .nav-user-gear 在已登录状态下也没隐藏
+   正常状态只显示齿轮；登录后显示昵称首字；上传头像后显示头像。 */
+.nav-user .nav-user-ico {
+  display: none;
+}
+
+.nav-user.logged-in .nav-user-gear {
+  display: none;
+}
+
+.nav-user.has-avatar .nav-user-gear {
+  display: none;
+}
+
+
+/* ===== 设置面板宽度硬上限 =====
+   实测桌面下卡片被撑到了 1300px+，因为窄屏媒体查询里的
+   `max-width: calc(100vw - 28px)` 漏到了所有尺寸上。
+   这里放在文件最后，用更高的选择器权重把上限钉死：
+   桌面 780px、窄屏 100%-28px。 */
+.auth-mask .auth-card {
+  width: 100%;
+  max-width: min(780px, calc(100vw - 28px));
+}
+
+
+/* ============================ 18. 背景双方案 ============================
+   方案二（默认）：三层星野 + 星云 + 银河，信息量大
+   方案一        ：极简 —— 深空渐变 + 两缕极光 + 稀疏星，安静高级
+   两者由 html[data-bg-style] 切换。 */
+.sky-luxe {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .5s ease, visibility .5s ease;
+  pointer-events: none;
+}
+
+.sky-luxe img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 极简方案：显示 sky-luxe，关掉三层星野 */
+html[data-bg-style="one"] .sky-luxe {
+  opacity: 1;
+  visibility: visible;
+}
+
+html[data-bg-style="one"] .sky-band {
+  display: none;
+}
+
+/* 极简方案下把星芒/流星也收掉，保持"静" */
+html[data-bg-style="one"] .meteors {
+  display: none;
+}
+
+/* 极简方案：大气辉光压淡，避免把渐变搅浑 */
+html[data-bg-style="one"] .sky-airglow {
+  opacity: .30;
+}
+
+/* 切换按钮（分段控件） */
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 999px;
+  background: rgba(128, 128, 128, .16);
+  border: 1px solid var(--glass-item-border);
+}
+
+.seg-btn {
+  border: none;
+  background: transparent;
+  color: var(--glass-item-desc);
+  font-family: inherit;
+  font-size: .72rem;
+  letter-spacing: .06em;
+  padding: 6px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+
+.seg-btn:hover {
+  color: var(--glass-item-text);
+}
+
+.seg-btn.on {
+  background: var(--bili, #00AEEC);
+  color: #04121c;
+  font-weight: 800;
+}
+
+
+/* 背景方案的高亮状态直接用属性驱动，不依赖 JS 打类名，
+   这样刷新后一定和实际生效的方案一致。 */
+html[data-bg-style="one"] .seg-btn[data-bg="one"],
+html[data-bg-style="two"] .seg-btn[data-bg="two"] {
+  background: var(--bili, #00AEEC);
+  color: #04121c;
+  font-weight: 800;
+}
+
+
+/* 方案三「只有星座」与方案一 结构相同 */
+.sky-const {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .5s ease, visibility .5s ease;
+  pointer-events: none;
+}
+
+.sky-const img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+html[data-bg-style="three"] .sky-const {
+  opacity: 1;
+  visibility: visible;
+}
+
+html[data-bg-style="three"] .sky-band {
+  display: none;
+}
+
+html[data-bg-style="three"] .meteors {
+  display: none;
+}
+
+html[data-bg-style="three"] .sky-airglow {
+  opacity: .22;
+}
+
+/* 三个方案的高亮：属性驱动，不依赖 JS */
+html[data-bg-style="three"] .seg-btn[data-bg="three"] {
+  background: var(--bili, #00AEEC);
+  color: #04121c;
+  font-weight: 800;
+}
+
+
+
+
+/* 标签云在深色背景上要够亮：
+   原版是浅底（宣纸/玻璃卡），现在背景更暗，把对比拉回来。 */
+.tag-btn {
+  opacity: 1;
+  text-shadow: 0 0 18px rgba(0, 174, 236, .35);
+}
+
+.page[data-page="tag"] .glass-card {
+  opacity: 1;
+  background: rgba(12, 22, 38, .55);
+}
+
+
+/* 标签页内容强制不透明：
+   之前截图里整块内容偏暗（像蒙了一层），直接钉死。 */
+.page[data-page="tag"] .glass-card,
+.page[data-page="tag"] .tag-cloud,
+.page[data-page="tag"] .tag-btn,
+.page[data-page="tag"] .glass-title,
+.page[data-page="tag"] .glass-sub {
+  opacity: 1 !important;
+  animation: none !important;
+}
+
+
+/* 滚动期间关掉所有毛玻璃：
+   只列几个类名不够 —— 友链条目、标签卡、抽屉都各自带 backdrop-filter，
+   横向滚动时每个都要重采样背景，叠起来就是卡顿的来源。 */
+html.is-scrolling,
+html.is-scrolling * {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+html.is-scrolling .sky-band-track {
+  will-change: auto;
+  animation-play-state: paused;
+}
+
+html.is-scrolling .stage {
+  scroll-behavior: auto;
+}
+
+
+/* ============ 22. 翻页：由虚到实（还原原始版手感） ============
+   非当前页模糊 + 略微缩小，切过去时过渡到清晰 + 原始大小。
+   用 filter/transform 两个都可合成的属性，过渡期间不掉帧。 */
+.page {
+  opacity: .55;
+  filter: blur(7px);
+  transform: scale(.985);
+  transition:
+    filter .55s cubic-bezier(.22, .7, .2, 1),
+    opacity .55s cubic-bezier(.22, .7, .2, 1),
+    transform .55s cubic-bezier(.22, .7, .2, 1);
+}
+
+.page.active {
+  opacity: 1;
+  filter: none;
+  transform: scale(1);
+}
+
+/* 标签页等少数页面不需要缩放感，但仍要清晰 */
+.page.active[data-page="tag"] {
+  filter: none;
+  opacity: 1;
+}
+
+/* 过渡期间关掉毛玻璃：一次切页有 6 个玻璃层要重算，这是卡顿的主因 */
+html.is-switching * {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }

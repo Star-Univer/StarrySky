@@ -21,7 +21,11 @@ window.SkyChart = (function () {
   var el = {};          /* 缓存的 DOM 引用 */
   var built = false;
   var activeXiu = '';
-  var activeTab = 'all';
+  /* 首屏仍然显示“廿八宿总表”（这页的招牌内容），
+     但要让它对应的页签亮起来。
+     以前写的是 'all'，而 'all' 不是任何一个页签的 id ——
+     结果首屏没有任何页签高亮，内容却落在总表上，看起来像坏了。 */
+  var activeTab = 'man28';
 
   /* --------------------------------------------------------------- 小工具 */
   function h(tag, cls, html) {
@@ -35,6 +39,12 @@ window.SkyChart = (function () {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
       return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c];
     });
+  }
+
+  /** 详解展开时挂 has-detail 的容器：
+      首页面板是 .chart-body（el.body），独立页是 #chartBody（el.pageBody）。 */
+  function detailHost() {
+    return el.body || el.pageBody || null;
   }
 
   /** 二十八宿顺序表（用于"上一个 / 下一个"导航） */
@@ -126,7 +136,11 @@ window.SkyChart = (function () {
       s.deepsky.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join('') + '</ul></div>';
 
     el.detail.classList.add('show');
-    el.body.classList.add('has-detail');
+    /* 独立页（古星图.html）没有 .chart-body。
+       原来这里直接 el.body.classList 会抛 TypeError，
+       表现就是"点星官没反应/点了报错"。现在统一走 detailHost()。 */
+    var host = detailHost();
+    if (host) host.classList.add('has-detail');
     /* 三垣在整图上的对应分组也提亮 */
     highlightChart(s.name, true);
   }
@@ -182,7 +196,8 @@ window.SkyChart = (function () {
     if (locBtn) locBtn.addEventListener('click', function () { locate(key); });
 
     el.detail.classList.add('show');
-    el.body.classList.add('has-detail');
+    var host = detailHost();
+    if (host) host.classList.add('has-detail');
     if (scrollDetail) el.detail.scrollTop = 0;
   }
 
@@ -257,6 +272,14 @@ window.SkyChart = (function () {
    */
   function inlineChart() {
     if (!el.stage || el.stage.getAttribute('data-inlined') === '1') return;
+
+    /* 独立页已经用 <script> 预加载过源码，直接用，别再加载一次 300KB。
+       首页没有预加载，window.__chartSvg 为空，会走下面的动态加载。 */
+    if (window.__chartSvg) {
+      injectChart(window.__chartSvg);
+      return;
+    }
+
     var src = el.stage.getAttribute('data-src') || 'assets/chart-ink-inline.svg';
     var jsSrc = src.replace(/\.svg$/, '.js');
 
@@ -279,9 +302,14 @@ window.SkyChart = (function () {
         img.src = 'assets/chart-ink.svg';
         img.alt = '三垣二十八宿古籍星图';
         img.className = 'chart-fallback-img';
+        img.draggable = false;
         el.stage.innerHTML = '';
         el.stage.appendChild(img);
         el.stage.classList.add('is-fallback');
+
+        /* 退化成图片时也保留拖动查看的能力（点星官本来就没有了） */
+        bindStageDrag();
+        if (el.stage.__skySyncPan) setTimeout(el.stage.__skySyncPan, 0);
       });
   }
 
@@ -303,6 +331,13 @@ window.SkyChart = (function () {
     el.stage.setAttribute('data-inlined', '1');
     el.stage.classList.add('is-ready');
     bindStageClicks();
+    bindStageDrag();
+
+    /* 图刚插进来时尺寸还是旧的，等一帧再量：
+       这一步会决定要不要显示抓手、要不要把窄屏视野挪到图幅中间。 */
+    setTimeout(function () {
+      if (el.stage.__skySyncPan) el.stage.__skySyncPan();
+    }, 0);
   }
 
   /** 星图里的元素被点击 → 打开对应详解 */
@@ -311,6 +346,15 @@ window.SkyChart = (function () {
     el.stage.__skyBound = true;
 
     el.stage.addEventListener('click', function (e) {
+      /* 刚刚拖动过星图：紧跟着的那一次 click 只是松手后的“副产物”。
+         不拦掉的话，每拖一次都会误触星官、弹出详情。
+         只吞一次，不按时间窗一棍子打死 —— 否则拖完马上点星官会点不动。 */
+      if (el.stage.__skySuppressClick) {
+        el.stage.__skySuppressClick = false;
+        e.preventDefault();
+        return;
+      }
+
       var t = e.target;
       var g = t.closest ? (t.closest('.chart-mz') || t.closest('.asterism')) : null;
       var lab = t.closest ? (t.closest('.chart-mz-name') || t.closest('.ring-label') || t.closest('.ast-name')) : null;
@@ -337,7 +381,157 @@ window.SkyChart = (function () {
     });
   }
 
-  /* ---------------------------------------------------- 下部：四个内容页 */
+  /**
+   * 星图拖动平移。
+   *
+   * 为什么放在这里而不是页面里：
+   *   首页的面板形态和独立页共用同一个 #chartStage，
+   *   拖动逻辑写一份，两边行为才能一致。面板里的星图原本就装得下，
+   *   canPan() 会返回 false，不会抢走页面滚动，也不会改变首页交互。
+   *
+   * 几个刻意的取舍：
+   *   · 用 Pointer Events 而不是分别写 mouse/touch：一套代码同时管鼠标、手指和触控笔。
+   *   · 超过 6px 才算拖动：手抖 2~3px 仍然算点击，避免“点星官点不出来”。
+   *   · 不做惯性滚动：一是不像翻纸，二是天然满足 prefers-reduced-motion。
+   *   · 只有图真的超出容器才加 touch-action:none，否则手机上会被星图“锁”住滚不动页面。
+   */
+  function bindStageDrag() {
+    var stage = el.stage;
+    if (!stage || stage.__skyDragBound) return;
+    stage.__skyDragBound = true;
+
+    var THRESHOLD = 6;      /* 超过这个位移才判定为拖动 */
+    var active = false;
+    var moved = false;
+    var pointerId = null;
+    var startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+    function canPan() {
+      /* 必须先确认它自己就是滚动容器。
+         首页面板的 .chart-stage 是 overflow:visible，SVG 只是视觉上超出；
+         如果只量 scrollWidth，会误判成“可拖”，然后给面板加上
+         touch-action:none，手机反而滚不动页面。 */
+      var cs = window.getComputedStyle ? window.getComputedStyle(stage) : null;
+      var ox = cs ? cs.overflowX : '';
+      var oy = cs ? cs.overflowY : '';
+      if (!/(auto|scroll|overlay)/.test(ox + ' ' + oy)) return false;
+
+      return stage.scrollWidth - stage.clientWidth > 1 ||
+        stage.scrollHeight - stage.clientHeight > 1;
+    }
+
+    /* 图装得下时不要显示“抓手”，也不要切断默认触摸滚动。
+       顺便做一次“窄屏横向居中”：手机上的图宽于窗口，
+       不居中就会一打开看到纸的左上角。 */
+    function syncPanState() {
+      var pannable = canPan();
+      stage.classList.toggle('is-pannable', pannable);
+
+      if (pannable && !stage.__skyCentered) {
+        stage.__skyCentered = true;
+        if (stage.scrollWidth - stage.clientWidth > 1) {
+          stage.scrollLeft = Math.round((stage.scrollWidth - stage.clientWidth) / 2);
+        }
+      }
+    }
+
+    syncPanState();
+    stage.__skySyncPan = syncPanState;
+    window.addEventListener('resize', syncPanState);
+    if (window.ResizeObserver) {
+      try { new ResizeObserver(syncPanState).observe(stage); } catch (e) { }
+    }
+
+    stage.addEventListener('pointerdown', function (e) {
+      /* 只响应左键；右键留给系统菜单 */
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      /* 已经有手指/鼠标在拖了，第二根手指不要来抢 */
+      if (active) return;
+      if (!canPan()) return;
+
+      active = true;
+      moved = false;
+      pointerId = e.pointerId;
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = stage.scrollLeft;
+      startTop = stage.scrollTop;
+
+      /* 这里刻意「先不」捕获指针。
+         一旦在 pointerdown 就 setPointerCapture，pointerup 的目标会变成
+         容器本身，紧随其后的 click 就不再落在星官/星点上 ——
+         点星官会失效。等真的拖过 6px，再在 pointermove 里捕获。 */
+    });
+
+    stage.addEventListener('pointermove', function (e) {
+      if (!active || e.pointerId !== pointerId) return;
+
+      var dx = e.clientX - startX;
+      var dy = e.clientY - startY;
+
+      /* 阈值以内先不动：这时用户很可能只是想点星官 */
+      if (!moved) {
+        if (Math.abs(dx) < THRESHOLD && Math.abs(dy) < THRESHOLD) return;
+        moved = true;
+        stage.classList.add('is-dragging');
+
+        /* 确认是拖动后再捕获：拖到星图外、甚至拖到页头也能继续平移。
+           松手时 lostpointercapture 会兜底收尾。 */
+        try { stage.setPointerCapture(e.pointerId); } catch (err) { }
+      }
+
+      /* 拖动时压掉浏览器的文本选择/原生滚动，改由我们写 scrollLeft/Top */
+      if (e.cancelable) e.preventDefault();
+      stage.scrollLeft = startLeft - dx;
+      stage.scrollTop = startTop - dy;
+    });
+
+    function endDrag(e) {
+      if (!active) return;
+      if (e && e.pointerId !== pointerId) return;
+
+      active = false;
+      stage.classList.remove('is-dragging');
+      if (pointerId != null) {
+        try {
+          if (stage.hasPointerCapture(pointerId)) stage.releasePointerCapture(pointerId);
+        } catch (err) { }
+      }
+
+      /* 标记“下一次 click 是拖动尾巴，别当成点星官”。
+         加一个定时器兜底：如果浏览器没补发 click（pointercancel 等），
+         标记也要自己失效，不能把之后真正的点击吃掉。 */
+      if (moved) {
+        stage.__skySuppressClick = true;
+        setTimeout(function () { stage.__skySuppressClick = false; }, 400);
+      }
+      pointerId = null;
+    }
+
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
+    stage.addEventListener('lostpointercapture', endDrag);
+
+    /* 某些浏览器/场景下拿不到指针捕获时，松手可能落在窗口上；
+       兜底收尾，避免 is-dragging 一直卡着。 */
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
+  }
+
+  /* ---------------------------------------------------- 下部：内容页签 */
+
+  /** 把当前页签滚进可视区：手机上五个页签放不下，默认的总表在最右边，
+      不滚过去的话首屏看起来像“一个都没选中”。 */
+  function bringTabIntoView(tab) {
+    var bar = el.tabbar;
+    if (!bar || !tab || typeof tab.offsetLeft !== 'number') return;
+    var left = tab.offsetLeft;
+    var right = left + tab.offsetWidth;
+    if (left < bar.scrollLeft || right > bar.scrollLeft + bar.clientWidth) {
+      bar.scrollLeft = Math.max(0, left - (bar.clientWidth - tab.offsetWidth) / 2);
+    }
+  }
+
   function buildTabs() {
     var tabs = [
       { id: 'season', label: '四时观星' },
@@ -358,15 +552,27 @@ window.SkyChart = (function () {
           x.classList.toggle('is-active', x.getAttribute('data-tab') === activeTab);
         });
         renderTab();
+        bringTabIntoView(b);
       });
       bar.appendChild(b);
     });
     renderTab();
+
+    /* 等一帧再滚：页签刚插进来时宽度还是 0。
+       再补一次 150ms，等字体/滚动条把最终宽度定下来，
+       手机上的“廿八宿总表”才不会只露出半截。 */
+    var activeBtn = bar.querySelector('.ct-tab.is-active');
+    if (activeBtn) {
+      setTimeout(function () { bringTabIntoView(activeBtn); }, 0);
+      setTimeout(function () { bringTabIntoView(activeBtn); }, 150);
+    }
   }
 
   function renderTab() {
     var p = el.tabpane;
     p.innerHTML = '';
+    /* 从长表切到短页时，别把上一页的滚动位置带过去 */
+    p.scrollTop = 0;
 
     if (activeTab === 'season') {
       LORE.SEASONS.forEach(function (s) {
@@ -449,7 +655,9 @@ window.SkyChart = (function () {
   /* --------------------------------------------------------- 检索与快捷键 */
   function bindSearch() {
     var input = el.search;
-    if (!input) return;
+    if (!input || input.__skySearchBound) return;
+    input.__skySearchBound = true;
+
     input.addEventListener('input', function () {
       var q = input.value.trim().toLowerCase();
       el.list.querySelectorAll('.chart-xiu').forEach(function (b) {
@@ -486,6 +694,9 @@ window.SkyChart = (function () {
 
   /* ------------------------------------------------------------------ 开关 */
   function open() {
+    /* 独立页没有遮罩；万一别处调用了 __openSkyChart，也不要抛异常 */
+    if (!el.mask) { inlineChart(); return; }
+
     el.mask.classList.add('show');
     el.mask.setAttribute('aria-hidden', 'false');
     doc.body.classList.add('chart-open');
@@ -504,6 +715,8 @@ window.SkyChart = (function () {
   }
 
   function close() {
+    if (!el.mask) { closeDetail(); return; }
+
     el.mask.classList.remove('show');
     el.mask.setAttribute('aria-hidden', 'true');
     doc.body.classList.remove('chart-open');
@@ -516,7 +729,8 @@ window.SkyChart = (function () {
   /** 收起右侧（窄屏时是下方）的详解 */
   function closeDetail() {
     if (el.detail) el.detail.classList.remove('show');
-    if (el.body) el.body.classList.remove('has-detail');
+    var host = detailHost();
+    if (host) host.classList.remove('has-detail');
     activeXiu = '';
     markActive();
     highlightChart('', false);
@@ -533,6 +747,11 @@ window.SkyChart = (function () {
     el.search = doc.getElementById('chartSearch');
     el.closeBtn = doc.getElementById('chartClose');
 
+    /* 独立页的“主体”容器。展开详解时给它加 has-detail，
+       宽屏下 CSS 会让星图让出面板宽度，图就不会钻到面板底下。
+       首页面板的对应容器是 .chart-body，仍走 el.body。 */
+    el.pageBody = doc.getElementById('chartBody');
+
     /* 面板专用的元素（独立页 古星图.html 没有这些，所以都要判空） */
     if (el.mask) {
       el.body = el.mask.querySelector('.chart-body');
@@ -544,6 +763,30 @@ window.SkyChart = (function () {
     var opener = doc.getElementById('chartOpenBtn');
     if (opener) opener.addEventListener('click', open);
     if (el.closeBtn) el.closeBtn.addEventListener('click', close);
+
+    /* 顶部「随意一宿」：独立页的按钮，原来没有任何脚本接管，
+       点了没反应。这里从二十八宿里随机挑一个，直接打开详解。 */
+    var randomBtn = doc.getElementById('btnRandom');
+    if (randomBtn) {
+      randomBtn.addEventListener('click', function () {
+        var keys = LORE.MAN28.map(function (m) { return m.full; })
+          .filter(function (k) { return !!LORE.MANSIONS[k]; });
+        if (!keys.length) keys = Object.keys(LORE.MANSIONS);
+        if (!keys.length) return;
+
+        show(keys[Math.floor(Math.random() * keys.length)], true);
+
+        /* 窄屏详解在星图下方，随机完不滚过去就等于没反应 */
+        if (el.detail && window.matchMedia && window.matchMedia('(max-width: 1100px)').matches) {
+          try {
+            el.detail.scrollIntoView({
+              behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+              block: 'start'
+            });
+          } catch (e) { }
+        }
+      });
+    }
     var detailClose = doc.getElementById('detailClose');
     if (detailClose) detailClose.addEventListener('click', closeDetail);
     doc.addEventListener('keydown', function (e) {
@@ -561,7 +804,11 @@ window.SkyChart = (function () {
       el.stage.setAttribute('data-inlined', '1');
       el.stage.classList.add('is-ready');
       bindStageClicks();
-      if (!el.mask) buildSidebarIfNeeded();
+      bindStageDrag();
+      if (!el.mask) {
+        buildSidebarIfNeeded();
+        bindSearch();
+      }
     } else if (!el.mask) {
       /* 没有遮罩 = 独立页，立刻把左侧目录、页签和星图都建出来 */
       buildSidebarIfNeeded();

@@ -72,6 +72,7 @@ window.SkyDeck = (function () {
       wrap.setAttribute('aria-hidden', 'true');
 
       var track = doc.createElement('div');
+      var lastImg = null;
       track.className = 'sky-band-track';
       track.style.setProperty('--flow', (CFG.flowSeconds * L.dur) + 's');
       track.style.setProperty('--depth', String(i));
@@ -79,19 +80,24 @@ window.SkyDeck = (function () {
       for (var k = 0; k < 2; k++) {
         var img = doc.createElement('img');
         img.className = 'sky-band-img';
-        img.src = L.file;
+        /* 注意：**先不设 src**。
+           原来这里先写 src、后面才挂 load 监听，
+           图片命中缓存时 load 可能瞬间就触发，
+           监听还没挂上 → .is-ready 永远加不上 → 图片 opacity 一直是 0，
+           看起来就是"星空明明加载了却什么都不显示"。 */
         img.alt = '';
         img.decoding = 'async';
         img.draggable = false;
         if (k === 1) img.setAttribute('data-clone', '1');
         track.appendChild(img);
+        if (k === 1) lastImg = img;
       }
 
       wrap.appendChild(track);
       host.appendChild(wrap);
       state.layers.push({ el: wrap, track: track, cfg: L, loaded: false });
 
-      /* 第一张图 onload 之后标记为已就绪，避免闪烁 */
+      /* 监听先挂好，再设 src */
       var first = track.querySelector('img');
       first.addEventListener('load', function () {
         wrap.classList.add('is-ready');
@@ -101,6 +107,12 @@ window.SkyDeck = (function () {
         wrap.classList.add('is-missing');
         if (window.console) console.warn('[星空] 星野资源加载失败：' + L.file);
       });
+      first.src = L.file;
+      if (lastImg) lastImg.src = L.file;
+
+      /* 双保险：如果图在监听挂上之前就已经完成了（缓存极快的情况），
+         立刻补一次就绪标记，否则永远不会被加上。 */
+      if (first.complete && first.naturalWidth) wrap.classList.add('is-ready');
     });
 
     /* 星宿悬浮提亮 + 点击跳星图：事件委托，一次绑定 */

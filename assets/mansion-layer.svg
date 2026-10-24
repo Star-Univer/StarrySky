@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4000 2000" preserveAspectRatio="none" id="mansionLayer" aria-hidden="true" focusable="false"><defs><radialGradient id="mzsoft" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ffffff" stop-opacity=".95"/><stop offset="18%" stop-color="#e6f0ff" stop-opacity=".42"/><stop offset="46%" stop-color="#bcd4ff" stop-opacity=".13"/><stop offset="100%" stop-color="#9fc0ff" stop-opacity="0"/></radialGradient></defs><style>
-  /* 星宿连线与名字默认**很淡**，鼠标移到星野上才浮出来。
-     站主要求首页"单纯一点"，只有星星和星云，不要一堆文字。 */
+  /* 星宿连线与名字默认很淡，鼠标移到星野上才浮出来。
+     站主要求首页"单纯一点"，只有星星和星云，不要一堆文字。
+     注意：这里是 SVG 里的 XML 内容，注释里不要出现尖括号。 */
   .mz-line{fill:none;stroke:#9fc4ff;stroke-width:1.15;stroke-opacity:.16;stroke-linecap:round;
     transition:stroke .28s ease,stroke-opacity .28s ease,stroke-width .28s ease}
   .mz-name{fill:#dce9ff;fill-opacity:0;font-size:26px;font-weight:600;

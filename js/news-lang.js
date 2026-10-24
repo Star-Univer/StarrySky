@@ -341,7 +341,7 @@ window.SkyNewsLang = (function () {
     ['pit', '坑'],
     ['silence', '静默'],
     ['perseids', '英仙座流星雨'],
-    ['director', '导演'],
+    ['director', '主任'],
     ['guide', '指南'],
     ['warped', '翘曲的'],
     ['twisted', '扭曲的'],
@@ -363,6 +363,115 @@ window.SkyNewsLang = (function () {
     ['successfully', '成功'],
     ['rare', '罕见的'],
     ['smash', '撞击'],
+
+    /* ---- 补：NASA 官方稿常用的那批词 ----
+       这批是从站主提供的真实标题里逐条补的（任命、主任、旋臂、首飞……）。 */
+    ['space', '太空'], ['chasing', '追逐'], ['chase', '追逐'],
+    ['spiral', '旋臂'], ['gulf coast', '墨西哥湾海岸'],
+    ['marshall space flight center', '马歇尔太空飞行中心'],
+    /* ---- 补：新闻标题里的常见动词/名词 ----
+       站主反馈"只有 APOD、NASA 这类可以留英文，其它要好好翻"。 */
+    /* ---- 补：真实标题里反复出现、但词典缺的那些词 ---- */
+    ['enigmatic', '神秘的'], ['enigma', '谜'],
+    ['remain', '仍是'], ['remains', '仍是'], ['puzzle', '谜团'],
+    ['until', '直到'], ['someone', '有人'], ['sends', '派出'], ['send', '派出'],
+    ['lander', '着陆器'], ['landers', '着陆器'],
+    ['visit', '造访'], ['visits', '造访'], ['upcoming', '即将到来的'],
+    ['fully', '完全'], ['understand', '理解'], ['understanding', '理解'],
+    ['innermost', '最内侧的'], ['outermost', '最外侧的'],
+    ['planet', '行星'], ['planets', '行星'], ['planetary', '行星的'],
+    ['mercury', '水星'], ['venus', '金星'], ['jupiter', '木星'],
+    ['despite', '尽管'], ['though', '尽管'], ['whether', '是否'],
+    ['become', '成为'], ['becomes', '成为'], ['getting', '变得'],
+    ['live', '直播'], ['coverage', '报道'], ['update', '更新'],
+    ['mission', '任务'], ['missions', '任务'], ['effort', '努力'],
+    ['signal', '信号'], ['power', '电力'], ['battery', '电池'],
+    ['solar array', '太阳能板'], ['antenna', '天线'],
+    ['orbit', '轨道'], ['trajectory', '轨迹'], ['maneuver', '机动'],
+    ['burn', '点火'], ['fuel', '燃料'], ['propellant', '推进剂'],
+    ['countdown', '倒计时'], ['window', '窗口'], ['pad', '发射台'],
+    ['weather', '天气'], ['range', '靶场'], ['safety', '安全'],
+    ['crash', '坠毁'], ['explosion', '爆炸'], ['failure', '故障'],
+    ['discovery', '发现'], ['mystery', '谜'], ['mysterious', '神秘的'],
+    ['i am', '我是'], ['seeks', '谋求'], ['seek', '谋求'], ['aggressive', '大幅'], ['increase', '增加'],
+    ['rate', '频率'], ['flight rate', '发射频率'],
+    ['new glenn', '新格伦'], ['glenn', '格伦'],
+    ['launch', '发射'], ['launches', '发射'], ['launched', '发射'],
+    ['plans', '计划'], ['planned', '计划的'], ['aims', '目标'],
+    ['reveals', '揭示'], ['revealed', '揭示'], ['shows', '显示'],
+    ['finds', '发现'], ['found', '发现'], ['confirms', '证实'],
+    ['warns', '警告'], ['warned', '警告'], ['expects', '预计'],
+    ['ready', '准备就绪'], ['prepares', '准备'], ['prepares', '准备'],
+    ['joins', '加入'], ['joined', '加入'], ['leaves', '离开'],
+    ['wins', '赢得'], ['won', '赢得'], ['loses', '失去'],
+    ['reaches', '抵达'], ['enters', '进入'], ['exits', '退出'],
+    ['begins', '开始'], ['ends', '结束'], ['continues', '继续'],
+    ['first', '首次'], ['last', '最后一次'], ['final', '最终'],
+    ['major', '重大'], ['key', '关键'], ['critical', '关键'],
+    ['successful', '成功'], ['failed', '失败'], ['unclear', '尚不清楚'],
+    ['study', '研究'], ['studies', '研究'], ['survey', '巡天'],
+    ['team', '团队'], ['teams', '团队'], ['partner', '合作方'],
+    ['company', '公司'], ['companies', '公司'], ['agency', '机构'],
+    ['official', '官方'], ['officials', '官员'], ['director', '主任'],
+    ['chief', '首席'], ['head', '负责人'],
+    ['earth', '地球'], ['orbit', '轨道'], ['orbital', '轨道的'],
+    ['deep space', '深空'], ['lunar', '月球'], ['martian', '火星的'],
+    ['water ice', '水冰'], ['ice', '冰'], ['rock', '岩石'],
+    ['soil', '土壤'], ['dust', '尘埃'], ['gas', '气体'],
+    ['heat', '热'], ['light', '光'], ['dark', '暗'],
+    ['temperature', '温度'], ['pressure', '压力'], ['wind', '风'],
+    ['storm', '风暴'], ['weather', '天气'], ['climate', '气候'],
+    ['ocean', '海洋'], ['sea', '海'], ['coast', '海岸'],
+    ['north', '北'], ['south', '南'], ['east', '东'], ['west', '西'],
+    ['northern', '北部的'], ['southern', '南部的'],
+    ['million', '百万'], ['billion', '十亿'], ['thousand', '千'],
+    ['percent', '百分之'], ['kilometre', '公里'], ['kilometer', '公里'],
+    ['metre', '米'], ['meter', '米'], ['tonne', '吨'], ['ton', '吨'],
+    ['name', '任命'], ['names', '任命'], ['named', '命名为'],
+    ['director', '主任'], ['deputy', '副主任'], ['center', '中心'],
+    ['marshall', '马歇尔'], ['flight center', '飞行中心'],
+    ['spies', '窥见'], ['spy', '窥见'], ['spiral', '旋臂'], ['edge', '边缘'],
+    ['dims', '笼罩'], ['dim', '变暗'], ['gulf', '墨西哥湾'], ['coast', '海岸'],
+    ['carbon', '碳'], ['fibre', '纤维'], ['fiber', '纤维'],
+    ['troubles', '故障'], ['trouble', '故障'], ['force', '迫使'],
+    ['delay', '推迟'], ['delays', '推迟'], ['debut', '首飞'],
+    ['blue origin', '蓝色起源'], ['rocket lab', '火箭实验室'],
+    ['add', '增设'], ['adds', '增设'], ['florida', '佛罗里达'],
+    ['pad', '发射台'], ['pads', '发射台'], ['launch pads', '发射台'],
+    ['surveillance', '监视'], ['radar', '雷达'], ['contract', '合同'],
+    ['award', '授予'], ['uk', '英国'], ['britain', '英国'],
+    ['heat shield', '隔热罩'], ['shield', '隔热罩'], ['splashdown', '溅落'],
+    ['ardemis', '阿尔忒弥斯'], ['artemis', '阿尔忒弥斯'],
+    ['associate', '副'], ['appointed', '任命'], ['appoints', '任命'],
+    ['leadership', '领导层'], ['anniversary', '周年'],
+    ['celebrates', '庆祝'], ['marks', '标志'], ['milestone', '里程碑'],
+    ['collaboration', '合作'], ['partnership', '合作'], ['agreement', '协议'],
+    ['exchange', '交流'], ['briefing', '发布会'], ['media', '媒体'],
+    ['conference', '会议'], ['webcast', '网络直播'],
+    ['scheduled', '计划'], ['schedule', '日程'], ['window', '窗口'],
+    ['delayed', '推迟'], ['postponed', '推迟'], ['scrubbed', '取消'],
+    ['abort', '中止'], ['aborted', '中止'], ['attempt', '尝试'],
+    ['success', '成功'], ['failed', '失败'], ['failure', '失败'],
+    ['anomaly', '异常'], ['investigation', '调查'], ['safety', '安全'],
+    ['crew-', '乘组'], ['expedition', '远征'], ['spacex dragon', '龙飞船'],
+    ['capsule', '座舱'], ['splashdown', '溅落'], ['recovery', '回收'],
+    ['booster', '助推器'], ['fairing', '整流罩'], ['payload', '载荷'],
+    ['satellites', '卫星'], ['orbiters', '环绕器'], ['constellation', '星座'],
+    ['band', '波段'], ['frequency', '频率'], ['signal', '信号'],
+    ['array', '阵列'], ['antenna', '天线'], ['sensor', '传感器'],
+    ['instrument', '仪器'], ['spectrometer', '光谱仪'], ['camera', '相机'],
+    ['resolution', '分辨率'], ['spectrum', '光谱'], ['infrared', '红外'],
+    ['ultraviolet', '紫外'], ['radio', '射电'], ['x-ray', 'X 射线'],
+    ['gamma', '伽马'], ['wavelength', '波长'],
+    ['nasa', 'NASA'], ['esa', '欧空局'], ['jaxa', '日本宇宙航空研究开发机构'],
+    ['isro', '印度空间研究组织'], ['roscosmos', '俄罗斯航天局'],
+    ['international space station', '国际空间站'],
+    ['space station', '空间站'], ['iss', '国际空间站'],
+    ['moon', '月球'], ['lunar', '月球'], ['mars', '火星'],
+    ['sample', '样品'], ['samples', '样品'], ['return', '返回'],
+    ['mission', '任务'], ['program', '计划'], ['programme', '计划'],
+    ['test flight', '试飞'], ['crewed flight', '载人飞行'],
+    ['first', '首次'], ['second', '第二次'], ['third', '第三次'],
 
     /* ---- 补：NASA / ESA / APOD 标题里最常出现的词 ----
        这些是从真实抓回来的标题里统计出来的，它们的标题风格相当固定。 */
@@ -781,19 +890,27 @@ window.SkyNewsLang = (function () {
 
   /* -------------------------------------------------------------- 预处理 */
   /* 按长度从长到短排，保证 "james webb space telescope" 先于 "webb" 被替换 */
-  var SORTED = PHRASES.slice().sort(function (a, b) {
+  /* 先过滤掉异常项。
+     这份词表是手工维护的，一旦哪一行漏了逗号，
+     JS 会把中间解析成空位，PHRASES[i] 就是 undefined，
+     后面取 p[0] 会直接抛异常 —— 整个翻译层失效（今天踩过这个坑）。 */
+  var PHRASES_OK = PHRASES.filter(function (p) {
+    return p && p.length >= 2;
+  });
+
+  var SORTED = PHRASES_OK.slice().sort(function (a, b) {
     return b[0].length - a[0].length;
   });
 
   /* 词典（小写 → 中文），供"逐词覆盖率"判断用 */
   var DICT = {};
-  PHRASES.forEach(function (p) {
+  PHRASES_OK.forEach(function (p) {
     DICT[p[0].toLowerCase()] = p[1];
   });
 
   /* 这些词很短、又不是关键词，缺了也不影响理解 */
   var FUNCTION_WORDS = {
-    'the': 1, 'a': 1, 'an': 1, 'of': 1, 'and': 1, 'or': 1, 'to': 1, 'in': 1,
+    'i': 1, 'am': 1, 'the': 1, 'a': 1, 'an': 1, 'of': 1, 'and': 1, 'or': 1, 'to': 1, 'in': 1,
     'on': 1, 'at': 1, 'by': 1, 'as': 1, 'is': 1, 'are': 1, 'was': 1, 'were': 1,
     'be': 1, 'been': 1, 'it': 1, 'its': 1, 'we': 1, 'us': 1, 'you': 1, 'your': 1,
     'our': 1, 'they': 1, 'them': 1, 'their': 1, 'he': 1, 'she': 1, 'his': 1,
@@ -922,9 +1039,17 @@ window.SkyNewsLang = (function () {
        读起来像"欧空局 astronaut Sophie Adenot 返回空间站"，
        对中文读者来说比整句英文有用得多。 */
     var hardLetters = hard.join('').length;
-    var covered = ratio >= 0.5 &&
-      (hard.length <= 1 || (hard.length <= 3 && hardLetters <= 14)) &&
-      out.length > 0;
+    /* 判定放宽过一次：真实标题里人名、任务名特别多，
+       要求"一个生词都不能有"会把绝大多数标题挡在外面，等于没翻。
+       现在的标准是：**中文占比够、剩下的英文不构成障碍**就翻。
+       比如 "NASA Names Stephen Cash Marshall Space Flight Center Director"
+       剩 Stephen / Cash 两个人名，照样给出
+       "NASA 任命 Stephen Cash 为马歇尔太空飞行中心主任"，
+       对中文读者来说比整句英文有用得多。 */
+    var zhChars = (out.match(/[\u4e00-\u9fa5]/g) || []).length;
+    var covered = ratio >= 0.42 &&
+      (hard.length <= 2 || (hard.length <= 4 && hardLetters <= 22)) &&
+      zhChars >= 4;
 
     if (typeof window !== 'undefined' && window.__SKY_LANG_DEBUG) {
       try {
@@ -956,7 +1081,11 @@ window.SkyNewsLang = (function () {
    */
   var CN_SOURCE = [
     'cnsa', 'china', 'chinadaily', 'china daily', 'cgtn', 'xinhua', '新华社',
-    '中国', '中科院', '国家天文台', '澎湃', '环球', '观察者', '科技日报', '航天'
+    '中国', '中科院', '国家天文台', '澎湃', '环球', '观察者', '科技日报', '航天',
+    /* 站主提供的中文源 */
+    'dogstar', 'interesting-sky', 'spacechina', 'ithome',
+    '天文新闻', '天象新闻', '天文图吧', '每月星象', '有趣天文奇观',
+    '中国航天科技集团', 'IT之家'
   ];
   var CN_WORD = [
     /* 任务与航天器 */
@@ -975,6 +1104,11 @@ window.SkyNewsLang = (function () {
   ];
   /* 英文写法：中国航天在英文报道里的高频专有名词 */
   var CN_EN = [
+    /* 站主反馈"中国天文只有 2 条"。实测大部分中国航天报道出自
+       SpaceNews / Space.com 这类英文站，标题里只写 China / Chinese，
+       没有 CASC、长征这些词，所以之前全部漏判。
+       把 china / chinese 直接算进来，数量就够了。 */
+    'china', 'chinese', 'beijing', 'shanghai', 'hong kong',
     'casc', 'calt', 'long march', 'longmarch', 'yaogan', 'shijian', 'gaofen',
     'fengyun', 'beidou', 'tianlian', 'queqiao', 'chang\'e', 'change-',
     'shenzhou', 'tiangong', 'tianwen', 'zhurong', 'yutu', 'wukong',
@@ -1007,15 +1141,18 @@ window.SkyNewsLang = (function () {
       if (low.indexOf(CN_EN[m]) >= 0) return true;
     }
 
-    /* 标题里中文占比高 → 当中文报道 */
-    var cn = (String(item && item.title || '').match(/[\u4e00-\u9fa5]/g) || []).length;
-    return cn >= 6;
+    /* 到这里还没命中，就算外国天文。
+       注意：这里**故意不再**按"标题里中文字数"判定。
+       原来最后有一条 `cn >= 6` —— 结果所有中文标题（包括土星、
+       太阳轨道器这种纯外国内容）全被算成"中国天文"，
+       外国天文直接变成 0 条。中文只是**语言**，不是**题材**。 */
+    return false;
   }
 
   return {
     translate: translate,
     isChinaNews: isChinaNews,
-    phrases: PHRASES,
+    phrases: PHRASES_OK,
     /* 给页面用的便捷方法：能翻就翻，翻不了返回原文 */
     titleZh: function (t) {
       var r = translate(t);

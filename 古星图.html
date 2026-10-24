@@ -10,1001 +10,1681 @@
   <link rel="icon" type="image/svg+xml"
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f2e8d4'/%3E%3Cpath d='M32 10 L37 27 L54 32 L37 37 L32 54 L27 37 L10 32 L27 27 Z' fill='%238a2f22'/%3E%3C/svg%3E">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@400;700;900&display=swap"
-    rel="stylesheet" />
-
-  <style>
-    /* =====================================================================
-       古籍星图独立页
-       ---------------------------------------------------------------------
-       用法：
-         · 直接从首页左上角灰色圆点打开的是"面板形态"（由 css/sky.css 提供）
-         · 这个文件是"独立页形态"，方便你把链接直接发给别人，
-           或者用手机单独打开当一本小画册翻。
-
-       内容结构与面板一致：左目录 / 中星图 / 右详解 / 下四页内容。
-       ===================================================================== */
-
-    :root {
-      --paper-0: #fdf9ef;
-      --paper-1: #f4ead4;
-      --paper-2: #e7d9bd;
-      --ink-0: #23180f;
-      --ink-1: #3a2f20;
-      --ink-2: #6b573a;
-      --ink-3: #8a7350;
-      --line: rgba(122, 96, 60, .3);
-      --line-strong: rgba(122, 96, 60, .48);
-      --seal: #a8482f;
-      --seal-deep: #8a2f22;
-      --gold: #b08a3e;
-      --ease-soft: cubic-bezier(.2, .7, .3, 1);
-      --serif: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      height: 100%;
-    }
-
-    body {
-      display: flex;
-      flex-direction: column;
-      font-family: var(--serif);
-      color: var(--ink-1);
-      background:
-        radial-gradient(ellipse at 50% 0%, rgba(255, 250, 236, 1), var(--paper-1) 58%, var(--paper-2) 100%);
-      overflow: hidden;
-    }
-
-    /* 纸纹 */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      opacity: .55;
-      mix-blend-mode: multiply;
-      background-image:
-        repeating-linear-gradient(90deg, rgba(150, 125, 88, .06) 0 1px, transparent 1px 5px),
-        repeating-linear-gradient(0deg, rgba(150, 125, 88, .05) 0 1px, transparent 1px 6px);
-    }
-
-    /* --------------------------------------------------------- 顶部题头 */
-    .paper-head {
-      position: relative;
-      z-index: 3;
-      flex: 0 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 14px 22px;
-      border-bottom: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255, 251, 240, .95), rgba(247, 238, 220, .82));
-    }
-
-    .paper-seal {
-      flex: 0 0 auto;
-      width: 44px;
-      height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 2.5px solid var(--seal);
-      border-radius: 7px;
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: var(--seal);
-      letter-spacing: 0;
-      box-shadow: 0 4px 14px -8px rgba(138, 47, 34, .8);
-    }
-
-    .paper-title {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      min-width: 0;
-    }
-
-    .paper-title h1 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: .22em;
-      color: var(--ink-0);
-      white-space: nowrap;
-    }
-
-    .paper-title p {
-      font-size: .7rem;
-      letter-spacing: .2em;
-      color: var(--ink-3);
-    }
-
-    .paper-head-actions {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .paper-search {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 99px;
-      border: 1px solid var(--line-strong);
-      background: rgba(255, 253, 246, .85);
-      transition: border-color .22s ease, box-shadow .22s ease;
-    }
-
-    .paper-search:focus-within {
-      border-color: rgba(168, 72, 47, .75);
-      box-shadow: 0 0 0 3px rgba(168, 72, 47, .12);
-    }
-
-    .paper-search svg {
-      width: 15px;
-      height: 15px;
-      fill: none;
-      stroke: var(--ink-2);
-      stroke-width: 2;
-      stroke-linecap: round;
-    }
-
-    .paper-search input {
-      width: clamp(120px, 18vw, 220px);
-      border: none;
-      outline: none;
-      background: transparent;
-      font-family: var(--serif);
-      font-size: .84rem;
-      letter-spacing: .06em;
-      color: var(--ink-0);
-    }
-
-    .paper-search input::placeholder {
-      color: rgba(122, 100, 68, .62);
-    }
-
-    .paper-btn {
-      padding: 8px 16px;
-      border-radius: 99px;
-      border: 1px solid var(--line-strong);
-      background: rgba(255, 253, 246, .8);
-      font-family: var(--serif);
-      font-size: .78rem;
-      letter-spacing: .12em;
-      color: var(--ink-2);
-      cursor: pointer;
-      text-decoration: none;
-      white-space: nowrap;
-      transition: background .22s ease, border-color .22s ease, color .22s ease, transform .22s ease;
-    }
-
-    .paper-btn:hover {
-      background: rgba(168, 72, 47, .12);
-      border-color: rgba(168, 72, 47, .6);
-      color: var(--seal-deep);
-      transform: translateY(-1px);
-    }
-
-    /* --------------------------------------------------------- 主体三栏 */
-    .paper-body {
-      position: relative;
-      z-index: 2;
-      flex: 1 1 auto;
-      min-height: 0;
-      display: grid;
-      grid-template-columns: 250px minmax(0, 1fr);
-      overflow: hidden;
-    }
-
-    /* 左：目录 */
-    .paper-side {
-      min-height: 0;
-      overflow-y: auto;
-      padding: 16px 14px 40px;
-      border-right: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(253, 248, 238, .8), rgba(245, 235, 216, .6));
-    }
-
-    .side-note {
-      font-size: .74rem;
-      line-height: 1.95;
-      color: var(--ink-2);
-      padding: 0 4px 14px;
-      border-bottom: 1px dashed var(--line-strong);
-      margin-bottom: 14px;
-    }
-
-    .side-note b {
-      color: var(--seal-deep);
-    }
-
-    .sec {
-      margin-bottom: 18px;
-    }
-
-    .sec-head {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: .8rem;
-      font-weight: 700;
-      color: #4a3a24;
-      letter-spacing: .12em;
-      margin-bottom: 8px;
-    }
-
-    .sec-mark {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 19px;
-      height: 19px;
-      border-radius: 4px;
-      font-size: .62rem;
-      color: #fdf7ea;
-      background: #8a5a2a;
-      letter-spacing: 0;
-    }
-
-    .xiu-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .xiu-btn {
-      display: block;
-      width: 100%;
-      text-align: left;
-      padding: 8px 10px;
-      border: 1px solid transparent;
-      border-radius: 8px;
-      background: transparent;
-      font-family: var(--serif);
-      color: var(--ink-0);
-      cursor: pointer;
-      transition: background .2s ease, border-color .2s ease, transform .2s ease;
-    }
-
-    .xiu-btn b {
-      display: block;
-      font-size: .88rem;
-      font-weight: 700;
-      letter-spacing: .1em;
-    }
-
-    .xiu-btn i {
-      display: block;
-      margin-top: 2px;
-      font-style: normal;
-      font-size: .62rem;
-      letter-spacing: .06em;
-      color: var(--ink-3);
-    }
-
-    .xiu-btn:hover {
-      background: rgba(168, 72, 47, .09);
-      border-color: rgba(168, 72, 47, .32);
-      transform: translateX(3px);
-    }
-
-    .xiu-btn.is-active {
-      background: rgba(168, 72, 47, .16);
-      border-color: rgba(168, 72, 47, .62);
-      box-shadow: inset 3px 0 0 var(--seal);
-    }
-
-    .xiu-btn.is-active b {
-      color: var(--seal-deep);
-    }
-
-    /* 中：星图 */
-    .paper-stage-wrap {
-      position: relative;
-      min-width: 0;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* 星图滚动容器：图幅 2400×1800，窗口小的时候可以横向拖动查看 */
-    .paper-stage {
-      flex: 1 1 auto;
-      min-height: 420px;
-      width: 100%;
-      overflow: auto;
-      overscroll-behavior: contain;
-      background:
-        radial-gradient(ellipse at 50% 40%, rgba(255, 251, 240, .7), rgba(238, 227, 205, .35) 72%);
-    }
-
-    /* 内联进来的星图：给个下限高度，避免被 flex 压成 0 */
-    .paper-stage .chart-root {
-      display: block;
-      width: 100%;
-      min-height: 420px;
-      height: auto;
-      max-width: none;
-      user-select: none;
-    }
-
-    .chart-fallback-img {
-      display: block;
-      width: 100%;
-      height: auto;
-    }
-
-    .stage-hint {
-      position: absolute;
-      left: 16px;
-      bottom: 14px;
-      padding: 7px 14px;
-      border-radius: 99px;
-      font-size: .7rem;
-      letter-spacing: .1em;
-      color: var(--ink-2);
-      background: rgba(255, 250, 238, .9);
-      border: 1px solid var(--line);
-      pointer-events: none;
-    }
-
-    /* 右：详解 */
-    .paper-detail {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: min(440px, 46vw);
-      height: 100%;
-      overflow-y: auto;
-      padding: 22px 22px 70px;
-      background: linear-gradient(180deg, rgba(255, 252, 243, .98), rgba(247, 238, 220, .98));
-      border-left: 1px solid var(--line-strong);
-      box-shadow: -26px 0 64px -36px rgba(60, 44, 22, .62);
-      transform: translateX(102%);
-      opacity: 0;
-      transition: transform .5s var(--ease-soft), opacity .4s ease;
-    }
-
-    .paper-detail.show {
-      transform: translateX(0);
-      opacity: 1;
-    }
-
-    .d-head {
-      border-bottom: 2px solid rgba(168, 72, 47, .55);
-      padding-bottom: 12px;
-      margin-bottom: 16px;
-    }
-
-    .d-head h2 {
-      font-size: 1.55rem;
-      font-weight: 700;
-      letter-spacing: .16em;
-      color: var(--ink-0);
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .d-pinyin {
-      font-size: .66rem;
-      letter-spacing: .14em;
-      color: var(--seal);
-      font-family: system-ui, sans-serif;
-      font-weight: 500;
-    }
-
-    .d-sub {
-      margin-top: 7px;
-      font-size: .72rem;
-      letter-spacing: .1em;
-      color: var(--ink-3);
-    }
-
-    .d-facts {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-bottom: 18px;
-    }
-
-    .d-fact {
-      padding: 9px 11px;
-      border-radius: 9px;
-      border: 1px solid var(--line);
-      background: rgba(255, 254, 249, .8);
-    }
-
-    .d-fact span {
-      display: block;
-      font-size: .6rem;
-      letter-spacing: .14em;
-      color: var(--ink-3);
-    }
-
-    .d-fact b {
-      display: block;
-      margin-top: 3px;
-      font-size: .8rem;
-      font-weight: 700;
-      color: var(--ink-0);
-    }
-
-    .d-block {
-      margin-bottom: 18px;
-    }
-
-    .d-block h3 {
-      position: relative;
-      font-size: .82rem;
-      font-weight: 700;
-      letter-spacing: .16em;
-      color: var(--seal-deep);
-      margin-bottom: 8px;
-      padding-left: 12px;
-    }
-
-    .d-block h3::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      width: 5px;
-      height: 5px;
-      margin-top: -2.5px;
-      background: var(--seal);
-      transform: rotate(45deg);
-    }
-
-    .d-block p {
-      font-size: .84rem;
-      line-height: 2;
-      color: var(--ink-1);
-      text-align: justify;
-    }
-
-    .d-block p+p {
-      margin-top: 8px;
-    }
-
-    .d-record blockquote {
-      padding: 13px 15px;
-      border-radius: 10px;
-      border: 1px solid var(--line-strong);
-      background: rgba(255, 253, 245, .92);
-      font-size: .86rem;
-      line-height: 2.1;
-      color: var(--ink-0);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .85);
-    }
-
-    .d-record cite {
-      display: block;
-      margin-top: 9px;
-      font-style: normal;
-      font-size: .68rem;
-      letter-spacing: .1em;
-      color: var(--ink-3);
-      text-align: right;
-    }
-
-    .d-dso {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .d-dso li {
-      position: relative;
-      padding: 8px 11px 8px 25px;
-      font-size: .78rem;
-      line-height: 1.75;
-      border-radius: 8px;
-      border: 1px solid rgba(122, 96, 60, .24);
-      background: rgba(255, 254, 249, .66);
-      color: var(--ink-1);
-    }
-
-    .d-dso li::before {
-      content: '✦';
-      position: absolute;
-      left: 10px;
-      top: 8px;
-      color: var(--gold);
-      font-size: .72rem;
-    }
-
-    .d-nav {
-      display: flex;
-      gap: 9px;
-      margin-top: 22px;
-      padding-top: 15px;
-      border-top: 1px dashed var(--line-strong);
-    }
-
-    .d-nav button {
-      flex: 1 1 0;
-      padding: 10px 8px;
-      border-radius: 9px;
-      border: 1px solid var(--line-strong);
-      background: rgba(255, 252, 244, .85);
-      font-family: var(--serif);
-      font-size: .76rem;
-      letter-spacing: .06em;
-      color: #4a3a24;
-      cursor: pointer;
-      transition: background .2s ease, border-color .2s ease, transform .2s ease;
-    }
-
-    .d-nav button:hover {
-      background: rgba(168, 72, 47, .12);
-      border-color: rgba(168, 72, 47, .58);
-      color: var(--seal-deep);
-      transform: translateY(-1px);
-    }
-
-    /* 详解面板的关闭按钮（独立页用得上） */
-    .d-close {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      width: 32px;
-      height: 32px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--line);
-      border-radius: 50%;
-      background: rgba(255, 253, 246, .85);
-      cursor: pointer;
-    }
-
-    .d-close svg {
-      width: 14px;
-      height: 14px;
-      fill: none;
-      stroke: var(--ink-2);
-      stroke-width: 2;
-      stroke-linecap: round;
-    }
-
-    /* --------------------------------------------------- 下部内容标签页 */
-    .paper-foot {
-      position: relative;
-      z-index: 3;
-      flex: 0 0 auto;
-      max-height: 42vh;
-      display: flex;
-      flex-direction: column;
-      border-top: 1px solid var(--line-strong);
-      background: linear-gradient(180deg, rgba(253, 248, 238, .96), rgba(243, 233, 213, .96));
-    }
-
-    .foot-tabs {
-      flex: 0 0 auto;
-      display: flex;
-      gap: 4px;
-      padding: 10px 20px 0;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-
-    .foot-tabs::-webkit-scrollbar {
-      display: none;
-    }
-
-    .foot-tab {
-      flex: 0 0 auto;
-      padding: 9px 18px;
-      border: 1px solid transparent;
-      border-bottom: none;
-      border-radius: 10px 10px 0 0;
-      background: transparent;
-      font-family: var(--serif);
-      font-size: .8rem;
-      letter-spacing: .14em;
-      color: var(--ink-2);
-      cursor: pointer;
-      transition: background .2s ease, color .2s ease;
-    }
-
-    .foot-tab:hover {
-      background: rgba(168, 72, 47, .08);
-      color: var(--seal-deep);
-    }
-
-    .foot-tab.is-active {
-      background: rgba(255, 253, 246, .96);
-      border-color: var(--line-strong);
-      color: var(--seal-deep);
-      font-weight: 700;
-      box-shadow: 0 -2px 0 var(--seal) inset;
-    }
-
-    .foot-pane {
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow-y: auto;
-      padding: 16px 22px 26px;
-      background: rgba(255, 253, 246, .92);
-    }
-
-    .lead {
-      font-size: .84rem;
-      line-height: 2;
-      color: #4a3a24;
-      margin-bottom: 16px;
-      padding-left: 13px;
-      border-left: 3px solid rgba(168, 72, 47, .5);
-      text-align: justify;
-    }
-
-    /* 四时观星 */
-    .season {
-      position: relative;
-      padding: 18px 20px 20px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: rgba(255, 254, 249, .88);
-      margin-bottom: 16px;
-      box-shadow: 0 14px 34px -28px rgba(60, 44, 22, .85);
-    }
-
-    .season-badge {
-      position: absolute;
-      top: -13px;
-      left: 18px;
-      width: 34px;
-      height: 34px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #fdf7ea;
-      background: radial-gradient(circle at 35% 30%, #c45a3c, #8a2f22);
-      box-shadow: 0 7px 18px -9px rgba(138, 47, 34, .95);
-    }
-
-    .season h3 {
-      font-size: 1.06rem;
-      font-weight: 700;
-      letter-spacing: .12em;
-      color: var(--ink-0);
-      margin: 8px 0 4px 46px;
-    }
-
-    .season .season-time {
-      font-size: .68rem;
-      letter-spacing: .12em;
-      color: var(--ink-3);
-      margin: 0 0 11px 46px;
-    }
-
-    .season p {
-      font-size: .82rem;
-      line-height: 2;
-      text-align: justify;
-    }
-
-    .season-cols {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin: 15px 0;
-    }
-
-    .season-cols h4 {
-      font-size: .76rem;
-      font-weight: 700;
-      letter-spacing: .14em;
-      color: var(--seal-deep);
-      margin-bottom: 7px;
-    }
-
-    .season-cols ul {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .season-cols li {
-      position: relative;
-      padding-left: 15px;
-      font-size: .78rem;
-      line-height: 1.8;
-      color: var(--ink-1);
-    }
-
-    .season-cols li::before {
-      content: '·';
-      position: absolute;
-      left: 4px;
-      color: var(--seal);
-      font-weight: 700;
-    }
-
-    .season-tip {
-      margin-top: 11px;
-      padding: 11px 13px;
-      border-radius: 9px;
-      background: rgba(168, 72, 47, .07);
-      border: 1px dashed rgba(168, 72, 47, .34);
-      font-size: .78rem;
-      line-height: 1.9;
-      color: #4a3a24;
-    }
-
-    /* 表格 */
-    table.doc {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: .82rem;
-    }
-
-    table.doc thead th {
-      position: sticky;
-      top: 0;
-      padding: 10px 11px;
-      text-align: left;
-      font-size: .7rem;
-      font-weight: 700;
-      letter-spacing: .14em;
-      color: #fdf7ea;
-      background: #7a5c33;
-      white-space: nowrap;
-    }
-
-    table.doc tbody td {
-      padding: 9px 11px;
-      border-bottom: 1px solid rgba(122, 96, 60, .2);
-      color: var(--ink-1);
-      line-height: 1.75;
-    }
-
-    table.doc tbody tr:nth-child(even) {
-      background: rgba(122, 96, 60, .05);
-    }
-
-    .td-seal {
-      font-weight: 700;
-      color: var(--seal-deep);
-      white-space: nowrap;
-    }
-
-    tr.row-link {
-      cursor: pointer;
-      transition: background .2s ease;
-    }
-
-    tr.row-link:hover {
-      background: rgba(168, 72, 47, .14) !important;
-    }
-
-    /* 星占术语 */
-    .omen-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 13px;
-    }
-
-    .omen {
-      padding: 13px 15px;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: rgba(255, 254, 249, .85);
-    }
-
-    .omen h4 {
-      display: flex;
-      align-items: baseline;
-      gap: 9px;
-      font-size: .9rem;
-      font-weight: 700;
-      letter-spacing: .1em;
-      color: var(--ink-0);
-      margin-bottom: 7px;
-      flex-wrap: wrap;
-    }
-
-    .omen h4 span {
-      font-size: .62rem;
-      letter-spacing: .08em;
-      color: var(--seal);
-      font-family: system-ui, sans-serif;
-      font-weight: 500;
-    }
-
-    .omen p {
-      font-size: .78rem;
-      line-height: 1.9;
-      color: var(--ink-1);
-    }
-
-    .omen cite {
-      display: block;
-      margin-top: 8px;
-      font-style: normal;
-      font-size: .64rem;
-      letter-spacing: .1em;
-      color: var(--ink-3);
-      text-align: right;
-    }
-
-    /* 时间轴 */
-    .timeline {
-      position: relative;
-      padding-left: 20px;
-    }
-
-    .timeline::before {
-      content: '';
-      position: absolute;
-      left: 5px;
-      top: 6px;
-      bottom: 6px;
-      width: 2px;
-      background: linear-gradient(180deg, rgba(168, 72, 47, .68), rgba(168, 72, 47, .12));
-    }
-
-    .ev {
-      position: relative;
-      display: grid;
-      grid-template-columns: 122px minmax(0, 1fr);
-      gap: 14px;
-      padding: 8px 0;
-    }
-
-    .ev::before {
-      content: '';
-      position: absolute;
-      left: -18px;
-      top: 15px;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--seal);
-      box-shadow: 0 0 0 3px rgba(168, 72, 47, .16);
-    }
-
-    .ev-year {
-      font-size: .74rem;
-      font-weight: 700;
-      letter-spacing: .04em;
-      color: var(--seal-deep);
-      padding-top: 2px;
-    }
-
-    .ev h4 {
-      font-size: .84rem;
-      font-weight: 700;
-      color: var(--ink-0);
-      margin-bottom: 3px;
-    }
-
-    .ev p {
-      font-size: .77rem;
-      line-height: 1.85;
-      color: #4a3a24;
-    }
-
-    /* 页脚 */
-    .paper-foot-note {
-      position: relative;
-      z-index: 3;
-      flex: 0 0 auto;
-      padding: 10px 22px 12px;
-      font-size: .66rem;
-      letter-spacing: .16em;
-      color: var(--ink-3);
-      text-align: center;
-      border-top: 1px solid rgba(122, 96, 60, .18);
-      background: rgba(243, 233, 213, .9);
-    }
-
-    /* ------------------------------------------------------------ 响应式 */
-    @media (max-width: 1000px) {
-      .paper-body {
-        grid-template-columns: 1fr;
-        overflow-y: auto;
-      }
-
-      .paper-side {
-        display: none;
-      }
-
-      /* 窄屏时详解改成嵌在星图下面的一整块，不要浮在星图上 */
-      .paper-detail {
-        position: static;
-        width: 100%;
-        height: auto;
-        max-height: none;
-        transform: none;
-        opacity: 1;
-        border-left: none;
-        border-top: 1px solid var(--line-strong);
-        box-shadow: none;
-        display: none;
-      }
-
-      .paper-detail.show {
-        display: block;
-      }
-
-      .paper-stage-wrap {
-        min-height: 340px;
-      }
-
-      .d-close {
-        display: flex;
-      }
-
-      .paper-foot {
-        max-height: 32vh;
-      }
-    }
-
-    @media (max-width: 620px) {
-      .paper-head {
-        flex-wrap: wrap;
-        gap: 10px;
-        padding: 12px 14px;
-      }
-
-      .paper-title h1 {
-        font-size: 1.15rem;
-        letter-spacing: .16em;
-      }
-
-      .paper-title p {
-        display: none;
-      }
-
-      .paper-head-actions {
-        width: 100%;
-        margin-left: 0;
-      }
-
-      .paper-search {
-        flex: 1 1 auto;
-      }
-
-      .paper-search input {
-        width: 100%;
-      }
-
-      .paper-seal {
-        width: 38px;
-        height: 38px;
-        font-size: 1.1rem;
-      }
-
-      .ev {
-        grid-template-columns: 1fr;
-        gap: 3px;
-      }
-    }
+
+<style>
+/* =====================================================================
+   古籍星图独立页
+   ---------------------------------------------------------------------
+   用法：
+     · 从首页左上角灰色圆点打开的是“面板形态”（样式在 css/sky.css）
+     · 这个文件是“独立页形态”，方便把链接直接发给别人，
+       或者用手机单独打开当一本小画册翻。
+
+   这一版把颜色收进 :root：
+     白天 = 宣纸底 + 墨字；
+     黑夜 = 深色纸底 + 浅色墨字（不是纯黑，保留抄本的暖调）。
+   为什么这样做：以前颜色写死在每条规则里，切到黑夜主题时背景翻了、
+   文字没跟上，才出现“深灰字压在深色底上”的情况。现在只换一组变量，
+   正文、数值、引文、目录就会一起变色，不会漏掉某一块。
+
+   结构：左目录 / 中星图 / 右详解 / 下四页内容。
+   ===================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* 纸面：由浅到深，用于大背景与块面 */
+  --paper-0: #fdf9ef;
+  --paper-1: #f4ead4;
+  --paper-2: #e7d9bd;
+  --page-glow: #fffbec;
+
+  /* 墨色：0 最浓，3 最淡。正文至少用 ink-1，注释用 ink-3 */
+  --ink-0: #23180f;
+  --ink-1: #3a2f20;
+  --ink-2: #5f4c30;
+  --ink-3: #6f5a3e;
+
+  --line: rgba(122, 96, 60, .3);
+  --line-strong: rgba(122, 96, 60, .48);
+  --seal: #a8482f;
+  --seal-deep: #8a2f22;
+  --gold: #a9823a;
+
+  /* 块面与控件 */
+  --head-bg: linear-gradient(180deg, rgba(255, 251, 240, .95), rgba(247, 238, 220, .82));
+  --side-bg: linear-gradient(180deg, rgba(253, 248, 238, .8), rgba(245, 235, 216, .6));
+  --detail-bg: linear-gradient(180deg, rgba(255, 252, 243, .98), rgba(247, 238, 220, .98));
+  --foot-bg: linear-gradient(180deg, rgba(253, 248, 238, .96), rgba(243, 233, 213, .96));
+  --pane-bg: rgba(255, 253, 246, .92);
+  --surface: rgba(255, 254, 249, .82);
+  --surface-2: rgba(255, 252, 244, .85);
+  --quote-bg: rgba(255, 253, 245, .92);
+  --input-bg: rgba(255, 253, 246, .85);
+  --hover: rgba(168, 72, 47, .1);
+  --active: rgba(168, 72, 47, .16);
+  --table-head-bg: #7a5c33;
+  --table-head-ink: #fdf7ea;
+  --row-alt: rgba(122, 96, 60, .05);
+  --mark-bg: #8a5a2a;
+  --mark-ink: #fdf7ea;
+  --stage-bg: radial-gradient(ellipse at 50% 40%, rgba(255, 251, 240, .7), rgba(238, 227, 205, .35) 72%);
+  --shadow: rgba(60, 44, 22, .62);
+  --inset-highlight: rgba(255, 255, 255, .85);
+  --scroll-thumb: rgba(122, 96, 60, .34);
+  --scroll-thumb-hover: rgba(122, 96, 60, .55);
+
+  --ease-soft: cubic-bezier(.2, .7, .3, 1);
+  --serif: "Noto Serif SC", "Songti SC", "STSong", "SimSun", serif;
+}
+
+/* ---------------------------------------------------------------------
+   黑夜主题：只覆盖变量，不重写版式。
+   色值刻意保留暖褐底，避免整页变成“纯黑 OLED”，失了古籍抄本的气质。
+   --------------------------------------------------------------------- */
+html[data-user-color-scheme="dark"] {
+  color-scheme: dark;
+
+  --paper-0: #251e16;
+  --paper-1: #1a1510;
+  --paper-2: #110d09;
+  --page-glow: #2b2218;
+
+  --ink-0: #f7eeda;
+  --ink-1: #e3d5b9;
+  --ink-2: #cebb98;
+  --ink-3: #b29b76;
+
+  --line: rgba(214, 190, 150, .22);
+  --line-strong: rgba(214, 190, 150, .38);
+  --seal: #dd8063;
+  --seal-deep: #f0a88c;
+  --gold: #d9b45e;
+
+  --head-bg: linear-gradient(180deg, rgba(40, 32, 23, .97), rgba(28, 22, 16, .94));
+  --side-bg: linear-gradient(180deg, rgba(32, 26, 19, .9), rgba(24, 19, 14, .85));
+  --detail-bg: linear-gradient(180deg, rgba(34, 27, 20, .985), rgba(25, 20, 15, .99));
+  --foot-bg: linear-gradient(180deg, rgba(33, 27, 20, .97), rgba(24, 19, 14, .98));
+  --pane-bg: rgba(26, 21, 15, .97);
+  --surface: rgba(255, 238, 206, .055);
+  --surface-2: rgba(255, 238, 206, .07);
+  --quote-bg: rgba(255, 238, 206, .07);
+  --input-bg: rgba(255, 238, 206, .06);
+  --hover: rgba(221, 128, 99, .14);
+  --active: rgba(221, 128, 99, .22);
+  --table-head-bg: #4a3823;
+  --table-head-ink: #f7eeda;
+  --row-alt: rgba(255, 238, 206, .035);
+  --mark-bg: #6f4a26;
+  --mark-ink: #f7eeda;
+  --stage-bg: radial-gradient(ellipse at 50% 40%, rgba(58, 46, 32, .55), rgba(18, 14, 10, .2) 72%);
+  --shadow: rgba(0, 0, 0, .72);
+  --inset-highlight: rgba(255, 255, 255, .05);
+  --scroll-thumb: rgba(214, 190, 150, .28);
+  --scroll-thumb-hover: rgba(214, 190, 150, .45);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* 统一去掉系统按钮的立体外观：这页的按钮都要像纸上的钤印/条目，
+   不能一半是网页默认的灰色圆角。 */
+button {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+html,
+body {
+  height: 100%;
+  max-width: 100%;
+  /* 手机上的横向拖动只允许发生在星图容器内部，
+     整页本身绝不能出现横向滚动条（否则表头、表格会被推出去）。 */
+  overflow-x: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-family: var(--serif);
+  color: var(--ink-1);
+  background:
+    radial-gradient(ellipse at 50% 0%, var(--page-glow), var(--paper-1) 58%, var(--paper-2) 100%);
+  overflow: hidden;
+}
+
+/* 纸纹：白天用 multiply 压出纤维，黑夜改用 screen 提亮，
+   否则深色底上再压一层只会更糊。 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: .55;
+  mix-blend-mode: multiply;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(150, 125, 88, .06) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(0deg, rgba(150, 125, 88, .05) 0 1px, transparent 1px 6px);
+}
+
+html[data-user-color-scheme="dark"] body::before {
+  opacity: .2;
+  mix-blend-mode: screen;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(214, 186, 140, .05) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(0deg, rgba(214, 186, 140, .04) 0 1px, transparent 1px 6px);
+}
+
+/* --------------------------------------------------------- 顶部题头 */
+.paper-head {
+  position: relative;
+  z-index: 3;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--line);
+  background: var(--head-bg);
+}
+
+.paper-seal {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid var(--seal);
+  border-radius: 7px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--seal);
+  letter-spacing: 0;
+  box-shadow: 0 4px 14px -8px var(--shadow);
+}
+
+.paper-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.paper-title h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: .22em;
+  color: var(--ink-0);
+  white-space: nowrap;
+}
+
+.paper-title p {
+  font-size: .7rem;
+  letter-spacing: .2em;
+  color: var(--ink-3);
+}
+
+.paper-head-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  /* 允许搜索框收缩；否则它的 max-content 会把整页撑宽 */
+  min-width: 0;
+  max-width: 100%;
+}
+
+.paper-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--line-strong);
+  background: var(--input-bg);
+  transition: border-color .22s ease, box-shadow .22s ease;
+}
+
+.paper-search:focus-within {
+  border-color: var(--seal);
+  box-shadow: 0 0 0 3px rgba(168, 72, 47, .14);
+}
+
+.paper-search svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.paper-search input {
+  width: clamp(120px, 18vw, 220px);
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--serif);
+  font-size: .84rem;
+  letter-spacing: .06em;
+  color: var(--ink-0);
+}
+
+.paper-search input::placeholder {
+  color: var(--ink-3);
+  opacity: 1;
+}
+
+.paper-btn {
+  padding: 8px 16px;
+  border-radius: 99px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  font-family: var(--serif);
+  font-size: .78rem;
+  letter-spacing: .12em;
+  color: var(--ink-2);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .22s ease, border-color .22s ease, color .22s ease, transform .22s ease;
+}
+
+.paper-btn:hover {
+  background: var(--hover);
+  border-color: var(--seal);
+  color: var(--seal-deep);
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------- 主体三栏 */
+.paper-body {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+}
+
+/* 左：目录 */
+.paper-side {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 16px 14px 40px;
+  border-right: 1px solid var(--line);
+  background: var(--side-bg);
+}
+
+.side-note {
+  font-size: .74rem;
+  line-height: 1.95;
+  color: var(--ink-2);
+  padding: 0 4px 14px;
+  border-bottom: 1px dashed var(--line-strong);
+  margin-bottom: 14px;
+}
+
+.side-note b {
+  color: var(--seal-deep);
+}
+
+/* 目录块：类名和 js/skychart.js 实际生成的一致。
+   不再用旧的 .sec / .xiu-btn —— 那些类名早就不生成了，
+   这也是之前目录“挤成一团、字叠在一起”的原因之一。 */
+.chart-sec {
+  margin-bottom: 18px;
+}
+
+.chart-sec-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--ink-2);
+  letter-spacing: .12em;
+  margin-bottom: 8px;
+}
+
+.chart-sec-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 19px;
+  height: 19px;
+  border-radius: 4px;
+  font-size: .62rem;
+  color: var(--mark-ink);
+  background: var(--mark-bg);
+  letter-spacing: 0;
+}
+
+.chart-xiu-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.chart-xiu {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font-family: var(--serif);
+  color: var(--ink-0);
+  cursor: pointer;
+  line-height: 1.35;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.chart-xiu b {
+  display: block;
+  font-size: .88rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  line-height: 1.4;
+}
+
+.chart-xiu i {
+  display: block;
+  margin-top: 2px;
+  font-style: normal;
+  font-size: .62rem;
+  line-height: 1.4;
+  letter-spacing: .06em;
+  color: var(--ink-3);
+}
+
+.chart-xiu:hover {
+  background: var(--hover);
+  border-color: var(--line-strong);
+  transform: translateX(3px);
+}
+
+.chart-xiu.is-active {
+  background: var(--active);
+  border-color: var(--seal);
+  box-shadow: inset 3px 0 0 var(--seal);
+}
+
+.chart-xiu.is-active b {
+  color: var(--seal-deep);
+}
+
+/* 选中项底色偏红，二级说明再用 ink-3 会压到 4.5:1 以下；
+   提一档到 ink-2，既保持层次又能看清。 */
+.chart-xiu.is-active i {
+  color: var(--ink-2);
+}
+
+.chart-xiu:focus-visible,
+.paper-btn:focus-visible,
+.ct-tab:focus-visible,
+.ct-nav-btn:focus-visible,
+.ct-locate:focus-visible,
+.d-close:focus-visible {
+  outline: 2px solid var(--seal);
+  outline-offset: 2px;
+}
+
+/* 中：星图 */
+.paper-stage-wrap {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 星图滚动容器：图幅 2400×1900。
+   窗口放不下时靠滚动 + 拖动查看，像一个可以推着走的地图。
+   min-height 设为 0，是让它在 flex/grid 里能被正常分配高度；
+   以前写死 420px 会把整行撑破，白天下半页就挤成一团。 */
+.paper-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--stage-bg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.paper-stage::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.paper-stage::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.paper-stage::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.paper-stage::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+  background-clip: content-box;
+}
+
+/* 拖动中的光标：星点本身有 cursor:pointer，
+   所以要用 * 把它一起压成 grabbing，否则拖到星官上会闪回小手。 */
+.paper-stage.is-pannable {
+  cursor: grab;
+  /* 单指平移由脚本接管，但保留双指缩放：
+     用 none 会把页面的 pinch-zoom 一起关掉，对手机用户不友好。 */
+  touch-action: pinch-zoom;
+}
+
+.paper-stage.is-dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
+}
+
+.paper-stage.is-dragging * {
+  cursor: grabbing !important;
+}
+
+/* 内联进来的星图：给一个可读的最小宽度。
+   手机把 2400px 的图硬压到 390px 时字只有 4~5px，
+   所以宁可让它宽于屏幕、用手指推着看。 */
+.paper-stage .chart-root {
+  display: block;
+  width: 100%;
+  min-width: 1000px;
+  max-width: none;
+  height: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+.chart-fallback-img {
+  display: block;
+  width: 100%;
+  min-width: 1000px;
+  height: auto;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* 图片兜底时没法逐层改 SVG，只能用反相模拟夜色；
+   正常内联的那条路走的是上面的逐层换色。 */
+html[data-user-color-scheme="dark"] .chart-fallback-img {
+  filter: invert(1) hue-rotate(22deg) saturate(.6) brightness(.74) contrast(1.16);
+}
+
+.stage-hint {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  z-index: 1;
+  max-width: calc(100% - 32px);
+  padding: 7px 14px;
+  border-radius: 99px;
+  font-size: .7rem;
+  letter-spacing: .1em;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 6px 18px -14px var(--shadow);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+/* 右：详解 */
+.paper-detail {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  width: min(440px, 46vw);
+  max-width: 100%;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px 22px 70px;
+  background: var(--detail-bg);
+  border-left: 1px solid var(--line-strong);
+  box-shadow: -26px 0 64px -36px var(--shadow);
+  color: var(--ink-1);
+  transform: translateX(102%);
+  opacity: 0;
+  transition: transform .5s var(--ease-soft), opacity .4s ease;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+.paper-detail::-webkit-scrollbar {
+  width: 9px;
+}
+
+.paper-detail::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 99px;
+}
+
+.paper-detail.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* 详解里的类名同样以 skychart.js 生成的 .ct-* 为准。
+   这里不再重复旧的 .d-* 规则，否则两套样式会互相打架。 */
+.ct-detail-head {
+  border-bottom: 2px solid var(--seal);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.ct-detail-head h3 {
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  color: var(--ink-0);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ct-pinyin {
+  font-size: .66rem;
+  letter-spacing: .14em;
+  color: var(--seal);
+  font-family: system-ui, sans-serif;
+  font-weight: 500;
+}
+
+.ct-detail-sub {
+  margin-top: 7px;
+  font-size: .72rem;
+  letter-spacing: .1em;
+  color: var(--ink-3);
+}
+
+.ct-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.ct-fact {
+  min-width: 0;
+  padding: 9px 11px;
+  border-radius: 9px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.ct-fact span {
+  display: block;
+  font-size: .6rem;
+  letter-spacing: .14em;
+  color: var(--ink-3);
+}
+
+.ct-fact b {
+  display: block;
+  margin-top: 3px;
+  font-size: .8rem;
+  line-height: 1.5;
+  font-weight: 700;
+  color: var(--ink-0);
+  overflow-wrap: anywhere;
+}
+
+.ct-block {
+  margin-bottom: 18px;
+}
+
+.ct-block h4 {
+  position: relative;
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  color: var(--seal-deep);
+  margin-bottom: 8px;
+  padding-left: 12px;
+}
+
+.ct-block h4::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -2.5px;
+  background: var(--seal);
+  transform: rotate(45deg);
+}
+
+.ct-block p {
+  font-size: .84rem;
+  line-height: 2;
+  color: var(--ink-1);
+  text-align: justify;
+}
+
+.ct-block p+p {
+  margin-top: 8px;
+}
+
+.ct-record blockquote {
+  padding: 13px 15px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--quote-bg);
+  font-size: .86rem;
+  line-height: 2.1;
+  color: var(--ink-0);
+  box-shadow: inset 0 1px 0 var(--inset-highlight);
+}
+
+.ct-record cite {
+  display: block;
+  margin-top: 9px;
+  font-style: normal;
+  font-size: .68rem;
+  letter-spacing: .1em;
+  color: var(--ink-3);
+  text-align: right;
+}
+
+.ct-dso {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ct-dso li {
+  position: relative;
+  padding: 8px 11px 8px 25px;
+  font-size: .78rem;
+  line-height: 1.75;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-1);
+}
+
+.ct-dso li::before {
+  content: '✦';
+  position: absolute;
+  left: 10px;
+  top: 8px;
+  color: var(--gold);
+  font-size: .72rem;
+}
+
+.ct-nav {
+  display: flex;
+  gap: 9px;
+  margin-top: 22px;
+  padding-top: 15px;
+  border-top: 1px dashed var(--line-strong);
+}
+
+.ct-nav-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 10px 8px;
+  border-radius: 9px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  font-family: var(--serif);
+  font-size: .76rem;
+  letter-spacing: .06em;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.ct-nav-btn:hover {
+  background: var(--hover);
+  border-color: var(--seal);
+  color: var(--seal-deep);
+  transform: translateY(-1px);
+}
+
+.ct-locate {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px 15px;
+  border-radius: 11px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  font-family: var(--serif);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--seal-deep);
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.ct-locate i {
+  font-style: normal;
+  font-size: .95rem;
+  opacity: .75;
+}
+
+.ct-locate:hover {
+  background: var(--hover);
+  border-color: var(--seal);
+  transform: translateY(-1px);
+}
+
+/* 详解面板的关闭按钮（独立页窄屏用得上） */
+.d-close {
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface-2);
+  cursor: pointer;
+}
+
+.d-close svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* --------------------------------------------------- 下部内容标签页 */
+.paper-foot {
+  position: relative;
+  z-index: 3;
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  max-height: 42vh;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--line-strong);
+  background: var(--foot-bg);
+}
+
+.foot-tabs {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 4px;
+  padding: 10px 20px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.foot-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.ct-tab {
+  flex: 0 0 auto;
+  padding: 9px 18px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  background: transparent;
+  font-family: var(--serif);
+  font-size: .8rem;
+  letter-spacing: .14em;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease;
+}
+
+.ct-tab:hover {
+  background: var(--hover);
+  color: var(--seal-deep);
+}
+
+.ct-tab.is-active {
+  background: var(--pane-bg);
+  border-color: var(--line-strong);
+  color: var(--seal-deep);
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--seal);
+}
+
+.foot-pane {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  /* 表格若真的比屏幕宽，让它在这个面板里横向滚动；
+     别把整页撑宽。 */
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 22px 26px;
+  background: var(--pane-bg);
+  color: var(--ink-1);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+.foot-pane::-webkit-scrollbar {
+  width: 9px;
+}
+
+.foot-pane::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 99px;
+}
+
+.ct-lead {
+  font-size: .84rem;
+  line-height: 2;
+  color: var(--ink-1);
+  margin-bottom: 16px;
+  padding-left: 13px;
+  border-left: 3px solid var(--seal);
+  text-align: justify;
+}
+
+/* 四时观星 */
+.ct-season {
+  position: relative;
+  padding: 18px 20px 20px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  margin-bottom: 16px;
+  box-shadow: 0 14px 34px -28px var(--shadow);
+}
+
+.ct-season-badge {
+  position: absolute;
+  top: -13px;
+  left: 18px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fdf7ea;
+  background: radial-gradient(circle at 35% 30%, #c45a3c, #8a2f22);
+  box-shadow: 0 7px 18px -9px rgba(138, 47, 34, .95);
+}
+
+.ct-season h3 {
+  font-size: 1.06rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--ink-0);
+  margin: 8px 0 4px 46px;
+}
+
+.ct-season-time {
+  font-size: .68rem;
+  letter-spacing: .12em;
+  color: var(--ink-3);
+  margin: 0 0 11px 46px;
+}
+
+.ct-season p {
+  font-size: .82rem;
+  line-height: 2;
+  color: var(--ink-1);
+  text-align: justify;
+}
+
+.ct-season-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 15px 0;
+}
+
+.ct-season-cols h4 {
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: var(--seal-deep);
+  margin-bottom: 7px;
+}
+
+.ct-season-cols ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ct-season-cols li {
+  position: relative;
+  padding-left: 15px;
+  font-size: .78rem;
+  line-height: 1.8;
+  color: var(--ink-1);
+}
+
+.ct-season-cols li::before {
+  content: '·';
+  position: absolute;
+  left: 4px;
+  color: var(--seal);
+  font-weight: 700;
+}
+
+.ct-season-tip {
+  margin-top: 11px;
+  padding: 11px 13px;
+  border-radius: 9px;
+  background: var(--hover);
+  border: 1px dashed var(--line-strong);
+  font-size: .78rem;
+  line-height: 1.9;
+  color: var(--ink-1);
+}
+
+/* 表格（分野 / 廿八宿总表）
+   table-layout: fixed 是关键：列宽由表头定死，
+   内容再长也只会在格子里换行，不会把六列挤成“宿四象象形季星数距离”一串。 */
+.ct-table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: .82rem;
+}
+
+.ct-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 10px 11px;
+  text-align: left;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: var(--table-head-ink);
+  background: var(--table-head-bg);
+  white-space: nowrap;
+}
+
+.ct-table tbody td {
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-1);
+  line-height: 1.7;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.ct-table tbody tr:nth-child(even) {
+  background: var(--row-alt);
+}
+
+/* 六列宽度的比例：宿名最长（四字），四象次之，其余都很短 */
+.ct-table-28 thead th:nth-child(1),
+.ct-table-28 tbody td:nth-child(1) {
+  width: 19%;
+}
+
+.ct-table-28 thead th:nth-child(2),
+.ct-table-28 tbody td:nth-child(2) {
+  width: 23%;
+}
+
+.ct-table-28 thead th:nth-child(3),
+.ct-table-28 tbody td:nth-child(3) {
+  width: 16%;
+}
+
+.ct-table-28 thead th:nth-child(4),
+.ct-table-28 tbody td:nth-child(4) {
+  width: 10%;
+}
+
+.ct-table-28 thead th:nth-child(5),
+.ct-table-28 tbody td:nth-child(5) {
+  width: 16%;
+}
+
+.ct-table-28 thead th:nth-child(6),
+.ct-table-28 tbody td:nth-child(6) {
+  width: 16%;
+}
+
+.ct-td-xiu {
+  font-weight: 700;
+  color: var(--seal-deep);
+  white-space: nowrap;
+}
+
+.ct-row-link {
+  cursor: pointer;
+  transition: background .2s ease;
+}
+
+.ct-table tbody tr.ct-row-link:hover {
+  background: var(--hover);
+}
+
+/* 星占术语 */
+.ct-omen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 13px;
+}
+
+.ct-omen {
+  padding: 13px 15px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.ct-omen h4 {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-size: .9rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--ink-0);
+  margin-bottom: 7px;
+  flex-wrap: wrap;
+}
+
+.ct-omen h4 span {
+  font-size: .62rem;
+  letter-spacing: .08em;
+  color: var(--seal);
+  font-family: system-ui, sans-serif;
+  font-weight: 500;
+}
+
+.ct-omen p {
+  font-size: .78rem;
+  line-height: 1.9;
+  color: var(--ink-1);
+}
+
+.ct-omen cite {
+  display: block;
+  margin-top: 8px;
+  font-style: normal;
+  font-size: .64rem;
+  letter-spacing: .1em;
+  color: var(--ink-3);
+  text-align: right;
+}
+
+/* 历代天象时间轴 */
+.ct-timeline {
+  position: relative;
+  padding-left: 20px;
+}
+
+.ct-timeline::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: linear-gradient(180deg, var(--seal), var(--line));
+}
+
+.ct-ev {
+  position: relative;
+  display: grid;
+  grid-template-columns: 122px minmax(0, 1fr);
+  gap: 14px;
+  padding: 8px 0;
+}
+
+.ct-ev::before {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: 15px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--seal);
+  box-shadow: 0 0 0 3px var(--hover);
+}
+
+.ct-ev-year {
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--seal-deep);
+  padding-top: 2px;
+}
+
+.ct-ev h4 {
+  font-size: .84rem;
+  font-weight: 700;
+  color: var(--ink-0);
+  margin-bottom: 3px;
+}
+
+.ct-ev p {
+  font-size: .77rem;
+  line-height: 1.85;
+  color: var(--ink-1);
+}
+
+/* 页脚 */
+.paper-foot-note {
+  position: relative;
+  z-index: 3;
+  flex: 0 0 auto;
+  padding: 10px 22px 12px;
+  font-size: .66rem;
+  letter-spacing: .16em;
+  color: var(--ink-3);
+  text-align: center;
+  border-top: 1px solid var(--line);
+  background: var(--foot-bg);
+}
+
+/* ------------------------------------------------- 星图内联 SVG 的夜色
+   星图颜色写在 SVG 的 fill/stroke 属性上。CSS 声明能盖过这些
+   “表现属性”，所以直接按层换色，而不是整块 invert：
+   反相会把朱砂印变成青蓝，抄本的味道就没了。
+   下面每条都带 html[dark] 前缀，保证压过 SVG 内部 style 里的规则。 */
+html[data-user-color-scheme="dark"] .paper-stage svg>rect[fill="url(#ck-paper)"] {
+  fill: #17120d;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg>rect[fill="#f3ead6"] {
+  fill: #2a2117;
+  opacity: .22;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg>rect[fill="url(#ck-vignette)"] {
+  opacity: .5;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-grid line {
+  stroke: #8a6b45;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-sphere polyline,
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-sphere ellipse {
+  stroke: #8f6f45;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-frame rect {
+  stroke: #b38f5c;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-ink .ink-tier {
+  fill: #d9c8a6;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-mz-stars circle {
+  fill: #f3e6c8;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-mz-line {
+  stroke: #a88a5c;
+  stroke-opacity: .5;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-mz:hover .chart-mz-line,
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-mz.is-lit .chart-mz-line {
+  stroke: #ffd68f;
+  stroke-opacity: 1;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-mz-name {
+  fill: #f3e6c8;
+  fill-opacity: .94;
+  stroke: #17120d;
+  stroke-opacity: .9;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-mz:hover .chart-mz-name,
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-mz.is-lit .chart-mz-name,
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-mz-name:hover,
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-mz-name.is-lit {
+  fill: #ffd68f;
+  fill-opacity: 1;
+}
+
+/* 三垣的星点/虚线框原本是朱、墨绿、赭色，深底上会糊成一片。
+   这里按原来的三种色值分别提亮，既保留色彩区分，
+   又不用给几百个圆点逐个加 filter（拖动时更省性能）。 */
+html[data-user-color-scheme="dark"] .paper-stage svg .asterism .ast-ring[stroke="#a8482f"] {
+  stroke: #ff9a7a;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .asterism .ast-ring[stroke="#2f6a58"] {
+  stroke: #6fd0ad;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .asterism .ast-ring[stroke="#8c5a20"] {
+  stroke: #e6b05a;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .ast-stars circle[fill="#a8482f"] {
+  fill: #ff9a7a;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .ast-stars circle[fill="#2f6a58"] {
+  fill: #6fd0ad;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .ast-stars circle[fill="#8c5a20"] {
+  fill: #e6b05a;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .ast-name {
+  fill: #f0dfba;
+  stroke: #17120d;
+  stroke-opacity: .9;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .ring-label {
+  fill: #e2d0aa;
+  fill-opacity: .92;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .ring-label:hover,
+html[data-user-color-scheme="dark"] .paper-stage svg .ring-label.is-lit {
+  fill: #ffd68f;
+  fill-opacity: 1;
+}
+
+/* 标题、副题、落款分别取三种暖色，保持原来“墨—淡墨—朱砂”的层次 */
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-title text[fill="#231c14"] {
+  fill: #f2e4c4;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-title text[fill="#6a5537"] {
+  fill: #c9b58e;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-title text[fill="#8a2f22"] {
+  fill: #e09478;
+}
+
+html[data-user-color-scheme="dark"] .paper-stage svg .chart-title rect {
+  stroke: #d98a68;
+}
+
+/* ------------------------------------------------------------ 响应式 */
+
+/* 宽屏：详解是贴右边缘的浮层。
+   展开时给星图让出与面板同宽的右边距，否则 2400px 的图会一路铺到
+   面板底下，标题「星空全图」的右半边就被切掉了。
+   同时把星图的 1000px 最小宽度收回，让它按剩下的宽度缩放 ——
+   横着完整可见，竖着仍然比一屏高，保留上下拖动。 */
+@media (min-width: 1101px) {
+  .paper-stage-wrap {
+    transition: margin-right .5s var(--ease-soft);
+  }
+
+  .paper-body.has-detail .paper-stage-wrap {
+    margin-right: min(440px, 46vw);
+  }
+
+  .paper-body.has-detail .paper-stage .chart-root {
+    min-width: 0;
+  }
+}
+
+/* 断点放在 1100 而不是 1000：
+   1001~1100 这段如果还保留「250px 目录 + 440px 详解」，
+   星图只剩三百来像素，比手机还挤。 */
+@media (max-width: 1100px) {
+  .paper-body {
+    /* minmax(0,1fr) 而不是 1fr：
+       1fr 的最小值是 auto，星图那 1000px 的横向内容会把网格撑宽；
+       写成 minmax(0,1fr) 后轨道可以缩到 0，横向溢出只留在星图内部滚动。 */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    overflow-y: auto;
+  }
+
+  .paper-side {
+    display: none;
+  }
+
+  /* 窄屏时详解改成嵌在星图下面的一整块，不要浮在星图上 */
+  .paper-detail {
+    position: static;
+    z-index: auto;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    transform: none;
+    opacity: 1;
+    border-left: none;
+    border-top: 1px solid var(--line-strong);
+    box-shadow: none;
+    display: none;
+  }
+
+  .paper-detail.show {
+    display: block;
+  }
+
+  /* 星图在窄屏上要有确定高度，否则 flex 容器里会被压成一条线 */
+  .paper-stage-wrap {
+    min-height: 360px;
+  }
+
+  .paper-stage {
+    min-height: 360px;
+  }
+
+  .d-close {
+    display: flex;
+  }
+
+  .paper-foot {
+    max-height: 32vh;
+  }
+
+  .ct-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .paper-head {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .paper-seal {
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+  }
+
+  .paper-title h1 {
+    font-size: 1.15rem;
+    letter-spacing: .16em;
+  }
+
+  .paper-title p {
+    display: none;
+  }
+
+  .paper-head-actions {
+    width: 100%;
+    margin-left: 0;
+    gap: 8px;
+  }
+
+  .paper-search {
+    /* 显式给一个小 flex-basis。auto 会拿输入框的 max-content（整句占位符）
+       当基准，手机一行放不下，于是把页头撑出屏幕。 */
+    flex: 1 1 150px;
+    min-width: 0;
+    /* 再把搜索框变成“可裁切”的容器：
+       输入框的 placeholder 很长，它的 max-content 会通过 min-content
+       一路把页头/整页撑宽。overflow:hidden 把这条链切断。 */
+    overflow: hidden;
+  }
+
+  .paper-search input {
+    /* flex:1 1 0 + width:0 是让输入框真正可收缩的写法；
+       只写 width:100% 时，浏览器仍可能拿 placeholder 的 max-content 当最小值。 */
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
+  }
+
+  .paper-btn {
+    padding: 8px 12px;
+    font-size: .74rem;
+  }
+
+  .paper-body {
+    min-height: 0;
+  }
+
+  .paper-stage-wrap {
+    min-height: 320px;
+  }
+
+  .paper-stage {
+    min-height: 320px;
+  }
+
+  .paper-detail {
+    padding: 18px 16px 60px;
+  }
+
+  .ct-detail-head h3 {
+    font-size: 1.32rem;
+    letter-spacing: .12em;
+  }
+
+  .ct-facts {
+    gap: 6px;
+  }
+
+  .ct-fact {
+    padding: 8px 9px;
+  }
+
+  .ct-block p {
+    font-size: .82rem;
+    line-height: 1.95;
+  }
+
+  .ct-record blockquote {
+    padding: 11px 12px;
+    font-size: .82rem;
+    line-height: 2;
+  }
+
+  .ct-nav {
+    gap: 6px;
+  }
+
+  .ct-nav-btn {
+    padding: 9px 4px;
+    font-size: .7rem;
+  }
+
+  .ct-locate {
+    padding: 10px 12px;
+    font-size: .76rem;
+  }
+
+  .stage-hint {
+    left: 10px;
+    bottom: 10px;
+    max-width: calc(100% - 20px);
+    padding: 6px 10px;
+    font-size: .64rem;
+    letter-spacing: .06em;
+  }
+
+  .foot-tabs {
+    padding: 8px 12px 0;
+  }
+
+  .ct-tab {
+    /* 五个页签要在 390px 内排得下，否则最右边的“廿八宿总表”
+       会被挤到屏幕外，看起来像页签丢了。 */
+    padding: 8px;
+    font-size: .7rem;
+    letter-spacing: .06em;
+  }
+
+  .foot-pane {
+    padding: 14px 14px 22px;
+  }
+
+  .ct-lead {
+    font-size: .8rem;
+    line-height: 1.9;
+  }
+
+  /* 手机上的六列表格：字号和左右内边距一起缩小，
+     把有限的 390px 尽量留给汉字，而不是留白。 */
+  .ct-table {
+    font-size: .74rem;
+  }
+
+  .ct-table thead th {
+    padding: 8px 6px;
+    font-size: .64rem;
+    letter-spacing: .06em;
+  }
+
+  .ct-table tbody td {
+    padding: 7px 6px;
+    line-height: 1.55;
+  }
+
+  .ct-table-28 thead th:nth-child(1),
+  .ct-table-28 tbody td:nth-child(1) {
+    width: 21%;
+  }
+
+  .ct-table-28 thead th:nth-child(2),
+  .ct-table-28 tbody td:nth-child(2) {
+    width: 22%;
+  }
+
+  .ct-table-28 thead th:nth-child(3),
+  .ct-table-28 tbody td:nth-child(3) {
+    width: 16%;
+  }
+
+  .ct-table-28 thead th:nth-child(4),
+  .ct-table-28 tbody td:nth-child(4) {
+    width: 9%;
+  }
+
+  .ct-table-28 thead th:nth-child(5),
+  .ct-table-28 tbody td:nth-child(5) {
+    width: 16%;
+  }
+
+  .ct-table-28 thead th:nth-child(6),
+  .ct-table-28 tbody td:nth-child(6) {
+    width: 16%;
+  }
+
+  .ct-season {
+    padding: 16px 14px 16px;
+  }
+
+  .ct-season h3 {
+    margin-left: 44px;
+  }
+
+  .ct-season-time {
+    margin-left: 44px;
+  }
+
+  .ct-season-cols {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  .ct-omen-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .ct-ev {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .paper-foot-note {
+    padding: 8px 14px 10px;
+    font-size: .6rem;
+    letter-spacing: .1em;
+  }
+}
+
+/* 系统开了“减少动态效果”时，不做位移动画，也不做惯性滚动
+   （拖动本身是直接跟随手指的，不涉及动画）。 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: .001ms !important;
+    animation-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* 连 1px 的悬浮位移也去掉，避免“减少动态”只减了一半 */
+  .chart-xiu:hover,
+  .paper-btn:hover,
+  .ct-nav-btn:hover,
+  .ct-locate:hover {
+    transform: none;
+  }
+}
+
   </style>
   <!-- 全站日夜主题：必须尽早同步加载，第一帧才不会闪 -->
   <script src="js/theme.js"></script>
@@ -1048,8 +1728,9 @@
 
     <!-- 中：星图（由 js/skychart.js 读取 assets/chart-ink-inline.svg 内联进来） -->
     <section class="paper-stage-wrap">
-      <div class="paper-stage" id="chartStage" data-src="assets/chart-ink-inline.svg"></div>
-      <p class="stage-hint">点击图中的星官名或星点，可展开详解</p>
+      <div class="paper-stage" id="chartStage" data-src="assets/chart-ink-inline.svg" role="region"
+        aria-label="可拖动的古籍星图"></div>
+      <p class="stage-hint">按住拖动可平移星图 · 点击星官名或星点展开详解</p>
       <button class="d-close" id="detailClose" type="button" aria-label="关闭详解">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M6 6l12 12M18 6L6 18" />
