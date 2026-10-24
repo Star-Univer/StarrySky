@@ -11,13 +11,8 @@
     href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff4fd8'/%3E%3Cstop offset='1' stop-color='%2300AEEC'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230a0e16'/%3E%3Cpath d='M32 8 L37 27 L56 32 L37 37 L32 56 L27 37 L8 32 L27 27 Z' fill='url(%23g)'/%3E%3C/svg%3E">
   <link rel="icon" href="favicon.ico" sizes="any">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@400;600;700&display=swap"
-    rel="stylesheet" />
 
-  <style>
+<style>
     /* =====================================================================
        天文新闻 · 独立页
        ---------------------------------------------------------------------
@@ -1232,16 +1227,16 @@
   <!-- ============================== 栏目按钮 ============================== -->
   <div class="tabs wrap">
     <div class="tab-row" id="tabRow" role="tablist">
-      <button class="tab is-active" type="button" role="tab" data-view="hot">
+      <button class="tab is-active" type="button" role="tab" data-view="hot" onclick="window.__newsView && window.__newsView('hot')">
         近期热点 <span class="tab-count" id="cnt-hot">·</span>
       </button>
-      <button class="tab" type="button" role="tab" data-view="cn">
+      <button class="tab" type="button" role="tab" data-view="cn" onclick="window.__newsView && window.__newsView('cn')">
         中国天文 <span class="tab-count" id="cnt-cn">·</span>
       </button>
-      <button class="tab" type="button" role="tab" data-view="intl">
+      <button class="tab" type="button" role="tab" data-view="intl" onclick="window.__newsView && window.__newsView('intl')">
         外国天文 <span class="tab-count" id="cnt-intl">·</span>
       </button>
-      <button class="tab" type="button" role="tab" data-view="topic">
+      <button class="tab" type="button" role="tab" data-view="topic" onclick="window.__newsView && window.__newsView('topic')">
         专题栏目 <span class="tab-count" id="cnt-topic">·</span>
       </button>
 
@@ -1374,6 +1369,15 @@
 
       /* ---------------------------------------------------------- 配置 */
 
+      /* ================= 自建转发器（推荐） =================
+         把你部署好的 Cloudflare Worker 地址填在下面（结尾不要带斜杠）。
+         填了之后：中文 RSS 抓取和翻译都走它 —— 这条链路在国内能通，
+         而且不依赖那些随时会挂的公共代理。
+         没填也没关系，会自动退回原来的链路。 */
+      var SELF_PROXY = '';
+
+      /* 中文航天 / 天文站（多数没有公开 RSS，靠转发器去取页面里的 feed
+         或者由转发器抓 RSS；地址可按需增删） */
       var SFN = 'https://api.spaceflightnewsapi.net/v4/articles/';
       var RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
 
@@ -1393,11 +1397,18 @@
         { url: 'https://skyandtelescope.org/feed/', name: 'Sky & Telescope' }
       ];
 
-      /* 中国天文：RSS 源。部分站点在境外可能访问不了，所以和 SFN 混着用 */
+      /* 中国天文：中文源（站主提供）。
+         说明：其中 dogstar 的几个是 http://，页面若是 https 部署，
+         浏览器直连会被"混合内容"策略拦掉；但走 rss2json / 代理
+         是服务端去取，不受影响，所以保持"先 rss2json 再代理"的链路。
+         某个源挂了不影响其它源，各自独立 try。 */
       var FEEDS_CN = [
-        { url: 'https://www.nao.cas.cn/rss/news.xml', name: '国家天文台' },
-        { url: 'https://www.cas.cn/rss/kj/2016/2020.xml', name: '中科院' },
-        { url: 'https://www.chinadaily.com.cn/rss/china_rss.xml', name: 'China Daily' }
+        { url: 'http://www.dogstar.net/rss/rss.php?id=1', name: '天文新闻' },
+        { url: 'http://www.dogstar.net/rss/rss.php?id=2', name: '天象新闻' },
+        { url: 'http://www.dogstar.net/rss/rss.php?id=3', name: '天文图吧' },
+        { url: 'http://www.dogstar.net/rss/rss.php?id=4', name: '每月星象' },
+        { url: 'https://interesting-sky.china-vo.org/category/year/feed/', name: '有趣天文奇观' },
+        { url: 'https://www.spacechina.com/n25/n13529/n122944/rss.xml', name: '中国航天科技集团' }
       ];
 
       /* 跨域代理：按顺序尝试，谁先通用谁 */
@@ -1413,11 +1424,88 @@
         '国家天文台': 0.95, '中科院': 0.9, '新华社': 0.9, '中国新闻网': 0.85,
         'SpaceNews': 0.8, 'Universe Today': 0.78, 'Sky & Telescope': 0.8,
         'Phys.org': 0.75, 'Space.com': 0.75, 'Reuters': 0.8, 'BBC': 0.8,
-        'CGTN': 0.82, 'China Daily': 0.8, '环球网': 0.78, '澎湃新闻': 0.8
+        'CGTN': 0.82, 'China Daily': 0.8, '环球网': 0.78, '澎湃新闻': 0.8,
+        '中国航天科技集团': 0.95, '有趣天文奇观': 0.9,
+        '天文新闻': 0.85, '天象新闻': 0.85, '天文图吧': 0.8, '每月星象': 0.85,
+        'IT之家': 0.72
       };
 
+      /* 天文相关性过滤
+         ---------------------------------------------------------------
+         为什么需要：站主截图里"中国天文"栏里出现了广汽埃安、网易游戏、
+         英伟达显卡 —— 因为这些是综合科技站（如 IT之家）的条目，
+         来源算"中文"，但内容根本不是天文。
+         所以除了"是不是中国来源"，还得过一道"是不是天文内容"。
+         关键词覆盖：天文观测、深空探测、火箭卫星、常见天体。 */
+      var ASTRO_WORDS = [
+        '天文', '天象', '星空', '星系', '恒星', '行星', '卫星', '彗星', '小行星',
+        '月球', '月面', '火星', '金星', '木星', '土星', '水星', '天王星', '海王星',
+        '太阳', '日冕', '耀斑', '黑子', '极光', '宇宙', '银河', '星云', '星团',
+        '黑洞', '中子星', '脉冲星', '引力波', '暗物质', '暗能量', '超新星',
+        '望远镜', '天文台', '观测', '天眼', 'FAST', '射电',
+        '航天', '火箭', '运载', '发射', '飞船', '空间站', '探月', '探火',
+        '嫦娥', '天问', '神舟', '北斗', '鹊桥', '天宫', '长征', '祝融', '玉兔',
+        '轨道', '着陆', '巡视器', '探测器', '深空', '近地', '星座', '星链',
+        'astronomy', 'astrophysics', 'telescope', 'galaxy', 'nebula', 'supernova',
+        'black hole', 'exoplanet', 'orbit', 'launch', 'lunar', 'mars', 'spacecraft',
+        'rocket', 'satellite', 'comet', 'asteroid', 'cosmos', 'universe', 'solar',
+        'mercury', 'venus', 'jupiter', 'saturn', 'neptune', 'uranus', 'pluto'
+      ];
+
+      /* 明确的非天文来源：这些站是综合科技/资讯站，
+         哪怕它们出现在中文源列表里，产出的条目也一律不收。 */
+      var BLOCK_SRC = ['ithome', 'it之家', '驱动之家', '快科技', 'cnbeta'];
+
+      function isBlocked(n) {
+        var s = String((n && (n.source || n.news_site)) || '').toLowerCase();
+        for (var i = 0; i < BLOCK_SRC.length; i++) {
+          if (s.indexOf(BLOCK_SRC[i]) >= 0) return true;
+        }
+        return false;
+      }
+
+      /* 内容是否与天文/航天相关 */
+      function astroish(n) {
+        var text = String((n && n.title) || '') + ' ' + String((n && n.summary) || '');
+        var low = text.toLowerCase();
+        for (var i = 0; i < ASTRO_WORDS.length; i++) {
+          var w = ASTRO_WORDS[i];
+          if (text.indexOf(w) >= 0 || low.indexOf(String(w).toLowerCase()) >= 0) return true;
+        }
+        return false;
+      }
+
+      /* 一条新闻能不能进站：不是黑名单来源，而且内容确实是天文/航天 */
+      /* 这条新闻的标题能不能变成中文？
+         判据：本地词表翻出来的结果里，中文 >= 4 个字。
+         翻不出来的（整句英文 + 一堆专有名词）就不展示 —— 与其让人看
+         一段看不懂的英文，不如不放。 */
+      function zhTitle(n) {
+        var raw = String((n && n.title) || '');
+        try {
+          if (window.SkyNewsLang && window.SkyNewsLang.translate) {
+            var r = window.SkyNewsLang.translate(raw);
+            if (r && r.covered && r.zh) return r.zh;
+            if (r && r.zh && (r.zh.match(/[\u4e00-\u9fa5]/g) || []).length >= 4) return r.zh;
+          }
+        } catch (e) { }
+        /* 已经是中文标题（中文媒体源） */
+        if ((raw.match(/[\u4e00-\u9fa5]/g) || []).length >= 4) return raw;
+        return '';
+      }
+
+      function readable(n) {
+        return !!zhTitle(n);
+      }
+
+      function keepNews(n) {
+        return !isBlocked(n) && astroish(n);
+      }
+
       /* 判断一条新闻是不是"中国天文" */
-      var CN_SRC = ['cnsa', 'china', 'chinadaily', 'cgtn', 'xinhua', '新华社', '中国', '中科院', '国家天文台', '澎湃', '环球'];
+      var CN_SRC = ['cnsa', 'china', 'chinadaily', 'cgtn', 'xinhua', '新华社', '中国', '中科院', '国家天文台', '澎湃', '环球',
+        'dogstar', 'interesting-sky', 'spacechina', 'ithome',
+        '天文新闻', '天象新闻', '天文图吧', '每月星象', '有趣天文奇观', '中国航天科技集团', 'IT之家'];
       var CN_WORD = ['中国', '我国', '嫦娥', '天问', '北斗', '鹊桥', '天宫', '神舟', '长征', 'FAST', '郭守敬', '空间站', '祝融', '羲和'];
 
       /* --------------------------------------------------- 内置快照兜底
@@ -1882,6 +1970,12 @@
       }
 
       function loadViaProxy(feed) {
+        /* 优先自建转发器：它对 http:// 源也有效，且不会 403 */
+        if (SELF_PROXY) {
+          return fetchT(SELF_PROXY + '/proxy?url=' + encodeURIComponent(feed.url), 15000)
+            .then(function (r) { return r.text(); })
+            .then(function (text) { return parseRssXml(text, feed.name); });
+        }
         var chain = PROXIES.reduce(function (p, fn) {
           return p.catch(function () {
             return fetchT(fn(feed.url), 14000).then(function (r) { return r.text(); });
@@ -1997,7 +2091,9 @@
 
       function saveCache(list) {
         try {
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), list: list.slice(0, 120) }));
+          /* 只存天文条目：这样缓存里的旧科技新闻下次就被清掉了 */
+          var clean = list.filter(keepNews).slice(0, 120);
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), list: clean }));
         } catch (e) { }
       }
 
@@ -2051,7 +2147,7 @@
       }
 
       function renderTop() {
-        var list = state.all.slice().sort(function (a, b) { return b.__heat - a.__heat; }).slice(0, 10);
+        var list = state.all.filter(keepNews).filter(readable).sort(function (a, b) { return b.__heat - a.__heat; }).slice(0, 10);
         var ul = $('topList');
         if (!list.length) {
           ul.innerHTML = '<li class="state">暂时没有检索到新闻。<div class="state-actions">' +
@@ -2076,7 +2172,10 @@
             '<span class="top-rank">' + rankIcon(i) + '</span>' +
             '<span class="top-body">' +
             '<a class="top-title" href="' + esc(n.url) + '" target="_blank" rel="noopener noreferrer">' + esc(__newsTitleZh(n.title)) + '</a>' +
-            (n.summary ? '<div class="top-sum">' + esc(n.summary) + '</div>' : '') +
+            /* Top10 的摘要同上：纯英文段落不展示，免得一屏英文看不懂 */
+            (n.summary && /[\u4e00-\u9fa5]/.test(String(n.summary))
+              ? '<div class="top-sum">' + esc(n.summary) + '</div>'
+              : '') +
             '<div class="top-meta">' +
             '<span class="tag">' + esc(n.source) + '</span>' +
             (n.published ? '<span>' + esc(relTime(n.published)) + '</span>' : '') +
@@ -2087,6 +2186,166 @@
               'onerror="this.style.display=\'none\'">' : '') +
             '</li>';
         }).join('');
+      }
+
+      /* --------------------------------------------------- 摘要翻译
+       *  只用免费的 MyMemory 接口（无需 key、支持跨域）。
+       *  为什么不在构建时翻：摘要每天都在变，而且纯静态站没有后端。
+       *  翻好的结果写进 localStorage，第二次打开直接命中，不再请求。 */
+      var SUM_CACHE_KEY = 'sky_sum_zh_v1';
+      var sumCache = (function () {
+        try {
+          var raw = localStorage.getItem(SUM_CACHE_KEY);
+          return raw ? JSON.parse(raw) : {};
+        } catch (e) { return {}; }
+      })();
+
+      function sumCacheSave() {
+        try {
+          var keys = Object.keys(sumCache);
+          if (keys.length > 400) {
+            keys.slice(0, keys.length - 400).forEach(function (k) { delete sumCache[k]; });
+          }
+          localStorage.setItem(SUM_CACHE_KEY, JSON.stringify(sumCache));
+        } catch (e) { }
+      }
+
+      function sumKey(n) {
+        return (n.url || '') + '#' + (n.title || '');
+      }
+
+      function mmTranslate(text) {
+        var q = String(text || '').replace(/\s+/g, ' ').trim();
+        if (!q) return Promise.resolve('');
+        if (q.length > 460) q = q.slice(0, 460) + '…';
+
+        /* 有自建转发器就走它 —— 比 MyMemory 稳，也不限流 */
+        if (SELF_PROXY) {
+          return fetchT(SELF_PROXY + '/tr?q=' + encodeURIComponent(q) + '&to=zh-CN', 8000)
+            .then(function (r) { return r.json(); })
+            .then(function (j) {
+              if (!j || !j.text) throw new Error('翻译失败');
+              return j.text;
+            });
+        }
+
+        var url = 'https://api.mymemory.translated.net/get?q=' +
+          encodeURIComponent(q) + '&langpair=en|zh-CN';
+        return fetchT(url, 4000).then(function (r) { return r.json(); }).then(function (j) {
+          var s = j && j.responseData && j.responseData.translatedText;
+          if (!s) throw new Error('空结果');
+          if (/MYMEMORY WARNING|QUERY LENGTH LIMIT|INVALID/i.test(s)) throw new Error('限流');
+          /* 服务偶尔会把整句原样返回，那就当作没翻 */
+          if (s.replace(/\s/g, '') === q.replace(/\s/g, '')) throw new Error('未翻译');
+          return s;
+        });
+      }
+
+      /* ---------------------------------------------------------------
+       * 翻译熔断
+       *
+       * 为什么需要：站主的网络里 MyMemory 连不上，每张卡片的翻译请求
+       * 都要等 8 秒超时；20 张卡片 = 20 个挂起请求，把连接池占满，
+       * 结果整个页面像卡死一样 —— 切栏目、点按钮都"没反应"。
+       * 现在：连续失败 3 次就整体放弃本次会话，后续直接给中文占位。
+       * ------------------------------------------------------------- */
+      var sumFailCount = 0;
+      var sumDisabled = false;
+
+
+      /* --------------------------------------------------- 标题兜底翻译
+       * 词典翻不出来的标题（人名、专有名词太多），再走一次翻译接口。
+       * 这样屏上就不会再出现整句英文。 */
+      function translateTitles(grid, list) {
+        if (sumDisabled || (navigator && navigator.onLine === false)) return;
+        var cards = grid.querySelectorAll('.news-card');
+        var todo = [];
+        cards.forEach(function (card, idx) {
+          var h = card.querySelector('h3');
+          var n2 = list[idx];
+          if (!h || !n2) return;
+          var text = h.textContent || '';
+          /* 还有 4 个以上连续英文单词，就说明没翻好 */
+          if (!/[A-Za-z]{3,}\s+[A-Za-z]{3,}\s+[A-Za-z]{3,}/.test(text)) return;
+          todo.push({ el: h, n: n2 });
+        });
+        if (!todo.length) return;
+
+        var i = 0, running = 0, MAX = 2;
+        function next() {
+          while (running < MAX && i < todo.length) {
+            (function (job) {
+              running++;
+              mmTranslate(job.n.title).then(function (zh) {
+                job.el.textContent = zh;
+              })['catch'](function () {
+                sumFailCount++;
+                if (sumFailCount >= 3) sumDisabled = true;
+              }).then(function () { running--; next(); });
+            })(todo[i++]);
+          }
+        }
+        next();
+      }
+
+      function translateSummaries(grid, list) {
+        if (sumDisabled || (navigator && navigator.onLine === false)) {
+          grid.querySelectorAll('.news-sum').forEach(function (p) {
+            p.textContent = '英文报道 · 点标题查看原文';
+            p.removeAttribute('data-en');
+          });
+          return;
+        }
+        var cards = grid.querySelectorAll('.news-card');
+        var todo = [];
+        cards.forEach(function (card, idx) {
+          var p = card.querySelector('.news-sum');
+          if (!p) return;
+          var n = list[idx];
+          if (!n) return;
+          var hit = sumCache[sumKey(n)];
+          if (hit) {
+            p.textContent = hit;
+            p.removeAttribute('data-en');
+            return;
+          }
+          todo.push({ el: p, n: n });
+        });
+        if (!todo.length) return;
+
+        var cursor = 0, running = 0, MAX = 3;
+
+        function next() {
+          while (running < MAX && cursor < todo.length) {
+            (function (job) {
+              running++;
+              mmTranslate(job.n.summary).then(function (zh) {
+                job.el.textContent = zh;
+                job.el.removeAttribute('data-en');
+                sumCache[sumKey(job.n)] = zh;
+                sumCacheSave();
+              })['catch'](function () {
+                /* 翻不了：不留英文原文（看得懂就不用翻了），给一句中文提示，
+                   想读原文点标题即可。 */
+                job.el.textContent = '英文报道 · 点标题查看原文';
+                job.el.removeAttribute('data-en');
+                sumFailCount++;
+                if (sumFailCount >= 3) {
+                  /* 连续三次都不行 → 这个网络环境基本用不了，整体关掉 */
+                  sumDisabled = true;
+                  grid.querySelectorAll('.news-sum[data-en]').forEach(function (p) {
+                    p.textContent = '英文报道 · 点标题查看原文';
+                    p.removeAttribute('data-en');
+                  });
+                }
+              }).then(function () {
+                running--;
+                next();
+              });
+            })(todo[cursor++]);
+          }
+        }
+        next();
       }
 
       function renderView() {
@@ -2128,17 +2387,17 @@
           title.textContent = '中国天文';
           sub.textContent = 'China';
           note.textContent = '中国航天与天文动态';
-          list = state.all.filter(isCN);
+          list = state.all.filter(isCN).filter(keepNews).filter(readable);
         } else if (state.view === 'intl') {
           title.textContent = '外国天文';
           sub.textContent = 'International';
           note.textContent = 'NASA / ESA / 全球天文机构';
-          list = state.all.filter(function (n) { return !isCN(n); });
+          list = state.all.filter(function (n) { return !isCN(n) && keepNews(n) && readable(n); });
         } else {
           title.textContent = '近期热点';
           sub.textContent = 'Latest';
           note.textContent = '按时间与来源自动排布';
-          list = state.all.slice();
+          list = state.all.filter(keepNews).filter(readable);
         }
 
         list = list.sort(function (a, b) { return (b.ts || 0) - (a.ts || 0); });
@@ -2183,19 +2442,26 @@
         if (grid.getAttribute('data-sign') === sign) return;
         grid.setAttribute('data-sign', sign);
 
-        grid.innerHTML = list.map(function (n) {
-          return '<a class="news-card' + freshCls(n) + '" href="' + esc(n.url) + '" target="_blank" rel="noopener noreferrer">' +
+        grid.innerHTML = list.map(function (n, i) {
+          return '<a class="news-card' + freshCls(n) + '" data-si="' + i + '" href="' + esc(n.url) + '" target="_blank" rel="noopener noreferrer">' +
             (n.image ? '<img class="thumb" src="' + esc(n.image) + '" alt="" loading="lazy" ' +
               'onerror="this.remove()">' : '') +
             '<span class="body">' +
             '<h3>' + esc(__newsTitleZh(n.title)) + '</h3>' +
             __newsTitleEn(n.title) +
-            (n.summary ? '<p>' + esc(n.summary) + '</p>' : '') +
+            /* 摘要先不显示英文原文：站主看不懂英文，直接怼一整段反而更糟。
+               先占位"翻译中…"，翻好了替换；翻不动就变成一句中文提示。 */
+            (n.summary ? '<p class="news-sum" data-en="1" data-orig="' +
+              esc(String(n.summary).slice(0, 600)) + '">翻译中…</p>' : '') +
             '<span class="meta">' +
             '<span class="tag' + (isCN(n) ? ' is-cn' : '') + '">' + esc(n.source) + '</span>' +
             (n.published ? '<span>' + esc(relTime(n.published)) + '</span>' : '') +
             '</span></span></a>';
         }).join('');
+
+        /* 卡片画完之后，把英文摘要逐条译成中文（并发 3 个，带缓存） */
+        translateSummaries(grid, list);
+        translateTitles(grid, list);
       }
 
       function renderStats() {
@@ -2208,11 +2474,15 @@
           : (state.fromCache ? '离线缓存' : '—');
         updateStatus();
 
-        var cn = state.all.filter(isCN).length;
-        $('cnt-hot').textContent = String(Math.min(10, state.all.length));
-        $('cnt-cn').textContent = String(cn);
-        $('cnt-intl').textContent = String(state.all.length - cn);
-        $('cnt-topic').textContent = String(TOPICS.length);
+        /* 站主要求"每一栏最多 20 个"。
+           标签上的数字改成**实际会显示出来的条数**（超过上限就显示上限），
+           这样点进去不会出现"写着 116 条却只看到 20 条"的落差。 */
+        var cn = state.all.filter(isCN).filter(keepNews).length;
+        var intl = state.all.length - cn;
+        $('cnt-hot').textContent = String(Math.min(LIMIT_HOT, state.all.length));
+        $('cnt-cn').textContent = String(Math.min(LIMIT_CN, cn));
+        $('cnt-intl').textContent = String(Math.min(LIMIT_INTL, state.all.filter(function (x) { return !isCN(x) && keepNews(x); }).length));
+        $('cnt-topic').textContent = String(Math.min(LIMIT_INTL, TOPICS.length));
       }
 
       /* ------------------------------------------------------ 主流程 */
@@ -2483,6 +2753,15 @@
 
       /* ------------------------------------------------------ 交互 */
 
+      /* 把"当前栏目结果"滚到导航栏下方，保证一眼能看到内容变了 */
+      function revealView() {
+        var sec = $('secView') || document.querySelector('.view-sec');
+        if (!sec) return;
+        var navH = 64;
+        var top = sec.getBoundingClientRect().top + window.pageYOffset - navH;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      }
+
       function bindTabs() {
         document.querySelectorAll('.tab').forEach(function (b) {
           b.addEventListener('click', function () {
@@ -2492,11 +2771,10 @@
             });
             state.view = b.getAttribute('data-view');
             renderView();
-            /* 切栏目时把视图区滚到可见位置 */
-            var sec = $('secView');
-            if (sec && sec.getBoundingClientRect().top < 0) {
-              sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            /* 关键：切换后一定要把"结果区"滚进视野。
+               原来只在它已经滚出屏幕上方时才滚，所以人在页面顶部时
+               点按钮，看到的一直是上面的 Top10 区块 —— 就像"没反应"。 */
+            revealView();
           });
         });
       }

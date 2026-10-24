@@ -6,11 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>站长收件箱 · 星空</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff4fd8'/%3E%3Cstop offset='1' stop-color='%2300AEEC'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230a0e16'/%3E%3Cpath d='M32 8 L37 27 L56 32 L37 37 L32 56 L27 37 L8 32 L27 27 Z' fill='url(%23g)'/%3E%3C/svg%3E">
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@900&display=swap" rel="stylesheet" />
 
-  <style>
+
+<style>
     :root {
       --bg: #f6efdf;
       --text: #0f1b2b;
@@ -455,6 +453,8 @@
       } catch (e) { }
     })();
   </script>
+  <!-- 全站日夜主题：必须尽早同步加载，第一帧才不会闪 -->
+  <script src="js/theme.js"></script>
 </head>
 
 <body>
@@ -519,7 +519,58 @@
       var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanB0dnJsbW1ueGFtZ25lbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5OTY5NDAsImV4cCI6MjEwNjU3Mjk0MH0.2PiF0gJet82QnQpHd8Il_6bvTPLtBeypVOYRHG_W9YU';
       var ADMIN_EMAIL = 'piao022400@qq.com';
 
-      var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      /* 创建客户端前先判空。
+       supabase-js 从 CDN 加载，国内经常连不上；没加载出来时
+       window.supabase 是 undefined，直接 createClient 会抛 TypeError，
+       整页脚本跟着停（页面看起来就是"一片空白/按钮都没反应"）。
+       拿不到就退化成空实现，页面照常显示，只是读不到云端数据。 */
+      function makeOfflineSupabase() {
+        function fail() {
+          return Promise.resolve({
+            data: null,
+            error: { message: '离线模式：连不上账号服务', offline: true }
+          });
+        }
+        function builder() {
+          var chain = {
+            select: function () { return chain; },
+            insert: function () { return chain; },
+            update: function () { return chain; },
+            'delete': function () { return chain; },
+            eq: function () { return chain; },
+            order: function () { return chain; },
+            limit: function () { return chain; },
+            single: function () { return fail(); },
+            maybeSingle: function () { return fail(); },
+            then: function (ok, bad) { return fail().then(ok, bad); },
+            'catch': function (bad) { return fail()['catch'](bad); }
+          };
+          return chain;
+        }
+        return {
+          auth: {
+            getUser: function () { return Promise.resolve({ data: { user: null }, error: null }); },
+            getSession: function () { return Promise.resolve({ data: { session: null }, error: null }); },
+            signInWithPassword: fail,
+            signOut: function () { return Promise.resolve({ error: null }); },
+            updateUser: fail
+          },
+          from: function () { return builder(); }
+        };
+      }
+
+      var supabase = null;
+      try {
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+      } catch (e) {
+        if (window.console) console.warn('[星空] Supabase 初始化失败', e);
+      }
+      if (!supabase) {
+        supabase = makeOfflineSupabase();
+        window.__skyOffline = true;
+      }
 
       /* ---------- 日夜模式 ---------- */
       (function () {

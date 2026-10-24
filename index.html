@@ -2,32 +2,39 @@
 <html lang="zh-CN" data-default-color-scheme="dark" data-user-color-scheme="dark" data-sky="dark" data-mansions="on">
 
 <head>
+  <script>
+  /* 背景方案要在第一帧之前定好，否则会先闪一下方案二再切过去 */
+  (function(){try{var s=localStorage.getItem("sky_bg_style_v2");document.documentElement.setAttribute("data-bg-style",(s==="one"||s==="two"||s==="three")?s:"one");}catch(e){document.documentElement.setAttribute("data-bg-style","two");}})();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>星空</title>
   <meta name="description" content="星空 · staruniver —— 一片可以慢慢看的星空：三层视差星野、三垣二十八宿古籍星图，以及天文新闻与小工具。" />
 
   <!-- 内联 SVG 图标：不依赖任何文件，一定显示 -->
+  
+  
+  
+  <!-- 内联 SVG：粉→蓝渐变四角星（无白点） -->
   <link rel="icon" type="image/svg+xml"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff4fd8'/%3E%3Cstop offset='1' stop-color='%2300AEEC'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230a0e16'/%3E%3Cpath d='M32 8 L37 27 L56 32 L37 37 L32 56 L27 37 L8 32 L27 27 Z' fill='url(%23g)'/%3E%3Ccircle cx='50' cy='14' r='2' fill='white'/%3E%3Ccircle cx='14' cy='50' r='1.5' fill='white'/%3E%3C/svg%3E">
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ff4fd8'/%3E%3Cstop offset='1' stop-color='%2300AEEC'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230a0e16'/%3E%3Cpath d='M32 8 L37 27 L56 32 L37 37 L32 56 L27 37 L8 32 L27 27 Z' fill='url(%23g)'/%3E%3C/svg%3E">
 
-  <link rel="icon" href="favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-  <link rel="manifest" href="site.webmanifest">
+  <!-- 文件图标：加了 ?v=2 强制浏览器重新取，否则 favicon 缓存在那儿不刷新 -->
+  <link rel="icon" href="favicon.ico?v=2" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png?v=2">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=2">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=Noto+Serif+SC:wght@400;600;700;900&display=swap"
-    rel="stylesheet" />
 
-  <!-- 美化版主样式表（设计令牌 / 星野 / 导航 / 卡片 / 星图 / 设置面板） -->
-  <link rel="stylesheet" href="css/sky.css" />
+<!-- 美化版主样式表（设计令牌 / 星野 / 导航 / 卡片 / 星图 / 设置面板） -->
+  <link rel="stylesheet" href="css/sky.css?v=20261024" />
 
   <!-- 功能脚本：星野主控 + 古籍星图面板 + 新闻标题翻译（defer：解析完再执行） -->
-  <script src="js/news-lang.js" defer></script>
+  <!-- 新闻标题翻译层：**必须同步加载**。
+       原来写了 defer，而首页新闻面板的内联脚本在解析阶段就执行了，
+       那时候 window.SkyNewsLang 还不存在 —— 于是标题全是英文，
+       翻译代码写了等于没写。 -->
+  <script src="js/news-lang.js"></script>
   <script src="js/skydeck.js" defer></script>
   <script src="js/starlore.js" defer></script>
   <script src="js/skychart.js" defer></script>
@@ -121,7 +128,6 @@
     })();
   </script>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- ==================================================================
        全局星空：三层视差星野
@@ -129,6 +135,16 @@
        每层复制一份首尾相接，形成「自动向左滑动」的无缝循环。
        ================================================================== -->
   <div class="sky-field" id="skyField" aria-hidden="true">
+    <!-- 方案一「极简」：单独一张静态星空图。
+         默认隐藏，只有 html[data-bg-style="one"] 时才显示，
+         同时把方案二的三层星野关掉。 -->
+    <div class="sky-luxe" aria-hidden="true">
+      <img src="assets/sky-min.svg" alt="" decoding="async" draggable="false">
+    </div>
+    <!-- 方案三「只有星座」：星星 + 二十八宿连线，没有星云和银河 -->
+    <div class="sky-const" aria-hidden="true">
+      <img src="assets/sky-const.svg" alt="" decoding="async" draggable="false">
+    </div>
     <div class="sky-airglow"></div>
     <div class="sky-grain"></div>
     <div class="meteors" id="meteors"></div>
@@ -150,9 +166,6 @@
             </linearGradient>
           </defs>
           <path d="M32 6 L38 26 L58 32 L38 38 L32 58 L26 38 L6 32 L26 26 Z" fill="url(#navLogoGrad)" />
-          <circle cx="50" cy="14" r="2" fill="#ffffff" opacity=".9" />
-          <circle cx="14" cy="50" r="1.5" fill="#ffffff" opacity=".8" />
-          <circle cx="52" cy="50" r="1.2" fill="#ffffff" opacity=".7" />
         </svg>
         <span class="nav-logo-text">星空</span>
       </div>
@@ -185,15 +198,15 @@
               <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
             </svg><span>分类</span>
           </a></li>
+        <!-- ★ 原来的「关于」已替换为「新闻」。
+             按站主要求，它和别的按钮一样是**左右滑动过去的一页**（data-index=4），
+             不再直接跳 news.html；那一页底部有「点击查看更多」才跳过去。 -->
         <li><a href="#" data-index="3" data-page="tag">
             <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V5a2 2 0 0 1 2-2h8l7.6 7.6a2 2 0 0 1 0 2.8z" />
               <circle cx="8" cy="8" r="1.4" />
             </svg><span>标签</span>
           </a></li>
-        <!-- ★ 原来的「关于」已替换为「新闻」。
-             按站主要求，它和别的按钮一样是**左右滑动过去的一页**（data-index=4），
-             不再直接跳 news.html；那一页底部有「点击查看更多」才跳过去。 -->
         <li><a href="#" data-index="4" data-page="news">
             <svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h10A1.5 1.5 0 0 1 17 5.5V19a1 1 0 0 0 1 1H6a2 2 0 0 1-2-2z" />
@@ -244,8 +257,13 @@
           </svg>
           <!-- 齿轮：未上传头像时显示 -->
           <svg class="nav-user-gear" viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="3.1" />
-            <path d="M12 2.6v2.3M12 19.1v2.3M2.6 12h2.3M19.1 12h2.3M5.35 5.35l1.63 1.63M17.02 17.02l1.63 1.63M18.65 5.35l-1.63 1.63M6.98 17.02l-1.63 1.63" />
+            <!-- 齿轮：环 + 8 颗短齿。
+                 原来画的是小圆点 + 8 根很长的辐条，缩到 20px 时
+                 看起来就是一朵太阳花 —— 站在月亮图标旁边，
+                 会让人以为任务栏有两个主题切换按钮。
+                 现在把齿贴着外环、只露一点点，一眼就能认出是齿轮。 -->
+            <circle cx="12" cy="12" r="6.6" />
+            <path d="M12 4.4V2.4M17.37 6.63l1.42-1.42M19.6 12h2M17.37 17.37l1.42 1.42M12 19.6v2M6.63 17.37l-1.42 1.42M4.4 12H2.4M6.63 6.63L5.21 5.21" />
           </svg>
           <span class="nav-user-initial" id="navUserInitial"></span>
           <img class="nav-user-avatar" id="navUserAvatar" alt="" />
@@ -455,26 +473,26 @@
       </section>
 
       <!-- ==================== 3 标签 ==================== -->
+      <!-- ==================== 3 标签 ====================
+           原来这一页是空的（只有个空容器），我上一轮误以为"断链"删掉了。
+           现在填成标签云：每个标签点一下跳到对应栏目。 -->
       <section class="page" data-page="tag">
         <div class="friend-stage">
           <section class="glass-card" aria-label="标签云">
+
             <div class="glass-head">
               <span class="glass-title">标签</span>
               <span class="glass-sub">Tags</span>
             </div>
+
             <div class="tag-cloud" id="tagCloud">
-              <!-- 由脚本动态渲染 -->
+              <!-- 由下面的 JS 动态渲染成环形标签云 -->
             </div>
+
           </section>
         </div>
       </section>
 
-      <!-- ==================== 3.5 新闻（和其他页一样横向翻过来） ====================
-           站主要求：新闻这一栏要和任务栏其它按钮一样是**左右滑动过去**的一页，
-           界面风格保持一致；里面放「近期热点 Top10」，
-           下面一个灰色的「点击查看更多」，点了才跳到 news.html。
-           数据不是在这里现抓的 —— 读的是 news.html 存在本机的同一份缓存
-           （localStorage 的 sky_news_cache_v1），所以这一页几乎瞬时打开、不卡。 -->
       <section class="page" data-page="news">
         <div class="friend-stage">
           <section class="glass-card" aria-label="天文新闻" style="width:min(94vw,620px);">
@@ -803,6 +821,20 @@
 
             <!-- ---------- 外观 ---------- -->
             <div class="setting-pane" id="pane-appearance">
+                <!-- 背景方案（站主要求：现在这套设为方案二，新做的极简版为方案一） -->
+                <div class="setting-row" id="bgStyleRow">
+                  <div class="setting-info">
+                    <span class="setting-name">星空背景</span>
+                    <span class="setting-desc">方案一：极简安静 · 方案二：三层星野</span>
+                  </div>
+                  <div class="setting-ctl">
+                    <div class="seg" id="bgStyleSeg">
+                      <button type="button" class="seg-btn" data-bg="one">方案一</button>
+                      <button type="button" class="seg-btn" data-bg="two">方案二</button>
+                      <button type="button" class="seg-btn" data-bg="three">方案三</button>
+                    </div>
+                  </div>
+                </div>
               <div class="setting-group-title">Theme</div>
 
               <div class="setting-row">
@@ -871,7 +903,9 @@
             </div>
 
             <!-- ---------- 星空 ---------- -->
-            <div class="setting-pane" id="pane-sky">
+            
+                <p class="build-tag">界面版本 2026.10.24 · 含星空背景三选一</p>
+              <div class="setting-pane" id="pane-sky">
               <div class="setting-group-title">Sky</div>
 
               <div class="setting-row">
@@ -1341,16 +1375,26 @@
       };
     })();
 
-    /* ---------- 横向页面跳转 + 星野联动 ---------- */
+    /* ---------- 横向页面跳转 + 星野联动 ----------
+       这里原来是 track.style.transform = translate3d(-i*100%) 翻页。
+       实测那个位移**根本没生效**（计算样式一直是恒等矩阵），
+       于是点导航只有高亮变了、内容还停在首页 ——
+       新闻页一直在屏幕外，所以点新闻条目也"不跳转"。
+       现在改成让 .stage 原生横向滚动，翻页就是 scrollTo：
+         · 位移一定生效
+         · 手机上可以直接手指左右拖
+         · 每一页都是真实可见的元素，链接照常跳
+       另外，用户拖动时也会同步导航高亮。 */
     (function () {
       var track = document.getElementById('track');
+      if (!track) return;
+      var stage = track.parentElement;
       var sky = document.getElementById('skyField');
       var pages = Array.prototype.slice.call(track.querySelectorAll('.page'));
       var navLinks = Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
+      var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
       var cur = 0;
-      var lock = false;
-      var REVEAL_MS = 520;
 
       /* 换页时星野轻微偏移 + 旋转，制造"镜头摇过去"的感觉 */
       function applySky(i) {
@@ -1364,28 +1408,36 @@
         navLinks.forEach(function (a, k) { a.classList.toggle('active', k === i); });
       }
 
-      function go(i) {
+      function pageWidth() {
+        return stage.clientWidth || window.innerWidth || 1;
+      }
+
+      /* 同步状态：高亮、active 类、星野偏移 */
+      function sync(i) {
+        if (i < 0 || i >= pages.length) return;
+        cur = i;
+        pages.forEach(function (p, k) { p.classList.toggle('active', k === i); });
+        setNav(i);
+        applySky(i);
+      }
+
+      function go(i, instant) {
         if (i < 0 || i >= pages.length) return;
         if (i === cur) {
-          pages[i].scrollTo({ top: 0, behavior: 'smooth' });
+          pages[i].scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
           return;
         }
-        if (lock) return;
-        lock = true;
-
-        pages.forEach(function (p) { p.classList.remove('active'); });
-        setNav(i);
-
+        sync(i);
+        /* 整条轨道平移：比滚动容器省，也天然带出"从虚到实"的观感 */
         track.style.transform = 'translate3d(' + (-i * 100) + '%,0,0)';
-        applySky(i);
-
-        setTimeout(function () {
-          pages[i].classList.add('active');
-          lock = false;
-        }, REVEAL_MS);
-
-        cur = i;
+        /* 过渡期间摘掉毛玻璃，结束后恢复 */
+        document.documentElement.classList.add('is-switching');
+        clearTimeout(go._t);
+        go._t = setTimeout(function () {
+          document.documentElement.classList.remove('is-switching');
+        }, (instant || reduce) ? 60 : 680);
       }
+
 
       navLinks.forEach(function (a) {
         a.addEventListener('click', function (e) {
@@ -1396,9 +1448,21 @@
         });
       });
 
-      applySky(0);
-      pages[0].classList.add('active');
-      window.addEventListener('resize', function () { applySky(cur); });
+      /* 键盘左右键也能翻页（焦点不在输入框里时） */
+      document.addEventListener('keydown', function (e) {
+        var tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        if (e.key === 'ArrowRight') { go(cur + 1); }
+        else if (e.key === 'ArrowLeft') { go(cur - 1); }
+      });
+
+      window.addEventListener('resize', function () {
+        stage.scrollTo({ left: cur * pageWidth(), behavior: 'auto' });
+        applySky(cur);
+      });
+
+      sync(0);
+      stage.scrollTo({ left: 0, behavior: 'auto' });
     })();
 
     /* ---------- 首页 ↔ 小工具：上下翻动 ---------- */
@@ -1648,12 +1712,19 @@
       }
 
       var data;
+      /* 用 file:// 双击打开时，浏览器**禁止 fetch 本地文件**（CORS: origin 'null'），
+         这时还去请求只会往控制台刷一条红色错误。所以先判断协议：
+         本地打开就静默跳过，直接用页面里写死的默认内容。 */
+      if (location.protocol === 'file:') {
+        if (window.console) console.info('[星空] 本地文件模式，跳过 site.json');
+        return;
+      }
       try {
         var res = await fetch('data/site.json?t=' + Date.now(), { cache: 'no-store' });
         if (!res.ok) return;
         data = await res.json();
       } catch (e) {
-        console.warn('site.json 加载失败', e);
+        if (window.console) console.info('site.json 未加载（可忽略）', e.message);
         return;
       }
       if (!data || typeof data !== 'object') return;
@@ -1883,7 +1954,129 @@
       /* ================================================== Supabase 初始化 */
       var SUPABASE_URL = 'https://icjptvrlmmnxamgnemvz.supabase.co';
       var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljanB0dnJsbW1ueGFtZ25lbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5OTY5NDAsImV4cCI6MjEwNjU3Mjk0MH0.2PiF0gJet82QnQpHd8Il_6bvTPLtBeypVOYRHG_W9YU';
-      var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            /* ---------------------------------------------------------------
+       * 离线兜底用的"空 Supabase"
+       *
+       * 为什么要这个：supabase-js 是从 CDN 加载的，国内网络经常连不上。
+       * 原来下面那行直接 window.supabase.createClient(...) ——
+       * CDN 没加载出来时 window.supabase 是 undefined，这行抛 TypeError，
+       * **同一个脚本块后面的代码就全部不执行了**（登录、主题、新闻、收件箱
+       * 一起失灵，连星空的"就绪"标记都加不上，看起来就是星空不显示）。
+       *
+       * 现在给它一个空实现：调用会立刻返回"连不上"的错误，
+       * 但不会抛异常，页面其它功能照常工作。
+       * ------------------------------------------------------------- */
+      function makeOfflineSupabase() {
+        function fail() {
+          return Promise.resolve({
+            data: null,
+            error: { message: '离线模式：连不上账号服务', offline: true }
+          });
+        }
+        /* 链式查询构造器：所有方法都返回自身，最后 Promise 时给出错误 */
+        function builder() {
+          var chain = {
+            select: function () { return chain; },
+            insert: function () { return chain; },
+            update: function () { return chain; },
+            'delete': function () { return chain; },
+            upsert: function () { return chain; },
+            eq: function () { return chain; },
+            neq: function () { return chain; },
+            gt: function () { return chain; },
+            lt: function () { return chain; },
+            in: function () { return chain; },
+            is: function () { return chain; },
+            order: function () { return chain; },
+            limit: function () { return chain; },
+            range: function () { return chain; },
+            single: function () { return fail(); },
+            maybeSingle: function () { return fail(); },
+            then: function (ok, bad) { return fail().then(ok, bad); },
+            'catch': function (bad) { return fail()['catch'](bad); }
+          };
+          return chain;
+        }
+        return {
+          auth: {
+            getUser: function () { return Promise.resolve({ data: { user: null }, error: null }); },
+            getSession: function () { return Promise.resolve({ data: { session: null }, error: null }); },
+            signInWithPassword: fail,
+            signUp: fail,
+            signOut: function () { return Promise.resolve({ error: null }); },
+            updateUser: fail,
+            onAuthStateChange: function () {
+              return { data: { subscription: { unsubscribe: function () { } } } };
+            }
+          },
+          from: function () { return builder(); },
+          channel: function () {
+            var ch = { on: function () { return ch; }, subscribe: function () { return ch; } };
+            return ch;
+          },
+          removeChannel: function () { return Promise.resolve(); }
+        };
+      }
+
+var supabase = null;
+      try {
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+      } catch (e) {
+        if (window.console) console.warn('[星空] Supabase 初始化失败', e);
+      }
+
+      /* ---------------------------------------------------------------
+       * Supabase 懒加载
+       *
+       * 这个库只有"登录 / 留言 / 收信"才用得到，但之前放在 <head> 里
+       * 首屏就加载 —— Edge 的跟踪防护会因此报 4 条
+       * "Tracking Prevention blocked access to storage for cdn.jsdelivr.net"。
+       * 现在改成**第一次真的要用账号时**才动态插入 <script>，
+       * 首屏干净、也少了一个第三方请求。
+       * ------------------------------------------------------------- */
+      var SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      var __sbLoading = false;
+
+      function loadSupabaseLib() {
+        if (window.__skySbReady || __sbLoading) return;
+        __sbLoading = true;
+        var s = document.createElement('script');
+        s.src = SUPABASE_CDN;
+        s.async = true;
+        s.onload = function () {
+          try {
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+              supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+              window.__skySbReady = true;
+              window.__skyOffline = false;
+            }
+          } catch (e) {
+            if (window.console) console.warn('[星空] Supabase 初始化失败', e);
+          }
+          __sbLoading = false;
+        };
+        s.onerror = function () {
+          __sbLoading = false;
+          if (window.console) console.info('[星空] 连不上账号服务，保持离线模式');
+        };
+        document.head.appendChild(s);
+      }
+
+      /* 用户一碰账号相关的东西，就把库拉起来 */
+      document.addEventListener('click', function (e) {
+        var el = e.target && e.target.closest
+          ? e.target.closest('#navUser, #navMail, #sendMsgBtn, #quickLoginBtn, #loginBtn, #registerBtn')
+          : null;
+        if (el) loadSupabaseLib();
+      }, true);
+
+      if (!supabase) {
+        /* CDN 没加载出来 → 用空实现顶住，别让整页脚本崩掉 */
+        supabase = makeOfflineSupabase();
+        window.__skyOffline = true;
+      }
       var DEFAULT_INVITE_CODE = "090224";
 
       /* ------------------------------------------------------ 快捷登录存储 */
@@ -2682,7 +2875,9 @@
       function sb() {
         if (!window.supabase) return null;
         if (!window.__skySb) {
-          try { window.__skySb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+          try { window.__skySb = supabase; }  /* 复用上面已经建好的客户端。
+            再建一个新实例会触发 "Multiple GoTrueClient instances" 警告，
+            两个实例共用同一个 storage key 时行为不确定。 */
           catch (e) { return null; }
         }
         return window.__skySb;
@@ -2800,6 +2995,9 @@
           arr.splice(idx, 1);
           saveMine(arr);
           render();
+        /* 双保险：万一翻译层还没就绪，页面加载完再渲染一次 */
+        window.addEventListener('load', function () { try { render(); } catch (e) { } });
+        window.__newsRerender = render;
         });
 
         /* ---- 添加朋友弹窗 ---- */
@@ -2875,10 +3073,60 @@
         var box = $('newsList');
         if (!box) return;
 
+        /* 兜底榜单：没打开过 news.html（本机没有缓存）时显示这十条。
+           内容直接抄自 news.html 内置的那份快照，是真实新闻 + 中文标题，
+           总比原来那两句"点下面的按钮"的说明强。 */
         var FALLBACK = [
-          { title: '点下面的「点击查看更多」打开完整新闻页', source: '星空', summary: '完整版会自动检索并排版天文新闻' },
-          { title: '近期热点 Top 10 · 中国天文 · 外国天文 · 专题栏目', source: '星空', summary: '打开后缓存会写回本机，这一页就会自动显示出来' }
+          { title: "APOD：土星系统全家福 —— 一夜极佳视宁度下的高清影像", url: "https://science.nasa.gov/apod/", source: "NASA APOD", summary: "摄影师利用\"幸运成像\"技术，把数千张短曝光叠加，得到土星本体、环系与多颗卫星同框的高清影像。" },
+          { title: "太阳轨道器追踪\"磁开关\"之谜的起源", url: "https://www.esa.int/Science_Exploration/Space_Science/Solar_Orbiter", source: "ESA", summary: "Solar Orbiter 穿过太阳风磁场的 S 形扭结，通过粒子\"指纹\"把它追溯到太阳表面，为理解太阳磁活动提供新线索。" },
+          { title: "地球与火星可能有着不同的起源", url: "https://www.universetoday.com/", source: "Universe Today", summary: "新的同位素研究显示火星与地球并非由同一类物质按同一过程形成，这对判断系外行星是否宜居有直接影响。" },
+          { title: "数千个黑洞可能就在我们\"后院\"，而且你可以帮忙找", url: "https://www.zooniverse.org/projects/cobalt-lensing/black-hole-hunters", source: "Universe Today", summary: "南安普顿大学发起公民科学项目，靠引力微透镜效应在银河系中搜寻孤立黑洞，目前已发现的黑洞仅约 70 个。" },
+          { title: "月面埋藏的火山暗示月球曾有过发电机式的磁场", url: "https://www.universetoday.com/", source: "Universe Today", summary: "ETH 苏黎世与 DLR 的团队通过月海火山样品证明月球早期确实存在磁发电机，为争论数十年的问题给出结论。" },
+          { title: "钱德拉 X 射线望远镜公布银河系中心的新影像", url: "https://chandra.si.edu/", source: "NASA Chandra", summary: "在 Sgr A* 之外，这张 X 射线影像揭示了银心区域大量致密天体与高温气体的细节。" },
+          { title: "韦布望远镜把\"第一批星系\"与今天的宇宙连接起来", url: "https://webb.nasa.gov/", source: "NASA JWST", summary: "MEGATRON 项目用高精度数值模拟追踪第一代恒星与星系，解释今天仍能观测到的宇宙学\"指纹\"。" },
+          { title: "Sentinel-3C 传回首批地球影像", url: "https://www.esa.int/", source: "ESA", summary: "发射两周后，哥白尼 Sentinel-3C 卫星的两台关键载荷开始工作，将用于监测海洋、陆地、冰冻圈与大气。" },
+          { title: "国际社会呼吁：让天空保持黑暗与安静", url: "https://www.esa.int/Space_Safety/Clean_Space", source: "ESA", summary: "随着在轨卫星数量激增，反射光与射电干扰正在影响专业天文观测和普通人的观星体验。" },
+          { title: "中国天眼 FAST 持续产出脉冲星发现", url: "https://fast.bao.ac.cn/", source: "国家天文台", summary: "500 米口径球面射电望远镜在脉冲星搜寻、快速射电暴与中性氢巡天等方向持续发表成果。" }
         ];
+
+        /* 首页这一栏同样要求"必须是天文"。
+           之前只信缓存，结果 IT之家 的汽车/手机新闻也排进了 Top10。 */
+        var HOME_ASTRO_WORDS = ['天文','天象','星空','星系','恒星','行星','卫星','彗星','小行星',
+          '月球','月面','火星','金星','木星','土星','水星','太阳','日冕','耀斑','宇宙','银河',
+          '星云','星团','黑洞','中子星','脉冲星','引力波','暗物质','超新星','望远镜','天文台',
+          '观测','天眼','航天','火箭','运载','发射','飞船','空间站','探月','探火','嫦娥','天问',
+          '神舟','北斗','鹊桥','天宫','长征','祝融','玉兔','轨道','着陆','探测器','深空','星链',
+          'astronomy','telescope','galaxy','nebula','supernova','exoplanet','orbit','launch',
+          'lunar','mars','spacecraft','rocket','satellite','comet','asteroid','cosmos','universe'];
+        var HOME_BLOCK = ['ithome', 'it之家', '驱动之家', '快科技', 'cnbeta'];
+
+        /* 首页榜同样只显示"标题能变成中文"的条目，
+           免得第一屏就是看不懂的英文。 */
+        function homeReadable(n) {
+          var raw = String((n && n.title) || '');
+          if ((raw.match(/[\u4e00-\u9fa5]/g) || []).length >= 4) return true;
+          try {
+            if (window.SkyNewsLang && window.SkyNewsLang.translate) {
+              var r = window.SkyNewsLang.translate(raw);
+              return !!(r && (r.covered || (r.zh && (r.zh.match(/[\u4e00-\u9fa5]/g) || []).length >= 4)));
+            }
+          } catch (e) { }
+          return false;
+        }
+
+        function homeKeep(n) {
+          var s = String((n && n.source) || '').toLowerCase();
+          for (var b = 0; b < HOME_BLOCK.length; b++) {
+            if (s.indexOf(HOME_BLOCK[b]) >= 0) return false;
+          }
+          var text = String((n && n.title) || '') + ' ' + String((n && n.summary) || '');
+          var low = text.toLowerCase();
+          for (var i = 0; i < HOME_ASTRO_WORDS.length; i++) {
+            var w = HOME_ASTRO_WORDS[i];
+            if (text.indexOf(w) >= 0 || low.indexOf(String(w).toLowerCase()) >= 0) return true;
+          }
+          return false;
+        }
 
         function readCache() {
           try {
@@ -2924,7 +3172,7 @@
 
         function render() {
           var cache = readCache();
-          var list = cache ? cache.list.slice() : FALLBACK.slice();
+          var list = (cache ? cache.list.slice() : FALLBACK.slice()).filter(homeKeep).filter(homeReadable);
           if (cache) list.sort(function (a, b) { return heat(b) - heat(a); });
 
           /* 站主要求：首页这一栏只放 **10 条**，而且必须是**中文标题**，
@@ -3244,6 +3492,59 @@
     })();
   </script>
 
+<script>
+    /* ---------- 背景方案切换（方案一/二/三） ---------- */
+    (function () {
+      var seg = document.getElementById('bgStyleSeg');
+      if (!seg) return;
+      var KEY = 'sky_bg_style_v2';
+      var VALID = { one: 1, two: 1, three: 1 };
+
+      function apply(v) {
+        if (!VALID[v]) v = 'one';
+        document.documentElement.setAttribute('data-bg-style', v);
+        try { localStorage.setItem(KEY, v); } catch (e) { }
+      }
+
+      seg.addEventListener('click', function (e) {
+        var b = e.target.closest && e.target.closest('.seg-btn');
+        if (b) apply(b.getAttribute('data-bg'));
+      });
+    })();
+</script>
+<script>
+    /* ---------- 标签云：点标签跳到对应栏目 ---------- */
+    (function () {
+      var cloud = document.querySelector('.tag-cloud');
+      if (!cloud) return;
+      window.tagJumpBound = true;
+      cloud.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('[data-jump]');
+        if (!a) return;
+        e.preventDefault();
+        var target = a.getAttribute('data-jump');
+        var link = document.querySelector('.nav-links a[data-page="' + target + '"]');
+        if (link) link.click();
+      });
+    })();
+</script>
+<script>
+    /* ---------- 横向翻页性能优化 ----------
+       滚动期间临时摘掉毛玻璃。backdrop-filter 在横向滚动时每一帧都要
+       重新采样背景，是卡顿的主因；松手 260ms 后再恢复。 */
+    (function () {
+      var stage = document.querySelector('.stage');
+      if (!stage) return;
+      var t = null;
+      stage.addEventListener('scroll', function () {
+        document.documentElement.classList.add('is-scrolling');
+        clearTimeout(t);
+        t = setTimeout(function () {
+          document.documentElement.classList.remove('is-scrolling');
+        }, 260);
+      }, { passive: true });
+    })();
+</script>
 </body>
 
 </html>
