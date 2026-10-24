@@ -27,7 +27,7 @@
 
 
 <!-- 美化版主样式表（设计令牌 / 星野 / 导航 / 卡片 / 星图 / 设置面板） -->
-  <link rel="stylesheet" href="css/sky.css?v=20261024" />
+  <link rel="stylesheet" href="css/sky.css?v=20261025" />
 
   <!-- 功能脚本：星野主控 + 古籍星图面板 + 新闻标题翻译（defer：解析完再执行） -->
   <!-- 新闻标题翻译层：**必须同步加载**。
@@ -139,11 +139,18 @@
          默认隐藏，只有 html[data-bg-style="one"] 时才显示，
          同时把方案二的三层星野关掉。 -->
     <div class="sky-luxe" aria-hidden="true">
-      <img src="assets/sky-min.svg" alt="" decoding="async" draggable="false">
+      <div class="sky-const-track sky-const-track--slow">
+        <img src="assets/sky-min.svg" alt="" decoding="async" draggable="false">
+        <img src="assets/sky-min.svg" alt="" decoding="async" draggable="false">
+      </div>
     </div>
     <!-- 方案三「只有星座」：星星 + 二十八宿连线，没有星云和银河 -->
     <div class="sky-const" aria-hidden="true">
-      <img src="assets/sky-const.svg" alt="" decoding="async" draggable="false">
+      <!-- 两张首尾相接：轨道缓慢左移就形成无缝漂移（和原始版的星野一样会动） -->
+      <div class="sky-const-track">
+        <img src="assets/sky-const.svg" alt="" decoding="async" draggable="false">
+        <img src="assets/sky-const.svg" alt="" decoding="async" draggable="false">
+      </div>
     </div>
     <div class="sky-airglow"></div>
     <div class="sky-grain"></div>
@@ -904,7 +911,7 @@
 
             <!-- ---------- 星空 ---------- -->
             
-                <p class="build-tag">界面版本 2026.10.24 · 含星空背景三选一</p>
+                <p class="build-tag">界面版本 2026.10.25 · 背景三选一 + 缓慢漂移</p>
               <div class="setting-pane" id="pane-sky">
               <div class="setting-group-title">Sky</div>
 

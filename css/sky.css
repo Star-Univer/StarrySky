@@ -5461,3 +5461,40 @@ html.is-switching * {
   opacity: .7;
   text-align: center;
 }
+
+
+/* ============ 24. 方案一/三 的缓慢漂移 ============
+   原始版的星野是动的（三层以不同速度左移 + 鼠标视差）。
+   方案一/方案三 之前是单张静态图，所以看着"死"。
+   现在改成双图首尾相接的轨道，缓慢左移，无缝循环。 */
+.sky-const-track {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  animation: skyConstFlow 260s linear infinite;
+  will-change: transform;
+}
+
+.sky-const-track--slow {
+  animation-duration: 420s;
+}
+
+.sky-const-track img {
+  width: 50%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  flex: 0 0 50%;
+}
+
+@keyframes skyConstFlow {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+/* 尊重系统"减少动态效果"：那就静止 */
+@media (prefers-reduced-motion: reduce) {
+  .sky-const-track {
+    animation: none;
+  }
+}
