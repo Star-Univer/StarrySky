@@ -27,7 +27,7 @@
 
 
 <!-- 美化版主样式表（设计令牌 / 星野 / 导航 / 卡片 / 星图 / 设置面板） -->
-  <link rel="stylesheet" href="css/sky.css?v=20261026" />
+  <link rel="stylesheet" href="css/sky.css?v=20261027" />
 
   <!-- 功能脚本：星野主控 + 古籍星图面板 + 新闻标题翻译（defer：解析完再执行） -->
   <!-- 新闻标题翻译层：**必须同步加载**。
@@ -1061,7 +1061,7 @@
 
             <!-- ---------- 星空 ---------- -->
             
-                <p class="build-tag">界面版本 2026.10.26 · 原版星空已还原</p>
+                <p class="build-tag">界面版本 2026.10.27 · 手机设置可滚动</p>
               <div class="setting-pane" id="pane-sky">
               <div class="setting-group-title">Sky</div>
 
@@ -2193,6 +2193,45 @@ var supabase = null;
        * 现在改成**第一次真的要用账号时**才动态插入 <script>，
        * 首屏干净、也少了一个第三方请求。
        * ------------------------------------------------------------- */
+      /* ---------------------------------------------------------------
+       * 把用户写进 profiles 表
+       *
+       * Supabase 的 signUp 只会写入 auth.users，**不会**动业务表。
+       * 此前站点从没往 profiles 写过，所以后台那张表一直是空的。
+       * 这里在注册/登录成功后补一次 upsert（表不存在或被 RLS 拒绝时静默跳过）。
+       * ------------------------------------------------------------- */
+      /* 局部写 profiles：只更新传进来的字段，其余列保持原样 */
+      async function upsertProfile(fields) {
+        try {
+          var ur = await supabase.auth.getUser();
+          var uid = ur && ur.data && ur.data.user ? ur.data.user.id : null;
+          if (!uid) return;
+          var row = { id: uid, updated_at: new Date().toISOString() };
+          for (var k in fields) if (fields[k] !== undefined) row[k] = fields[k];
+          await supabase.from('profiles').upsert(row, { onConflict: 'id' });
+        } catch (e) {
+          if (window.console) console.info('[星空] profiles 未写入（表或策略未就绪）', e && e.message);
+        }
+      }
+
+      async function syncProfile(user, name) {
+        if (!user || !user.id) return;
+        try {
+          var md = user.user_metadata || {};
+          await supabase.from('profiles').upsert(
+            {
+              id: user.id,
+              username: name || md.username || md.name || '',
+              signature: md.signature || '',
+              avatar: md.avatar || ''
+            },
+            { onConflict: 'id' }
+          );
+        } catch (e) {
+          if (window.console) console.info('[星空] profiles 未写入（表或策略未就绪）', e && e.message);
+        }
+      }
+
       var SUPABASE_CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
       var __sbLoading = false;
 
@@ -2292,6 +2331,7 @@ var supabase = null;
         loginMsgEl.className = 'auth-msg';
 
         var res = await supabase.auth.signInWithPassword({ email: email, password: password });
+        if (!res.error && res.data && res.data.user) await syncProfile(res.data.user, (res.data.user.user_metadata || {}).username || '');
         if (res.error) {
           loginMsgEl.textContent = '登录失败：账号不存在或密码错误';
           loginMsgEl.className = 'auth-msg error';
@@ -2346,6 +2386,7 @@ var supabase = null;
         }
 
         if (up.data && up.data.session) {
+          await syncProfile(up.data.user, name);
           setSession(name);
           saveQuickLoginData(name, password);
           checkQuickLoginAvailable();
@@ -2358,6 +2399,7 @@ var supabase = null;
           /* Supabase 没返回 session 时，主动补一次登录 */
           var force = await supabase.auth.signInWithPassword({ email: email, password: password });
           if (force && force.data && force.data.user) {
+            await syncProfile(force.data.user, name);
             setSession(name);
             saveQuickLoginData(name, password);
             checkQuickLoginAvailable();
@@ -2521,8 +2563,11 @@ var supabase = null;
             if (window.__skyAvatar) window.__skyAvatar.set(base64);
 
             supabase.auth.updateUser({ data: { avatar: base64 } }).then(function (r) {
-              if (r && r.error) alert('头像已在本机生效，但同步到云端失败：' + r.error.message);
-              else alert('头像上传成功！任务栏上的头像也换好了。');
+              if (r && r.error) { alert('头像已在本机生效，但同步到云端失败：' + r.error.message); return; }
+              /* 写进 profiles.avatar（后台可见；base64 控制在 150px 左右，约 10~20KB） */
+              upsertProfile({ avatar: base64 }).then(function () {
+                alert('头像上传成功！任务栏上的头像也换好了。');
+              });
             });
           };
           img.src = event.target.result;
@@ -2537,6 +2582,9 @@ var supabase = null;
 
         var r = await supabase.auth.updateUser({ data: { username: newName, signature: newSign } });
         if (r.error) { alert('保存失败：' + r.error.message); return; }
+
+        /* 同步进 profiles 表（后台能直接看到名字与签名） */
+        await upsertProfile({ username: newName, signature: newSign });
 
         setSession(newName);
         userNameEl.textContent = newName;

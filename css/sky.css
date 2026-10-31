@@ -5572,3 +5572,52 @@ html[data-bg-style="orig"] .seg-btn[data-bg="orig"] {
   .c-star { animation: none; }
   .stars-track { animation: none; }
 }
+
+
+/* ============ 26. 手机端设置：整卡可滚动 ============
+   现象：手机上设置面板底部（退出登录 / 退出所有设备）按不到。
+   原因：卡片是固定高度 + flex 布局，窄屏把"横排页签 + 内容"堆成
+         上下两块后，总高度超过卡片，超出部分被裁掉，而卡片本身不滚动。
+   改法：让卡片整体纵向滚动（内层不再各自滚动，避免"滚不动"的套娃），
+         页签吸顶，并给 iPhone 底部安全区留白。 */
+@media (max-width: 640px) {
+  .auth-mask {
+    align-items: flex-start;
+    padding: 10px 10px 16px;
+  }
+
+  .auth-card {
+    height: auto;
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .auth-split {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  /* 内层不再滚动，交给卡片统一滚 */
+  .auth-main,
+  .settings-body,
+  .setting-pane {
+    overflow: visible;
+    max-height: none;
+  }
+
+  /* 页签吸顶：往上翻内容时仍能切栏目 */
+  .settings-nav {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: var(--bg-card, rgba(12, 20, 34, .92));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding-top: 6px;
+    margin-top: -6px;
+  }
+}
